@@ -1,0 +1,154 @@
+:root {
+    --primary-purple: #5B2EFF;
+    --accent-pink: #FF2E9E;
+    --dark-purple: #2A1B5E;
+    --glass: rgba(255,255,255,0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #0F0A1F;
+    color: white;
+    overflow-x: hidden;
+}
+
+.splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #5B2EFF, #2A1B5E);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 1s ease;
+}
+
+.splash-content {
+    text-align: center;
+}
+
+.logo {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    background: linear-gradient(45deg, #fff, #FF2E9E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: glow 2s infinite alternate;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top: 5px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px #fff; }
+    to { text-shadow: 0 0 30px #FF2E9E; }
+}
+
+.app {
+    min-height: 100vh;
+}
+
+.navbar {
+    background: rgba(43, 27, 94, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-brand {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #5B2EFF;
+}
+
+.nav-menu a {
+    color: white;
+    margin: 0 1rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: #FF2E9E;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.user-info img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.page {
+    display: none;
+    padding: 2rem;
+}
+
+.page.active {
+    display: block;
+}
+
+.hero {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: linear-gradient(rgba(91,46,255,0.3), rgba(42,27,94,0.8)), url('https://picsum.photos/1920/1080') center/cover;
+}
+
+.glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Add more styles for responsiveness, animations etc. */
+button {
+    background: var(--primary-purple);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(91,46,255,0.4);
+}

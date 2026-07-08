@@ -2,56 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VivyLive 💜</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VivyLive 💜 | Premium Entertainment</title>
+    
+    <!-- Tailwind CSS for Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js for App Logic -->
+    <script src="https://unpkg.com/vue@3/dist-vue.global.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-    </style>
-</head>
-<body>
-    <!-- Splash Screen -->
-    <div id="splash" class="splash">
-        <div class="splash-content">
-            <div class="logo">VivyLive 💜</div>
-            <div class="loader"></div>
-            <p>Initializing premium experience...</p>
-        </div>
-    </div>
-
-    <!-- Main App -->
-    <div id="app" class="app hidden">
-        <!-- Navbar -->
-        <nav class="navbar">
-            <div class="nav-brand">VivyLive 💜</div>
-            <div class="nav-menu">
-                <a href="#" onclick="navigate('home')">Home</a>
-                <a href="#" onclick="navigate('streams')">Live</a>
-                <a href="#" onclick="navigate('hosts')">Hosts</a>
-                <a href="#" onclick="navigate('wallet')">Wallet</a>
-                <a href="#" onclick="navigate('profile')">Profile</a>
-            </div>
-            <div class="user-info" onclick="showProfileMenu()">
-                <img id="nav-avatar" src="assets/images/default-avatar.png" alt="Avatar" style="width:32px;height:32px;border-radius:50%;">
-                <span id="nav-username">Guest</span>
-            </div>
-        </nav>
-
-        <div id="home-page" class="page active">
-            <div class="hero">
-                <h1>Welcome to VivyLive 💜</h1>
-                <p>Premium Social Entertainment</p>
-                <button onclick="navigate('streams')" style="margin-top:20px;">Explore Live Streams</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="assets/js/firebase-config.js"></script>
-    <script src="assets/js/app.js"></script>
-</body>
-  </html>
+        :root { --primary: #5B2EFF; --dark-purple: #1a0b3d; --glass: rgba(255, 255, 255, 0.1); }
+        body { background-color: var(--dark-purple); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }

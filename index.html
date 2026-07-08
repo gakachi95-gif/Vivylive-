@@ -27,4 +27,106 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
+        }/* Splash Screen Animation */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #5B2EFF 0%, #1a0b3d 100%);
+            z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transition: opacity 0.8s ease-out;
         }
+        .glow-particle {
+            position: absolute; width: 4px; height: 4px; background: white;
+            border-radius: 50%; filter: blur(2px); animation: float 3s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+        .fade-out { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body><!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="glow-container" id="particles"></div>
+        <h1 class="text-5xl font-bold tracking-tighter animate-bounce">VivyLive 💜</h1>
+        <div class="mt-4 w-48 h-1 bg-white/20 rounded-full overflow-hidden">
+            <div class="h-full bg-white animate-progress" style="width: 0%; transition: width 2s ease-in-out;"></div>
+        </div>
+    </div>
+
+    <div id="app" v-if="appLoaded">
+        <!-- Navigation Bar (Bottom for Mobile-First) -->
+        <nav class="fixed bottom-0 left-0 right-0 h-20 glass-card rounded-none rounded-t-3xl flex justify-around items-center z-50 px-4">
+            <button @click="view = 'explore'" :class="view === 'explore' ? 'text-primary' : 'text-gray-400'">
+                <i data-lucide="home"></i><span class="block text-xs">Explore</span>
+            </button>
+            <button @click="view = 'live'" :class="view === 'live' ? 'text-primary' : 'text-gray-400'">
+                <i data-lucide="video"></i><span class="block text-xs">Live</span>
+            </button>
+            <button @click="view = 'wallet'" :class="view === 'wallet' ? 'text-primary' : 'text-gray-400'">
+                <i data-lucide="wallet"></i><span class="block text-xs">Wallet</span>
+            </button>
+            <button @click="view = 'profile'" :class="view === 'profile' ? 'text-primary' : 'text-gray-400'">
+                <i data-lucide="user"></i><span class="block text-xs">Profile</span>
+            </button>
+    </nav><!-- Dynamic View Container -->
+        <main class="pb-24 pt-6 px-4">
+            <!-- Explore Page -->
+            <section v-if="view === 'explore'" class="animate-fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Recommended Hosts</h2>
+                    <div class="bg-primary px-3 py-1 rounded-full text-xs">New Events 💎</div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div v-for="host in hosts" :key="host.id" class="glass-card p-3 relative overflow-hidden">
+                        <img :src="host.avatar" class="w-full h-40 object-cover rounded-xl mb-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">{{ host.name }}</span>
+                            <span class="text-xs bg-red-500 px-2 py-0.5 rounded-full">LIVE</span>
+                        </div>
+                        <button @click="joinStream(host.id)" class="w-full mt-2 py-2 bg-primary rounded-lg text-sm">Join Room</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Wallet Page -->
+            <section v-if="view === 'wallet'" class="animate-fade-in">
+                <div class="glass-card p-6 text-center mb-6">
+                    <p class="text-gray-400 text-sm">Your Balance</p>
+                    <h3 class="text-4xl font-bold">💎 {{ userBalance }} <span class="text-lg">Coins</span></h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-8">
+                    <button @click="buyCoins" class="p-4 bg-primary rounded-2xl font-bold">Buy Coins</button>
+                    <button @click="viewHistory" class="p-4 glass-card rounded-2xl font-bold">History</button>
+                </div>
+                <div class="space-y-3">
+                    <h4 class="font-bold mb-4">Quick Recharge</h4>
+                    <div v-for="pack in coinPackages" @click="selectPack(pack)" class="glass-card p-4 flex justify-between items-center cursor-pointer"><span>{{ pack.amount }} Coins</span>
+                        <span class="font-bold text-primary">${{ pack.price }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile/Host Settings -->
+            <section v-if="view === 'profile'" class="animate-fade-in">
+                <div class="flex items-center gap-4 mb-8">
+                    <img :src="currentUser.photo" class="w-20 h-20 rounded-full border-2 border-primary">
+                    <div>
+                        <h3 class="text-xl font-bold">{{ currentUser.name }}</h3>
+                        <p class="text-gray-400 text-sm">{{ currentUser.role }}</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <button @click="view = 'settings'" class="w-full glass-card p-4 flex justify-between items-center">
+                        <span>Account Settings</span><i data-lucide="chevron-right"></i>
+                    </button>
+                    <button v-if="currentUser.role === 'User'" @click="applyAsHost" class="w-full p-4 bg-primary rounded-2xl font-bold">Apply to be Host</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

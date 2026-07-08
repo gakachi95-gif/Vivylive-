@@ -1,309 +1,214 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Vivy 💜 | Meet. Match. Talk.</title>
-    
-    <!-- SEO & PWA -->
-    <meta name="description" content="Vivy is a premium calling platform to meet, match, and talk with elegance.">
-    <meta name="theme-color" content="#1a0033">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta property="og:title" content="Vivy - Premium Calling Platform">
-    <meta property="og:description" content="Meet. Match. Talk.">
-    <meta property="og:image" content="assets/og-image.jpg">
-    <link rel="manifest" href="manifest.json">
-    <link rel="shortcut icon" href="favicon.ico">
+    <!-- Primary Meta Tags -->
+    <title>VivyLive 💜</title>
+    <meta name="description" content="Experience premium live streaming, interactive video calls, and virtual gifting. Join the most vibrant community of creators on VivyLive.">
+    <meta name="keywords" content="live streaming, virtual gifts, video chat, host earnings, streaming agency, interactive games">
+    <meta name="author" content="VivyLive">
+    <meta name="robots" content="index, follow">
 
-    <!-- External Assets -->
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vivylive.com/">
+    <meta property="og:title" content="VivyLive 💜 | Watch. Stream. Connect. Earn.">
+    <meta property="og:description" content="Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.">
+    <meta property="og:image" content="assets/images/og-image.jpg">
 
-    <!-- Logic Scripts -->
-    <script src="firebase.js" defer></script>
-    <script src="auth.js" defer></script>
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://vivylive.com/">
+    <meta property="twitter:title" content="VivyLive 💜 | Watch. Stream. Connect. Earn.">
+    <meta property="twitter:description" content="Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.">
+    <meta property="twitter:image" content="assets/images/twitter-card.jpg">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/splash.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/sections.css">
 </head>
 <body>
 
-    <!-- GLOBAL LOADING OVERLAY -->
-    <div id="global-loader" class="hidden">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p>Processing...</p>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container"></div>
-
-    <!-- REUSABLE MODAL SYSTEM -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modal-title">Notification</h3>
-                <button onclick="closeModal()" class="close-btn">&times;</button>
-            </div>
-            <div id="modal-body" class="modal-body"></div>
-            <div class="modal-footer">
-                <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SPLASH SCREEN -->
-    <div id="splash-screen" class="splash-screen">
+    <!-- Splash Screen -->
+    <div id="splash-screen">
         <div class="splash-content">
-            <div class="logo-animation">
-                <div class="vivy-logo-glow">V</div>
-            </div>
-            <h1 class="splash-title">Vivy 💜</h1>
-            <p class="splash-tagline">Meet. Match. Talk.</p>
-            <div class="loading-bar-container">
-                <div class="loading-bar"></div>
+            <h1 class="splash-logo">VivyLive 💜</h1>
+            <div class="loader-container">
+                <div class="loader"></div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <main id="app-container" class="hidden">
-        
-        <!-- LANDING PAGE -->
-        <section id="landing-page" class="view active">
-            <div class="glass-nav">
-                <div class="nav-logo">Vivy 💜</div>
-                <button class="btn-glass-sm" onclick="navigateTo('login-page')">Login</button>
+    <!-- Navigation Bar -->
+    <header>
+        <nav class="main-nav">
+            <div class="nav-logo">
+                <a href="/">VivyLive 💜</a>
             </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#live">Live</a></li>
+                <li><a href="#hosts">Hosts</a></li>
+                <li><a href="#games">Games</a></li>
+                <li><a href="#gifts">Gifts</a></li>
+                <li><a href="#agency">Agency</a></li>
+                <li><a href="#become-host">Become Host</a></li>
+            </ul>
+            <div class="nav-auth">
+                <a href="/login" class="btn-login">Login</a>
+                <a href="/register" class="btn-register">Register</a>
+            </div>
+        </nav>
+    </header>
 
-            <div class="hero-section">
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero-section">
+            <div class="hero-container">
                 <div class="hero-content">
-                    <div class="logo-large">V</div>
-                    <h1>Connect Beyond <br><span class="gradient-text">Boundaries.</span></h1>
-                    <p>Experience the gold standard of digital connections. Private, secure, and exquisitely designed.</p>
-                    <div class="hero-btns">
-                        <button class="btn-primary-lg" onclick="navigateTo('register-page')">Get Started</button>
-                        <button class="btn-secondary-lg" onclick="navigateTo('login-page')">Sign In</button>
-                    </div>
-                </div>
-                <div class="hero-illustration">
-                    <div class="floating-glow"></div>
-                    <div class="illustration-placeholder"></div>
-                </div>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-card">
-                    <i class="fas fa-shield-halved"></i>
-                    <h3>Safety & Privacy</h3>
-                    <p>End-to-end encrypted calls and strict identity verification for a secure environment.</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-gem"></i>
-                    <h3>Why Choose Vivy</h3>
-                    <p>Curated matching algorithms and high-fidelity audio for a premium experience.</p>
-                </div>
-            </div>
-
-            <div class="faq-section">
-                <h2>Common Questions</h2>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <div class="accordion-header">How does matching work? <span>+</span></div>
-                        <div class="accordion-body">Our AI analyzes interests and preferences to find your perfect match.</div>
-                    </div>
-                    <div class="accordion-item">
-                        <div class="accordion-header">Is it truly private? <span>+</span></div>
-                        <div class="accordion-body">Yes, your data is encrypted and never shared with third parties.</div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="footer">
-                <p>&copy; 2023 Vivy Premium. All rights reserved.</p>
-            </div>
-        </section>
-
-        <!-- LOGIN PAGE -->
-        <section id="login-page" class="view">
-            <div class="auth-container">
-                <button class="btn-back" onclick="navigateTo('landing-page')">← Back</button>
-                <div class="auth-card">
-                    <h2>Welcome Back</h2>
-                    <p class="subtitle">Enter your credentials to access your account.</p>
-                    
-                    <form id="loginForm" class="auth-form">
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="login-email" placeholder="name@email.com" required>
-                            <span class="error-msg" id="login-email-error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="login-password" placeholder="••••••••" required>
-                            <span class="error-msg" id="login-password-error"></span>
-                        </div>
-                        <div class="form-footer">
-                            <a href="#" onclick="navigateTo('forgot-password-page')">Forgot Password?</a>
-                        </div>
-                        <button type="submit" class="btn-submit">Login</button>
-                    </form>
-                    <p class="auth-switch">Don't have an account? <a href="#" onclick="navigateTo('register-page')">Sign Up</a></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- REGISTER PAGE -->
-        <section id="register-page" class="view">
-            <div class="auth-container">
-                <button class="btn-back" onclick="navigateTo('landing-page')">← Back</button>
-                <div class="auth-card">
-                    <h2>Create Account</h2>
-                    <p class="subtitle">Join the elite circle of Vivy users.</p>
-                    
-                    <form id="registerForm" class="auth-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Full Name</label>
-                                <input type="text" name="fullname" placeholder="John Doe" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Username</label>
-                                <input type="text" name="username" placeholder="johndoe_v" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" name="email" placeholder="name@email.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone (Optional)</label>
-                            <input type="tel" name="phone" placeholder="+1 234 567 890">
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" name="password" placeholder="••••••••" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Confirm Password</label>
-                                <input type="password" name="confirmPassword" placeholder="••••••••" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Country</label>
-                                <select name="country">
-                                    <option value="US">United States</option>
-                                    <option value="UK">United Kingdom</option>
-                                    <option value="CA">Canada</option>
-                                    <option value="AU">Australia</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Gender</label>
-                                <select name="gender">
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Date of Birth</label>
-                            <input type="date" name="dob" required>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="terms" required>
-                            <label for="terms">I agree to the Terms & Conditions</label>
-                        </div>
-                        <button type="submit" class="btn-submit">Create Account</button>
-                    </form>
-                    <p class="auth-switch">Already have an account? <a href="#" onclick="navigateTo('login-page')">Login</a></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- FORGOT PASSWORD PAGE -->
-        <section id="forgot-password-page" class="view">
-            <div class="auth-container">
-                <button class="btn-back" onclick="navigateTo('login-page')">← Back</button>
-                <div class="auth-card">
-                    <h2>Reset Password</h2>
-                    <p class="subtitle">Enter your email to receive a reset link.</p>
-                    <form id="forgotPasswordForm" class="auth-form">
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" id="forgot-email" placeholder="name@email.com" required>
-                        </div>
-                        <button type="submit" class="btn-submit">Send Reset Link</button>
-                        <div id="forgot-success-msg" class="success-msg hidden">Reset link sent to your email!</div>
-                    </form>
-                    <div class="text-center">
-                        <a href="#" onclick="navigateTo('login-page')">Return to Login</a>
+                    <h1>Watch. Stream. Connect. Earn.</h1>
+                    <p>Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.</p>
+                    <div class="hero-cta">
+                        <a href="#live" class="btn-primary">Watch Live</a>
+                        <a href="#become-host" class="btn-secondary">Become a Host</a>
+                        <a href="#" class="btn-outline">Download App</a>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- EMAIL VERIFICATION PAGE -->
-        <section id="verify-email-page" class="view">
-            <div class="auth-container">
-                <div class="auth-card text-center">
-                    <div class="verification-icon">✉️</div>
-                    <h2>Verify Your Email</h2>
-                    <p>We've sent a verification code to your email. Please check your inbox to continue.</p>
-                    <button class="btn-secondary" id="resend-code">Resend Code</button>
-                    <button class="btn-submit" onclick="window.location.href='dashboard.html'">Verify & Continue</button>
-                </div>
+        <!-- Trending Live Streams -->
+        <section id="live" class="trending-streams">
+            <h2>Trending Live Streams</h2>
+            <div class="stream-grid">
+                <!-- Stream cards will be dynamically loaded or listed here -->
             </div>
         </section>
 
+        <!-- Featured Hosts -->
+        <section id="hosts" class="featured-hosts">
+            <h2>Featured Hosts</h2>
+            <div class="host-grid">
+                <!-- Host profiles will be listed here -->
+            </div>
+        </section>
+
+        <!-- Popular Virtual Gifts -->
+        <section id="gifts" class="virtual-gifts">
+            <h2>Popular Virtual Gifts</h2>
+            <div class="gifts-grid">
+                <!-- Gift items will be listed here -->
+            </div>
+        </section>
+
+        <!-- Interactive Games Preview -->
+        <section id="games" class="games-preview">
+            <h2>Interactive Games</h2>
+            <div class="games-container">
+                <!-- Game categories and previews -->
+            </div>
+        </section>
+
+        <!-- Coin Packages Preview -->
+        <section class="coin-packages">
+            <h2>Recharge Your Balance</h2>
+            <div class="packages-grid">
+                <!-- Coin package pricing and options -->
+            </div>
+        </section>
+
+        <!-- How Hosts Earn -->
+        <section id="how-earn" class="earnings-guide">
+            <h2>How Hosts Earn</h2>
+            <div class="earnings-steps">
+                <!-- Steps: Stream, Receive Gifts, Convert to Cash -->
+            </div>
+        </section>
+
+        <!-- Agency Partnership -->
+        <section id="agency" class="agency-partnership">
+            <h2>Agency Partnership</h2>
+            <div class="agency-content">
+                <!-- Details for agencies wanting to join -->
+            </div>
+        </section>
+
+        <!-- Weekly Leaderboard -->
+        <section class="leaderboard">
+            <h2>Weekly Leaderboard</h2>
+            <div class="leaderboard-table">
+                <!-- Top users and hosts ranking -->
+            </div>
+        </section>
+
+        <!-- Platform Statistics -->
+        <section class="platform-stats">
+            <div class="stat-item">
+                <span class="stat-number">1M+</span>
+                <span class="stat-label">Active Users</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">50K+</span>
+                <span class="stat-label">Certified Hosts</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">100M+</span>
+                <span class="stat-label">Gifts Sent</span>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2>Community Stories</h2>
+            <div class="testimonial-grid">
+                <!-- User and Host testimonials -->
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-accordion">
+                <!-- FAQ items -->
+            </div>
+        </section>
     </main>
 
-    <script>
-        // Simple View Routing Logic
-        function navigateTo(viewId) {
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
-            });
-            const activeView = document.getElementById(viewId);
-            if (activeView) {
-                activeView.classList.add('active');
-            }
-        }
+    <footer>
+        <div class="footer-container">
+            <div class="footer-brand">
+                <p>VivyLive 💜</p>
+                <p>The future of interactive entertainment.</p>
+            </div>
+            <div class="footer-links">
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                    <li><a href="#">Help Center</a></li>
+                </ul>
+            </div>
+            <div class="footer-social">
+                <!-- Social Media Icons Links -->
+            </div>
+            <div class="footer-bottom">
+                &copy; 2023 VivyLive. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
-        // Splash Screen Logic
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('splash-screen').style.display = 'none';
-                    document.getElementById('app-container').classList.remove('hidden');
-                }, 500);
-            }, 2500);
-        });
-
-        // Modal Logic
-        function openModal(title, content) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-body').innerHTML = content;
-            document.getElementById('modal-overlay').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modal-overlay').classList.add('hidden');
-        }
-
-        // Toast Logic
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            document.getElementById('toast-container').appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-    </script>
+    <!-- External JavaScript -->
+    <script src="js/splash-screen.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/animations.js"></script>
 </body>
-                                             </html>
+</html>

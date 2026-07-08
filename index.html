@@ -1,132 +1,466 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VivyLive 💜 | Premium Entertainment</title>
+    <title>Vivy 💜 | Meet. Match. Talk.</title>
     
-    <!-- Tailwind CSS for Layout -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue.js for App Logic -->
-    <script src="https://unpkg.com/vue@3/dist-vue.global.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Experience the premium way to connect. Match, talk, and share moments on Vivy.">
+    <meta name="keywords" content="premium dating, voice call, video call, social networking, matchmaking">
+    <meta name="author" content="Vivy Team">
+    <meta name="theme-color" content="#6a0dad">
 
-    <style>
-        :root { --primary: #5B2EFF; --dark-purple: #1a0b3d; --glass: rgba(255, 255, 255, 0.1); }
-        body { background-color: var(--dark-purple); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        /* Glassmorphism */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-        }/* Splash Screen Animation */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #5B2EFF 0%, #1a0b3d 100%);
-            z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; transition: opacity 0.8s ease-out;
-        }
-        .glow-particle {
-            position: absolute; width: 4px; height: 4px; background: white;
-            border-radius: 50%; filter: blur(2px); animation: float 3s infinite linear;
-        }
-        @keyframes float {
-            0% { transform: translateY(0) scale(1); opacity: 0; }
-            50% { opacity: 0.8; }
-            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
-        }
-        .fade-out { opacity: 0; pointer-events: none; }
-    </style>
+    <!-- PWA Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vivy">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+    <!-- External Libraries (CDNs) -->
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-6.4.0/css/all.min.css">
+    <!-- Google Fonts: Poppins for a modern premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Animate.css for smooth transitions -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
 </head>
-<body><!-- Splash Screen -->
-    <div id="splash-screen">
-        <div class="glow-container" id="particles"></div>
-        <h1 class="text-5xl font-bold tracking-tighter animate-bounce">VivyLive 💜</h1>
-        <div class="mt-4 w-48 h-1 bg-white/20 rounded-full overflow-hidden">
-            <div class="h-full bg-white animate-progress" style="width: 0%; transition: width 2s ease-in-out;"></div>
+<body>
+
+    <!-- ==========================================
+         SPLASH SCREEN 
+         ========================================== -->
+    <div id="splash-screen" class="app-overlay">
+        <div class="splash-content">
+            <div class="logo-container">
+                <div class="logo-glow"></div>
+                <h1 class="logo-text">Vivy 💜</h1>
+            </div>
+            <p class="tagline">Meet. Match. Talk.</p>
+            <div class="loader-container">
+                <div class="spinner"></div>
+                <div class="particles"></div>
+            </div>
         </div>
     </div>
 
-    <div id="app" v-if="appLoaded">
-        <!-- Navigation Bar (Bottom for Mobile-First) -->
-        <nav class="fixed bottom-0 left-0 right-0 h-20 glass-card rounded-none rounded-t-3xl flex justify-around items-center z-50 px-4">
-            <button @click="view = 'explore'" :class="view === 'explore' ? 'text-primary' : 'text-gray-400'">
-                <i data-lucide="home"></i><span class="block text-xs">Explore</span>
-            </button>
-            <button @click="view = 'live'" :class="view === 'live' ? 'text-primary' : 'text-gray-400'">
-                <i data-lucide="video"></i><span class="block text-xs">Live</span>
-            </button>
-            <button @click="view = 'wallet'" :class="view === 'wallet' ? 'text-primary' : 'text-gray-400'">
-                <i data-lucide="wallet"></i><span class="block text-xs">Wallet</span>
-            </button>
-            <button @click="view = 'profile'" :class="view === 'profile' ? 'text-primary' : 'text-gray-400'">
-                <i data-lucide="user"></i><span class="block text-xs">Profile</span>
-            </button>
-    </nav><!-- Dynamic View Container -->
-        <main class="pb-24 pt-6 px-4">
-            <!-- Explore Page -->
-            <section v-if="view === 'explore'" class="animate-fade-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Recommended Hosts</h2>
-                    <div class="bg-primary px-3 py-1 rounded-full text-xs">New Events 💎</div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div v-for="host in hosts" :key="host.id" class="glass-card p-3 relative overflow-hidden">
-                        <img :src="host.avatar" class="w-full h-40 object-cover rounded-xl mb-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold">{{ host.name }}</span>
-                            <span class="text-xs bg-red-500 px-2 py-0.5 rounded-full">LIVE</span>
-                        </div>
-                        <button @click="joinStream(host.id)" class="w-full mt-2 py-2 bg-primary rounded-lg text-sm">Join Room</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Wallet Page -->
-            <section v-if="view === 'wallet'" class="animate-fade-in">
-                <div class="glass-card p-6 text-center mb-6">
-                    <p class="text-gray-400 text-sm">Your Balance</p>
-                    <h3 class="text-4xl font-bold">💎 {{ userBalance }} <span class="text-lg">Coins</span></h3>
-                </div>
-                <div class="grid grid-cols-2 gap-3 mb-8">
-                    <button @click="buyCoins" class="p-4 bg-primary rounded-2xl font-bold">Buy Coins</button>
-                    <button @click="viewHistory" class="p-4 glass-card rounded-2xl font-bold">History</button>
-                </div>
-                <div class="space-y-3">
-                    <h4 class="font-bold mb-4">Quick Recharge</h4>
-                    <div v-for="pack in coinPackages" @click="selectPack(pack)" class="glass-card p-4 flex justify-between items-center cursor-pointer"><span>{{ pack.amount }} Coins</span>
-                        <span class="font-bold text-primary">${{ pack.price }}</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Profile/Host Settings -->
-            <section v-if="view === 'profile'" class="animate-fade-in">
-                <div class="flex items-center gap-4 mb-8">
-                    <img :src="currentUser.photo" class="w-20 h-20 rounded-full border-2 border-primary">
-                    <div>
-                        <h3 class="text-xl font-bold">{{ currentUser.name }}</h3>
-                        <p class="text-gray-400 text-sm">{{ currentUser.role }}</p>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <button @click="view = 'settings'" class="w-full glass-card p-4 flex justify-between items-center">
-                        <span>Account Settings</span><i data-lucide="chevron-right"></i>
-                    </button>
-                    <button v-if="currentUser.role === 'User'" @click="applyAsHost" class="w-full p-4 bg-primary rounded-2xl font-bold">Apply to be Host</button>
-                </div>
-            </section>
-        </main>
+    <!-- ==========================================
+         GLOBAL COMPONENTS
+         ========================================== -->
+    
+    <!-- Global Announcement Banner -->
+    <div id="global-announcement" class="hidden">
+        <div class="announcement-content">
+            <span id="announcement-text">Welcome to the new Vivy experience!</span>
+            <button id="close-announcement">&times;</button>
+        </div>
     </div>
 
+    <!-- Global Loading Overlay -->
+    <div id="global-loader" class="hidden">
+        <div class="loader-glass">
+            <div class="spinner-small"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Floating Action Button (FAB) -->
+    <button id="main-fab" class="fab">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- ==========================================
+         MAIN APP WRAPPER
+         ========================================== -->
+    <main id="app-shell">
+        
+        <!-- 1. LANDING PAGE SECTION -->
+        <section id="landing-page" class="view-section">
+            <div class="hero-banner">
+                <div class="hero-gradient"></div>
+                <img src="assets/logo-large.png" alt="Vivy Logo" class="hero-logo">
+                <h1>Welcome to Vivy</h1>
+                <p>Experience luxury connections in a secure environment.</p>
+                
+                <div class="auth-cta-group">
+                    <button id="btn-go-register" class="btn-primary">Create Account</button>
+                    <button id="btn-go-login" class="btn-secondary">Login</button>
+                    <button id="btn-download-app" class="btn-outline">Download App <span class="badge">Soon</span></button>
+                </div>
+            </div>
+
+            <div class="landing-content">
+                <div class="section-title">
+                    <h2>Why Choose Vivy?</h2>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-shield-heart"></i>
+                        <h3>Safe & Secure</h3>
+                        <p>Your privacy is our priority with encrypted calls.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Instant Match</h3>
+                        <p>Connect with like-minded people in seconds.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-gem"></i>
+                        <h3>Premium Quality</h3>
+                        <p>Crystal clear HD video and studio-grade audio.</p>
+                    </div>
+                </div>
+
+                <div class="safety-section">
+                    <h3>Safety & Privacy</h3>
+                    <p>We employ strict verification processes to ensure a high-quality community.</p>
+                </div>
+
+                <div class="faq-preview">
+                    <h3>Frequently Asked Questions</h3>
+                    <div class="faq-item"><span>How does matching work?</span></div>
+                    <div class="faq-item"><span>Is it free to join?</span></div>
+                    <div class="faq-item"><span>How do coins work?</span></div>
+                </div>
+            </div>
+
+            <footer class="app-footer">
+                <p>&copy; 2023 Vivy Inc. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+            </footer>
+        </section>
+
+        <!-- 2. AUTHENTICATION SECTIONS (Hidden by default) -->
+        <div id="auth-container" class="view-section hidden">
+            <!-- Login Form -->
+            <div id="auth-login" class="auth-view">
+                <h2>Welcome Back</h2>
+                <form id="form-login">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="login-email" placeholder="name@example.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="login-pass" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Login</button>
+                    <p class="auth-footer">Forgot Password? <a href="#" id="forgot-pass-link">Click here</a></p>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="auth-register" class="auth-view hidden">
+                <h2>Join the Elite</h2>
+                <form id="form-register">
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="reg-name" placeholder="Your name" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="reg-email" placeholder="name@example.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="reg-pass" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Create Account</button>
+                </form>
+            </div>
+
+            <!-- Forgot Password -->
+            <div id="auth-forgot" class="auth-view hidden">
+                <h2>Reset Password</h2>
+                <form id="form-forgot">
+                    <div class="input-group">
+                        <label>Registered Email</label>
+                        <input type="email" id="forgot-email" placeholder="name@example.com" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Send Reset Link</button>
+                </form>
+            </div>
+
+            <!-- Email Verification -->
+            <div id="auth-verify" class="auth-view hidden">
+                <h2>Verify Your Email</h2>
+                <p>Please check your inbox and enter the 6-digit code.</p>
+                <div class="otp-container">
+                    <input type="text" maxlength="1" class="otp-input">
+                    <input type="text" maxlength="1" class="otp-input">
+                    <input type="text" maxlength="1" class="otp-input">
+                    <input type="text" maxlength="1" class="otp-input">
+                    <input type="text" maxlength="1" class="otp-input">
+                    <input type="text" maxlength="1" class="otp-input">
+                </div>
+                <button class="btn-submit">Verify Now</button>
+            </div>
+        </div>
+
+        <!-- 3. USER HOME & DASHBOARD -->
+        <div id="user-home" class="view-section hidden">
+            <!-- Home Feed / Dashboard -->
+            <div id="view-dashboard" class="sub-view">
+                <header class="page-header">
+                    <h1>Hello, <span id="user-name-display">Guest</span> 💜</h1>
+                    <div class="coin-badge">
+                        <i class="fas fa-coins"></i> <span id="user-balance">0</span>
+                    </div>
+                </header>
+                <div class="quick-stats">
+                    <!-- Dynamic stats go here -->
+                </div>
+            </div>
+
+            <!-- Matchmaking Screen -->
+            <div id="view-match" class="sub-view hidden">
+                <div class="match-container">
+                    <div id="match-idle">
+                        <div class="pulse-circle"></div>
+                        <h2>Find Your Match</h2>
+                        <button id="start-match-btn" class="btn-primary">Start Searching</button>
+                    </div>
+                    <div id="match-searching" class="hidden">
+                        <div class="searching-animation"></div>
+                        <p>Searching for the perfect match...</p>
+                        <button id="cancel-match-btn" class="btn-secondary">Cancel</button>
+                    </div>
+                    <div id="match-found" class="hidden">
+                        <div class="user-preview-card">
+                            <img src="assets/placeholder-user.jpg" alt="Match" class="preview-img">
+                            <h3 id="match-user-name">Sarah, 24</h3>
+                            <p id="match-user-bio">Music lover & Traveler</p>
+                        </div>
+                        <div class="match-actions">
+                            <button id="match-decline" class="btn-secondary">Decline</button>
+                            <button id="match-accept" class="btn-primary">Accept</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Interface (Voice/Video) -->
+            <div id="view-call" class="sub-view hidden">
+                <div class="call-container">
+                    <div class="remote-video-container">
+                        <div id="remote-video-placeholder"></div>
+                        <div class="call-timer" id="call-timer">00:00</div>
+                        <div class="call-cost">Cost: <span id="coin-rate">10</span> 🪙/min</div>
+                    </div>
+                    <div class="local-video-container">
+                        <div id="local-video-placeholder"></div>
+                    </div>
+                    <div class="call-controls">
+                        <button id="toggle-mic" class="ctrl-btn"><i class="fas fa-microphone"></i></button>
+                        <button id="toggle-cam" class="ctrl-btn"><i class="fas fa-video"></i></button>
+                        <button id="switch-cam" class="ctrl-btn"><i class="fas fa-sync"></i></button>
+                        <button id="toggle-speaker" class="ctrl-btn"><i class="fas fa-volume-up"></i></button>
+                        <button id="end-call" class="ctrl-btn end-call"><i class="fas fa-phone-slash"></i></button>
+                    </div>
+                    <div class="call-overlay-tools">
+                        <button id="send-gift" class="tool-btn"><i class="fas fa-gift"></i> Gift</button>
+                        <button id="open-chat" class="tool-btn"><i class="fas fa-comment"></i> Chat</button>
+                        <button id="report-call" class="tool-btn"><i class="fas fa-flag"></i> Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Section -->
+            <div id="view-wallet" class="sub-view hidden">
+                <div class="wallet-card">
+                    <h3>Current Balance</h3>
+                    <div class="balance-amount"><span id="balance-val">0</span> <small>Coins</small></div>
+                </div>
+                <div class="recharge-section">
+                    <h3>Recharge Coins</h3>
+                    <div class="package-grid">
+                        <div class="package" data-amount="100">100 🪙 <span>$4.99</span></div>
+                        <div class="package" data-amount="500">500 🪙 <span>$24.99</span></div>
+                        <div class="package" data-amount="1000">1000 🪙 <span>$45.00</span></div>
+                    </div>
+                </div>
+                <div class="transaction-history">
+                    <h3>History</h3>
+                    <div id="tx-list"></div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="view-profile" class="sub-view hidden">
+                <div class="profile-header">
+                    <div class="avatar-wrapper">
+                        <img src="assets/user-avatar.jpg" id="user-avatar" alt="Profile">
+                        <div class="verification-badge" id="user-verified-badge">✓</div>
+                    </div>
+                    <h2 id="profile-name">User Name</h2>
+                    <p id="profile-id">ID: #12345678</p>
+                </div>
+                <div class="profile-details-form">
+                    <div class="detail-row">
+                        <label>Country</label>
+                        <input type="text" id="profile-country" value="USA">
+                    </div>
+                    <div class="detail-row">
+                        <label>Language</label>
+                        <input type="text" id="profile-lang" value="English">
+                    </div>
+                    <div class="detail-row">
+                        <label>Gender</label>
+                        <select id="profile-gender">
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="detail-row">
+                        <label>Birthday</label>
+                        <input type="date" id="profile-dob">
+                    </div>
+                    <button id="save-profile-btn" class="btn-primary">Save Changes</button>
+                    <button id="logout-btn" class="btn-danger">Logout</button>
+                </div>
+            </div>
+
+            <!-- Support Center -->
+            <div id="view-support" class="sub-view hidden">
+                <h3>Support Center</h3>
+                <div class="ticket-creation">
+                    <textarea id="support-msg" placeholder="Describe your problem..."></textarea>
+                    <input type="file" id="support-screenshot" accept="image/*">
+                    <button id="submit-ticket" class="btn-primary">Submit Ticket</button>
+                </div>
+                <div class="ticket-history">
+                    <h4>My Tickets</h4>
+                    <div id="ticket-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. HOST DASHBOARD -->
+        <div id="host-dashboard" class="view-section hidden">
+            <div class="host-header">
+                <h2>Host Control Panel</h2>
+                <div class="status-switch">
+                    <span>Status: <strong id="host-status-text">Offline</strong></span>
+                    <label class="switch">
+                        <input type="checkbox" id="host-online-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="host-stats-grid">
+                <div class="stat-card"><span>Total Earnings</span> <h3 id="host-total-earnings">$0.00</h3></div>
+                <div class="stat-card"><span>Total Calls</span> <h3 id="host-total-calls">0</h3></div>
+                <div class="stat-card"><span>Avg Rating</span> <h3 id="host-avg-rating">5.0</h3></div>
+            </div>
+            <div class="host-details">
+                <h3>Performance Overview</h3>
+                <div id="performance-chart-placeholder"></div>
+                <button id="request-withdrawal" class="btn-primary">Request Withdrawal</button>
+            </div>
+        </div>
+
+        <!-- 5. AGENCY DASHBOARD -->
+        <div id="agency-dashboard" class="view-section hidden">
+            <div class="agency-header">
+                <h2>Agency Management</h2>
+                <div class="invite-box">
+                    <span>Your Invite Code: <strong id="agency-code">VIVY-XXXX</strong></span>
+                    <button id="copy-invite-code" class="btn-small">Copy</button>
+                </div>
+            </div>
+            <div class="agency-stats">
+                <div class="stat-card"><span>Total Hosts</span><h3 id="agency-host-count">0</h3></div>
+                <div class="stat-card"><span>Total Commission</span><h3 id="agency-commission">$0.00</h3></div>
+            </div>
+            <div class="agency-host-list">
+                <h3>My Hosts</h3>
+                <div id="agency-hosts-grid"></div>
+            </div>
+            <div class="agency-announcements">
+                <h3>Agency Notices</h3>
+                <div id="agency-notices-list"></div>
+            </div>
+        </div>
+
+        <!-- 6. ADMIN DASHBOARD (Hidden by default) -->
+        <div id="admin-dashboard" class="view-section hidden">
+            <div class="admin-sidebar">
+                <h3>Admin Panel</h3>
+                <ul>
+                    <li><a href="#" data-target="admin-users">Users</a></li>
+                    <li><a href="#" data-target="admin-hosts">Hosts</a></li>
+                    <li><a href="#" data-target="admin-agencies">Agencies</a></li>
+                    <li><a href="#" data-target="admin-payroll">Payroll</a></li>
+                    <li><a href="#" data-target="admin-withdrawals">Withdrawals</a></li>
+                    <li><a href="#" data-target="admin-broadcast">Broadcasts</a></li>
+                    <li><a href="#" data-target="admin-tickets">Support Tickets</a></li>
+                    <li><a href="#" data-target="admin-analytics">Analytics</a></li>
+                    <li><a href="#" data-target="admin-coins">Coin Packages</a></li>
+                    <li><a href="#" data-target="admin-gifts">Gift Mgmt</a></li>>
+                </ul>
+            </div>
+            <div class="admin-content">
+                <div id="admin-view-placeholder">Select a menu item to manage.</div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav id="bottom-nav" class="hidden">
+            <div class="nav-item active" data-view="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-view="match">
+                <i class="fas fa-heart"></i>
+                <span>Match</span>
+            </div>
+            <div class="nav-item" data-view="call">
+                <i class="fas fa-phone"></i>
+                <span>Calls</span>
+            </div>
+            <div class="nav-item" data-view="wallet">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </div>
+            <div class="nav-item" data-view="profile">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </nav>
+    </main>
+
+    <!-- MODAL CONTAINERS -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-title">Modal Title</h3>
+                <button id="close-modal">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-content">
+                <!-- Dynamic Content Injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>>
+
+    <!-- Scripts -->
+    <!-- Firebase configuration logic will be in firebase.js -->
+    <script src="firebase.js"></script>
+    <!-- Main Application Logic -->
     <script src="app.js"></script>
 </body>
 </html>

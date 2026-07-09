@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Vivy 💜 Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+
+<!-- ================= HEADER ================= -->
+
+<header class="dashboard-header">
+
+<div class="profile-area">
+
+<img 
+id="profilePhoto"
+src="logo.png"
+class="profile-photo"
+alt="Profile">
+
+<div>
+
+<h2 id="username">
+Loading...
+</h2>
+
+<p id="userUID">
+UID: Loading...
+</p>
+
+</div>
+
+</div>
+
+
+<div class="header-actions">
+
+<button>
+🔔
+</button>
+
+<button>
+⚙️
+</button>
+
+</div>
+
+</header>
+
+
+
+<!-- ================= WALLET ================= -->
+
+<section class="wallet-card">
+
+<h3>
+💰 Wallet
+</h3>
+
+<h1 id="coinBalance">
+0 Coins
+</h1>
+
+
+<button class="btn btn-primary">
+
+Buy Coins
+
+</button>
+
+
+</section>
+
+
+
+
+<!-- ================= QUICK ACTIONS ================= -->
+
+<section class="quick-actions">
+
+
+<button class="action-card" id="randomMatchBtn">
+
+🎲
+
+<span>
+Random Match
+</span>
+
+</button>
+
+
+
+<button class="action-card">
+
+📞
+
+<span>
+Audio Call
+</span>
+
+</button>
+
+
+
+<button class="action-card">
+
+🎥
+
+<span>
+Video Call
+</span>
+
+</button>
+
+
+</section>
+
+
+
+
+
+<!-- ================= NEW HOSTS ================= -->
+
+<section>
+
+<h2>
+⭐ New Hosts
+</h2>
+
+
+<div id="newHostsContainer">
+
+Loading new hosts...
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<!-- ================= ONLINE HOSTS ================= -->
+
+<section>
+
+<h2>
+🟢 Online Hosts
+</h2>
+
+
+<div id="onlineHostsContainer">
+
+Loading online hosts...
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<!-- ================= BROWSE HOSTS ================= -->
+
+
+<section>
+
+<h2>
+🌍 Browse Hosts
+</h2>
+
+
+<div id="allHostsContainer">
+
+Loading hosts...
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- ================= BOTTOM NAV ================= -->
+
+
+<nav class="bottom-nav">
+
+
+<button>
+🏠
+<br>
+Home
+</button>
+
+
+<button>
+💬
+<br>
+Messages
+</button>
+
+
+<button>
+🎁
+<br>
+Wallet
+</button>
+
+
+<button>
+👤
+<br>
+Profile
+</button>
+
+
+<button>
+🛟
+<br>
+Support
+</button>
+
+
+</nav>
+
+
+
+</div>
+
+
+
+<script type="module" src="user-dashboard.js"></script>
+
+
+</body>
+  </html>

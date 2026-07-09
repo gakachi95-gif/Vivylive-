@@ -4,39 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivy 💜</title>
+    <title>Vivy - Welcome</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="splash-screen">
-        <div class="splash-content">
-            <h1 class="splash-logo">Vivy 💜</h1>
-            <div class="loader"></div>
+    <main class="onboarding-container">
+        <div class="brand-section">
+            <h1 class="logo">💜 Vivy</h1>
+            <p class="tagline">Match • Call • Live • Earn</p>
         </div>
-    </div>
 
-    <!-- Welcome Screen -->
-    <div id="welcome-screen" class="welcome-screen" style="display: none;">
-        <div class="welcome-content">
-            <div class="brand-header">
-                <h1>Vivy 💜</h1>
-                <p class="tagline">Connect • Match • Live • Earn</p>
-            </div>
-
-            <div class="auth-container">
-                <div class="auth-buttons">
-                    <button class="btn-primary" onclick="location.href='signup.html'">User / Host</button>
-                </div>
-            </div>
-
-            <div class="footer-links">
-                <a href="agency-login.html" class="agency-link">Agency Login</a>
-            </div>
+        <div class="action-section">
+            <a href="/user-dashboard" class="btn-premium">👤 Continue as User</a>
+            <a href="/host-registration" class="btn-premium">🎤 Become a Host</a>
         </div>
-    </div>
 
-    <script src="script.js"></script>
+        <div class="login-section">
+            <a href="/agency-login" class="agency-link">Agency Login</a>
+        </div>
+    </main>
+
 </body>
 </html>

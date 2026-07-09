@@ -1,6 +1,6 @@
 // ======================================================
 // Vivy 💜 Authentication System
-// Part 1 - Imports, Configuration & Helper Functions
+// Part 1 - Imports, Constants & Helper Functions
 // ======================================================
 
 // ======================================================
@@ -46,7 +46,7 @@ const AGENCIES_COLLECTION = "agencies";
 const COUNTERS_COLLECTION = "counters";
 
 // ======================================================
-// Friendly Alert
+// Alert Helper
 // ======================================================
 
 function showMessage(message) {
@@ -54,7 +54,7 @@ function showMessage(message) {
 }
 
 // ======================================================
-// Firebase Error Messages
+// Friendly Firebase Errors
 // ======================================================
 
 function getErrorMessage(error) {
@@ -68,7 +68,8 @@ function getErrorMessage(error) {
             return "Account not found.";
 
         case "auth/wrong-password":
-            return "Incorrect password.";
+        case "auth/invalid-credential":
+            return "Incorrect email or password.";
 
         case "auth/invalid-email":
             return "Please enter a valid email address.";
@@ -77,69 +78,60 @@ function getErrorMessage(error) {
             return "Password must contain at least 6 characters.";
 
         case "auth/network-request-failed":
-            return "Network error. Please check your internet connection.";
-
-        case "auth/invalid-credential":
-            return "Invalid email or password.";
+            return "Network error. Check your internet connection.";
 
         case "permission-denied":
             return "Database permission denied.";
 
         default:
+            console.error(error);
             return error.message || "Something went wrong.";
-
     }
 
 }
 
 // ======================================================
-// Generate Sequential UID
+// Generate Permanent UID
 // USR-000001
 // HST-000001
 // AGY-000001
 // ======================================================
 
-async function generateSequentialId(type) {
+async function generateSequentialId(accountType) {
 
-    let counterName = "";
-    let prefix = "";
+    let counterId;
+    let prefix;
 
-    switch (type) {
+    switch (accountType) {
 
         case "user":
-            counterName = "users";
+            counterId = "users";
             prefix = "USR";
             break;
 
         case "host":
-            counterName = "hosts";
+            counterId = "hosts";
             prefix = "HST";
             break;
 
         case "agency":
-            counterName = "agencies";
+            counterId = "agencies";
             prefix = "AGY";
             break;
 
         default:
             throw new Error("Invalid account type.");
-
     }
 
-    const counterRef = doc(
-        db,
-        COUNTERS_COLLECTION,
-        counterName
-    );
+    const counterRef = doc(db, COUNTERS_COLLECTION, counterId);
 
     return await runTransaction(db, async (transaction) => {
 
-        const counterDoc =
-            await transaction.get(counterRef);
+        const snapshot = await transaction.get(counterRef);
 
-        let currentCount = 1;
+        let count = 1;
 
-        if (!counterDoc.exists()) {
+        if (!snapshot.exists()) {
 
             transaction.set(counterRef, {
                 count: 1
@@ -147,20 +139,19 @@ async function generateSequentialId(type) {
 
         } else {
 
-            currentCount =
-                counterDoc.data().count + 1;
+            count = snapshot.data().count + 1;
 
             transaction.update(counterRef, {
-                count: currentCount
+                count: count
             });
 
         }
 
-        return `${prefix}-${String(currentCount).padStart(6, "0")}`;
+        return `${prefix}-${String(count).padStart(6, "0")}`;
 
     });
 
-}// ======================================================
+    }// ======================================================
 // Part 2 - Registration System
 // ======================================================
 
@@ -192,33 +183,29 @@ export async function registerAccount(formData) {
         }
 
         // ------------------------------------------
-        // Default Account (User)
+        // Default Account
         // ------------------------------------------
 
         let role = "user";
         let status = "active";
         let agencyId = "";
-        let permanentUid = "";
 
         // ------------------------------------------
         // Host Registration
         // ------------------------------------------
 
-        if (agencyCode.trim() !== "") {
+        if (agencyCode && agencyCode.trim() !== "") {
 
             const agencyQuery = query(
                 collection(db, AGENCIES_COLLECTION),
                 where("invitationCode", "==", agencyCode.trim())
             );
 
-            const agencySnapshot =
-                await getDocs(agencyQuery);
+            const agencySnapshot = await getDocs(agencyQuery);
 
             if (agencySnapshot.empty) {
 
-                showMessage(
-                    "Invalid Agency Invitation Code."
-                );
+                showMessage("Invalid Agency Invitation Code.");
 
                 return false;
 
@@ -247,11 +234,11 @@ export async function registerAccount(formData) {
         // Generate Permanent UID
         // ------------------------------------------
 
-        permanentUid =
+        const permanentUid =
             await generateSequentialId(role);
 
         // ------------------------------------------
-        // User Profile
+        // Create User Profile
         // ------------------------------------------
 
         const profile = {
@@ -282,31 +269,31 @@ export async function registerAccount(formData) {
 
             bio: "",
 
-            walletBalance: 0,
-
             coins: 0,
 
             diamonds: 0,
+
+            walletBalance: 0,
 
             followers: 0,
 
             following: 0,
 
-            friends: [],
+            totalCalls: 0,
 
-            blockedUsers: [],
+            totalMessages: 0,
 
-            favouriteHosts: [],
+            totalCoinsEarned: 0,
 
-            callHistory: [],
-
-            notifications: true,
+            totalCoinsSpent: 0,
 
             isOnline: false,
 
             isBlocked: false,
 
             isVerified: false,
+
+            notifications: true,
 
             language: "English",
 
@@ -335,7 +322,7 @@ export async function registerAccount(formData) {
         );
 
         // ------------------------------------------
-        // Registration Success
+        // Registration Successful
         // ------------------------------------------
 
         if (role === "host") {
@@ -346,23 +333,17 @@ export async function registerAccount(formData) {
 
             await signOut(auth);
 
-            window.location.replace("login.html");
+            window.location.href = "login.html";
 
             return true;
 
         }
 
-        // ------------------------------------------
-        // User Registration
-        // ------------------------------------------
-
         showMessage(
             "💜 Account created successfully!"
         );
 
-        window.location.replace(
-            "user-dashboard.html"
-        );
+        window.location.href = "user-dashboard.html";
 
         return true;
 
@@ -380,7 +361,7 @@ export async function registerAccount(formData) {
 
     }
 
-          }// ======================================================
+}// ======================================================
 // Part 3 - Login System
 // ======================================================
 
@@ -402,7 +383,7 @@ export async function loginUser(email, password) {
         const firebaseUid = credential.user.uid;
 
         // ------------------------------------------
-        // Get User Profile
+        // Get Firestore Profile
         // ------------------------------------------
 
         const profileRef = doc(
@@ -426,10 +407,11 @@ export async function loginUser(email, password) {
 
         }
 
-        const profile = profileSnap.data();
+        const profile =
+            profileSnap.data();
 
         // ------------------------------------------
-        // Update User Online Status
+        // Update Online Status
         // ------------------------------------------
 
         await updateDoc(profileRef, {
@@ -446,9 +428,8 @@ export async function loginUser(email, password) {
 
         if (profile.role === "user") {
 
-            window.location.replace(
-                "user-dashboard.html"
-            );
+            window.location.href =
+                "user-dashboard.html";
 
             return true;
 
@@ -462,9 +443,8 @@ export async function loginUser(email, password) {
 
             if (profile.status === "approved") {
 
-                window.location.replace(
-                    "host-dashboard.html"
-                );
+                window.location.href =
+                    "host-dashboard.html";
 
                 return true;
 
@@ -473,14 +453,13 @@ export async function loginUser(email, password) {
             if (profile.status === "pending") {
 
                 showMessage(
-                    "💜 Your Host application is still waiting for Admin approval."
+                    "💜 Your Host application is still awaiting approval."
                 );
 
                 await signOut(auth);
 
-                window.location.replace(
-                    "login.html"
-                );
+                window.location.href =
+                    "login.html";
 
                 return false;
 
@@ -494,9 +473,8 @@ export async function loginUser(email, password) {
 
                 await signOut(auth);
 
-                window.location.replace(
-                    "login.html"
-                );
+                window.location.href =
+                    "login.html";
 
                 return false;
 
@@ -505,34 +483,32 @@ export async function loginUser(email, password) {
         }
 
         // ------------------------------------------
-        // Agency Login (Future)
+        // Future Agency Login
         // ------------------------------------------
 
         if (profile.role === "agency") {
 
-            // Future
-            // window.location.replace("agency-dashboard.html");
+            // Future:
+            // window.location.href =
+            // "agency-dashboard.html";
 
             return true;
 
         }
 
         // ------------------------------------------
-        // Admin Login (Future)
+        // Future Admin Login
         // ------------------------------------------
 
         if (profile.role === "admin") {
 
-            // Future
-            // window.location.replace("admin-dashboard.html");
+            // Future:
+            // window.location.href =
+            // "admin-dashboard.html";
 
             return true;
 
         }
-
-        // ------------------------------------------
-        // Unknown Role
-        // ------------------------------------------
 
         await signOut(auth);
 
@@ -573,28 +549,25 @@ if (loginForm) {
 
             event.preventDefault();
 
-            const email =
-                document
-                .getElementById("email")
-                .value
-                .trim();
-
-            const password =
-                document
-                .getElementById("password")
-                .value;
-
             await loginUser(
-                email,
-                password
+
+                document
+                    .getElementById("email")
+                    .value
+                    .trim(),
+
+                document
+                    .getElementById("password")
+                    .value
+
             );
 
         }
 
     );
 
-              }// ======================================================
-// Part 4 - Authentication Guard & Session Management
+                }// ======================================================
+// Part 4 - Authentication Guard
 // ======================================================
 
 export function initAuthGuard() {
@@ -605,8 +578,8 @@ export function initAuthGuard() {
             window.location.pathname
             .split("/")
             .pop();
-console.log("AUTH CHECK START");
-console.log("Logged in user:", user);cation.pathname---------------------------------------
+
+        // ------------------------------------------
         // User Not Logged In
         // ------------------------------------------
 
@@ -619,22 +592,18 @@ console.log("Logged in user:", user);cation.pathname----------------------------
                 currentPage === "admin-dashboard.html"
             ) {
 
-                window.location.replace("login.html");
+                window.location.href = "login.html";
 
             }
 
             return;
 
         }
-console.log("Profile exists:", profileSnap.exists());
 
-if (profileSnap.exists()) {
-    console.log("Profile data:", profileSnap.data());
-                }
         try {
 
             // ------------------------------------------
-            // Get Firestore Profile
+            // Get User Profile
             // ------------------------------------------
 
             const profileRef = doc(
@@ -650,9 +619,8 @@ if (profileSnap.exists()) {
 
                 await signOut(auth);
 
-                window.location.replace(
-                    "login.html"
-                );
+                window.location.href =
+                    "login.html";
 
                 return;
 
@@ -675,38 +643,33 @@ if (profileSnap.exists()) {
 
             // ------------------------------------------
             // Redirect Logged-in Users
-            // Away From Login Page
+            // Away From Login & Registration Pages
             // ------------------------------------------
 
             if (
-                currentPage === "login.html"
+                currentPage === "login.html" ||
+                currentPage === "onboarding.html" ||
+                currentPage === "auth.html"
             ) {
 
                 if (profile.role === "user") {
 
-                    window.location.replace(
-                        "user-dashboard.html"
-                    );
+                    window.location.href =
+                        "user-dashboard.html";
 
                     return;
 
                 }
 
                 if (
-                    profile.role === "host"
+                    profile.role === "host" &&
+                    profile.status === "approved"
                 ) {
 
-                    if (
-                        profile.status === "approved"
-                    ) {
+                    window.location.href =
+                        "host-dashboard.html";
 
-                        window.location.replace(
-                            "host-dashboard.html"
-                        );
-
-                        return;
-
-                    }
+                    return;
 
                 }
 
@@ -729,17 +692,15 @@ if (profileSnap.exists()) {
                         profile.status === "approved"
                     ) {
 
-                        window.location.replace(
-                            "host-dashboard.html"
-                        );
+                        window.location.href =
+                            "host-dashboard.html";
 
                         return;
 
                     }
 
-                    window.location.replace(
-                        "login.html"
-                    );
+                    window.location.href =
+                        "login.html";
 
                     return;
 
@@ -759,9 +720,8 @@ if (profileSnap.exists()) {
                     profile.role !== "host"
                 ) {
 
-                    window.location.replace(
-                        "login.html"
-                    );
+                    window.location.href =
+                        "login.html";
 
                     return;
 
@@ -772,14 +732,13 @@ if (profileSnap.exists()) {
                 ) {
 
                     showMessage(
-                        "Your Host account is awaiting Admin approval."
+                        "💜 Your Host account is awaiting Admin approval."
                     );
 
                     await signOut(auth);
 
-                    window.location.replace(
-                        "login.html"
-                    );
+                    window.location.href =
+                        "login.html";
 
                     return;
 
@@ -788,7 +747,7 @@ if (profileSnap.exists()) {
             }
 
             // ------------------------------------------
-            // Future Agency Dashboard
+            // Agency Dashboard Protection
             // ------------------------------------------
 
             if (
@@ -799,9 +758,8 @@ if (profileSnap.exists()) {
                     profile.role !== "agency"
                 ) {
 
-                    window.location.replace(
-                        "login.html"
-                    );
+                    window.location.href =
+                        "login.html";
 
                     return;
 
@@ -810,7 +768,7 @@ if (profileSnap.exists()) {
             }
 
             // ------------------------------------------
-            // Future Admin Dashboard
+            // Admin Dashboard Protection
             // ------------------------------------------
 
             if (
@@ -821,9 +779,8 @@ if (profileSnap.exists()) {
                     profile.role !== "admin"
                 ) {
 
-                    window.location.replace(
-                        "login.html"
-                    );
+                    window.location.href =
+                        "login.html";
 
                     return;
 
@@ -839,9 +796,8 @@ if (profileSnap.exists()) {
 
             await signOut(auth);
 
-            window.location.replace(
-                "login.html"
-            );
+            window.location.href =
+                "login.html";
 
         }
 
@@ -853,7 +809,8 @@ if (profileSnap.exists()) {
 // Start Authentication Guard
 // ======================================================
 
-initAuthGuard();// ======================================================
+initAuthGuard();
+// ======================================================
 // Part 5 - Logout, Form Connections & Helper Functions
 // ======================================================
 
@@ -887,7 +844,7 @@ export async function logoutUser() {
 
         await signOut(auth);
 
-        window.location.replace("login.html");
+        window.location.href = "login.html";
 
     }
 
@@ -901,11 +858,11 @@ export async function logoutUser() {
 
 }
 
-// Make logout available globally
+// Make Logout Available Globally
 window.logoutUser = logoutUser;
 
 // ======================================================
-// Connect Onboarding Form
+// Automatically Connect Registration Form
 // ======================================================
 
 const onboardingForm =
@@ -915,35 +872,54 @@ if (onboardingForm) {
 
     onboardingForm.addEventListener(
         "submit",
-        async function(event) {
+        async (event) => {
 
             event.preventDefault();
 
             await registerAccount({
 
                 username:
-                    document.getElementById("username").value.trim(),
+                    document
+                        .getElementById("username")
+                        .value
+                        .trim(),
 
                 email:
-                    document.getElementById("email").value.trim(),
+                    document
+                        .getElementById("email")
+                        .value
+                        .trim(),
 
                 country:
-                    document.getElementById("country").value,
+                    document
+                        .getElementById("country")
+                        .value,
 
                 gender:
-                    document.getElementById("gender").value,
+                    document
+                        .getElementById("gender")
+                        .value,
 
                 dob:
-                    document.getElementById("dob").value,
+                    document
+                        .getElementById("dob")
+                        .value,
 
                 password:
-                    document.getElementById("password").value,
+                    document
+                        .getElementById("password")
+                        .value,
 
                 confirmPassword:
-                    document.getElementById("confirm-password").value,
+                    document
+                        .getElementById("confirmPassword")
+                        .value,
 
                 agencyCode:
-                    document.getElementById("agency-code").value.trim()
+                    document
+                        .getElementById("agencyCode")
+                        .value
+                        .trim()
 
             });
 
@@ -970,22 +946,30 @@ export function isLoggedIn() {
 }
 
 // ======================================================
-// Future Features
+// Future Vivy Features
 // ======================================================
 
-// ✔ Wallet
-// ✔ Paystack Coin Purchase
-// ✔ Audio Calls
-// ✔ Video Calls
-// ✔ Messages
-// ✔ Friends
-// ✔ Notifications
-// ✔ Gifts
+// ✔ User Dashboard
+// ✔ Host Dashboard
 // ✔ Agency Dashboard
 // ✔ Admin Dashboard
-// ✔ Withdrawals
-// ✔ Earnings
+// ✔ Audio Calls
+// ✔ Video Calls
+// ✔ Messaging
+// ✔ Random Match
+// ✔ Online Hosts
+// ✔ AI Moderation
+// ✔ Coin System
+// ✔ Gifts
+// ✔ Paystack Coin Purchase
+// ✔ Payroll System
+// ✔ Host Earnings
+// ✔ Agency Earnings
+// ✔ Notifications
+// ✔ Friends
 // ✔ Call History
+// ✔ Support Team
+// ✔ Profile Verification
 
 // ======================================================
 // Vivy 💜 Authentication System Complete

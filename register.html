@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Vivy 💜</title>
+    <!-- The CSS and JS will be linked here in the final build -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="auth-container">
+        <!-- Header Section -->
+        <header class="auth-header">
+            <div class="logo-container">
+                <img src="assets/logo.png" alt="Vivy Logo" class="logo">
+            </div>
+            <h1 id="registration-title">Create Your Account</h1>
+            <p class="subtitle">Join Vivy to match with people, make audio and video calls, watch live streams, send gifts, play games and earn rewards.</p>
+        </header>
+
+        <!-- Dynamic Role Header (Updated via JS based on session/localStorage) -->
+        <section id="role-indicator" class="role-badge">
+            <!-- Text will be dynamically injected: "Register as User" or "Register as Host" -->
+        </section>
+
+        <!-- Registration Form -->
+        <form id="registrationForm" novalidate>
+            
+            <!-- Shared Fields Start -->
+            <div class="form-group">
+                <label for="profile_photo">Profile Photo</label>
+                <input type="file" id="profile_photo" name="profile_photo" accept="image/*" required>
+            </div>
+
+            <!-- Host Specific: Gallery Photos (Hidden by default) -->
+            <div id="host-gallery-group" class="form-group hidden">
+                <label for="gallery_photos">Gallery Photos (Max 5, Optional)</label>
+                <input type="file" id="gallery_photos" name="gallery_photos" accept="image/*" multiple>
+            </div>
+
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" required>
+            </div>
+
+            <!-- Host Specific: Display Name (Hidden by default) -->
+            <div id="display_name_group" class="form-group hidden">
+                <label for="display_name">Display Name</label>
+                <input type="text" id="display_name" name="display_name" placeholder="Public nickname">
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Choose a unique username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="+1 234 567 890" required>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" name="country" required>
+                    <option value="" disabled selected>Select your country</option>
+                    <!-- Country list populated here -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+
+            <!-- Host Specific: Bio (Hidden by default) -->
+            <div id="bio_group" class="form-group hidden">
+                <label for="bio">Short Bio</label>
+                <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
+            </div>
+
+            <!-- Host Specific: Agency Invitation (Hidden by default) -->
+            <div id="agency_group" class="form-group hidden">
+                <label for="agency_code">Agency Invitation Code</label>
+                <input type="text" id="agency_code" name="agency_code" placeholder="Enter invitation code">
+                <span id="agency-error" class="error-msg hidden">Invalid Agency Invitation Code. Please contact your Agency.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="referral_code">Referral Code (Optional)</label>
+                <input type="text" id="referral_code" name="referral_code" placeholder="Enter code">
+            </div>
+
+            <!-- Checkbox Section -->
+            <div class="agreement-section">
+                <div id="user-agreements">
+                    <label>
+                        <input type="checkbox" name="terms" required> I agree to the Terms & Conditions
+                    </label>
+                    <label>
+                        <input type="checkbox" name="privacy" required> I agree to the Privacy Policy
+                    </label>
+                </div>
+                <div id="host-agreements" class="hidden">
+                    <label>
+                        <input type="checkbox" name="host_agreement" required> I agree to the Host Agreement
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submit_btn" class="btn-primary">Create User Account</button>
+
+            <!-- Host Success Message (Hidden by default) -->
+            <div id="host-success-msg" class="success-container hidden">
+                <p>Application Submitted Successfully.</p>
+                <p>Your Host application has been linked to your Agency and is awaiting Admin approval.</p>
+                <div class="status-badge">Account Status: <span class="status-pending">Pending Approval</span></div>
+            </div>
+        </form>
+
+        <!-- Footer Navigation -->
+        <footer class="auth-footer">
+            <p>Already have an account? <a href="login.html">Login</a></p>
+        </footer>
+    </main>
+
+    <script src="register.js"></script>
+</body>
+</html>

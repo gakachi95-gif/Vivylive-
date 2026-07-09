@@ -605,8 +605,8 @@ export function initAuthGuard() {
             window.location.pathname
             .split("/")
             .pop();
-
-        // ------------------------------------------
+console.log("AUTH CHECK START");
+console.log("Logged in user:", user);cation.pathname---------------------------------------
         // User Not Logged In
         // ------------------------------------------
 
@@ -626,7 +626,11 @@ export function initAuthGuard() {
             return;
 
         }
+console.log("Profile exists:", profileSnap.exists());
 
+if (profileSnap.exists()) {
+    console.log("Profile data:", profileSnap.data());
+                }
         try {
 
             // ------------------------------------------

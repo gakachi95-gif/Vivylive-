@@ -4,253 +4,421 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Vivy 💜 Dashboard</title>
+<title>Vivy 💜 | User Dashboard</title>
 
 <link rel="stylesheet" href="style.css">
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-<div class="dashboard-container">
+<div class="dashboard">
+
+    <!-- ==========================
+         HEADER
+    =========================== -->
+
+    <header class="dashboard-header">
+
+        <div class="header-left">
+
+            <div class="profile-image">
+
+                <img
+                id="userPhoto"
+                src="images/default-avatar.png"
+                alt="Profile">
+
+            </div>
+
+            <div class="profile-details">
+
+                <h2 id="username">
+                    Loading...
+                </h2>
+
+                <p id="userUid">
+                    USR-000000
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="header-right">
+
+            <button id="notificationBtn">
+
+                🔔
+
+            </button>
+
+            <button id="settingsBtn">
+
+                ⚙️
+
+            </button>
+
+        </div>
+
+    </header>
 
 
-<!-- ================= HEADER ================= -->
+    <!-- ==========================
+         WALLET CARD
+    =========================== -->
 
-<header class="dashboard-header">
+    <section class="wallet-card">
 
-<div class="profile-area">
+        <div>
 
-<img 
-id="profilePhoto"
-src="logo.png"
-class="profile-photo"
-alt="Profile">
+            <small>Coin Balance</small>
 
-<div>
+            <h1 id="coinBalance">
 
-<h2 id="username">
-Loading...
-</h2>
+                0 🪙
 
-<p id="userUID">
-UID: Loading...
-</p>
+            </h1>
 
-</div>
+        </div>
 
-</div>
+        <button
+        id="buyCoinsBtn"
+        class="premium-button">
 
+            Buy Coins
 
-<div class="header-actions">
+        </button>
 
-<button>
-🔔
-</button>
-
-<button>
-⚙️
-</button>
-
-</div>
-
-</header>
+    </section>
 
 
+    <!-- ==========================
+         QUICK ACTIONS
+    =========================== -->
 
-<!-- ================= WALLET ================= -->
+    <section class="quick-actions">
 
-<section class="wallet-card">
+        <button
+        id="randomMatchBtn"
+        class="action-card">
 
-<h3>
-💰 Wallet
-</h3>
+            🎲
 
-<h1 id="coinBalance">
-0 Coins
-</h1>
+            <span>
+
+                Random Match
+
+            </span>
+
+        </button>
+
+        <button
+        id="audioCallBtn"
+        class="action-card">
+
+            📞
+
+            <span>
+
+                Audio Call
+
+            </span>
+
+        </button>
+
+        <button
+        id="videoCallBtn"
+        class="action-card">
+
+            🎥
+
+            <span>
+
+                Video Call
+
+            </span>
+
+        </button>
+
+    </section>
 
 
-<button class="btn btn-primary">
+    <!-- ==========================
+         NEW HOSTS
+    =========================== -->
 
-Buy Coins
+    <section class="dashboard-section">
 
-</button>
+        <div class="section-header">
 
+            <h3>
+
+                ⭐ New Hosts
+
+            </h3>
+
+            <a href="#">
+
+                View All
+
+            </a>
+
+        </div>
+
+        <div
+        id="newHosts">
+
+            <!-- Firebase Loads Here -->
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================
+         ONLINE HOSTS
+    =========================== -->
+
+    <section class="dashboard-section">
+
+        <div class="section-header">
+
+            <h3>
+
+                🟢 Online Hosts
+
+            </h3>
+
+            <a href="#">
+
+                View All
+
+            </a>
+
+        </div>
+
+        <div
+        id="onlineHosts">
+
+            <!-- Firebase Loads Here -->
+
+        </div>
+
+    </section>
+
+          </div><!-- ==========================
+     SEARCH HOSTS
+========================== -->
+
+<section class="dashboard-section">
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="searchHost"
+            placeholder="Search Host by Username or Host UID">
+
+        <button id="searchButton">
+
+            🔍
+
+        </button>
+
+    </div>
 
 </section>
 
 
+<!-- ==========================
+     ALL HOSTS
+========================== -->
 
+<section class="dashboard-section">
 
-<!-- ================= QUICK ACTIONS ================= -->
+    <div class="section-header">
 
-<section class="quick-actions">
+        <h3>
 
+            🌍 Browse Hosts
 
-<button class="action-card" id="randomMatchBtn">
+        </h3>
 
-🎲
+    </div>
 
-<span>
-Random Match
-</span>
+    <div id="allHosts">
 
-</button>
+        <!-- Firebase will load approved hosts here -->
 
-
-
-<button class="action-card">
-
-📞
-
-<span>
-Audio Call
-</span>
-
-</button>
-
-
-
-<button class="action-card">
-
-🎥
-
-<span>
-Video Call
-</span>
-
-</button>
-
+    </div>
 
 </section>
 
 
+<!-- ==========================
+     HOST CARD TEMPLATE
+     (Generated by Firebase)
+========================== -->
 
+<template id="hostCardTemplate">
 
+<div class="host-card">
 
-<!-- ================= NEW HOSTS ================= -->
+    <div class="host-left">
 
-<section>
+        <img
+            class="host-photo"
+            src="images/default-avatar.png"
+            alt="Host">
 
-<h2>
-⭐ New Hosts
-</h2>
+    </div>
 
+    <div class="host-center">
 
-<div id="newHostsContainer">
+        <h4 class="host-name">
 
-Loading new hosts...
+            Loading...
+
+        </h4>
+
+        <p class="host-uid">
+
+            HST-000000
+
+        </p>
+
+        <span class="host-country">
+
+            🌍 Country
+
+        </span>
+
+        <span class="host-status">
+
+            🟢 Online
+
+        </span>
+
+    </div>
+
+    <div class="host-right">
+
+        <button class="message-btn">
+
+            💬
+
+        </button>
+
+        <button class="audio-btn">
+
+            📞
+
+        </button>
+
+        <button class="video-btn">
+
+            🎥
+
+        </button>
+
+        <button class="favorite-btn">
+
+            ❤️
+
+        </button>
+
+    </div>
 
 </div>
 
-
-</section>
-
-
-
-
-
-
-<!-- ================= ONLINE HOSTS ================= -->
-
-<section>
-
-<h2>
-🟢 Online Hosts
-</h2>
-
-
-<div id="onlineHostsContainer">
-
-Loading online hosts...
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-<!-- ================= BROWSE HOSTS ================= -->
-
-
-<section>
-
-<h2>
-🌍 Browse Hosts
-</h2>
-
-
-<div id="allHostsContainer">
-
-Loading hosts...
-
-</div>
-
-
-</section>
-
-
-
-
-
-
-
-<!-- ================= BOTTOM NAV ================= -->
-
+          </template><!-- =====================================
+     BOTTOM NAVIGATION
+====================================== -->
 
 <nav class="bottom-nav">
 
+    <a href="user-dashboard.html" class="nav-item active">
 
-<button>
-🏠
-<br>
-Home
-</button>
+        <span class="nav-icon">🏠</span>
 
+        <span class="nav-text">Home</span>
 
-<button>
-💬
-<br>
-Messages
-</button>
+    </a>
 
+    <a href="messages.html" class="nav-item">
 
-<button>
-🎁
-<br>
-Wallet
-</button>
+        <span class="nav-icon">💬</span>
 
+        <span class="nav-text">Messages</span>
 
-<button>
-👤
-<br>
-Profile
-</button>
+    </a>
 
+    <a href="wallet.html" class="nav-item">
 
-<button>
-🛟
-<br>
-Support
-</button>
+        <span class="nav-icon">🪙</span>
 
+        <span class="nav-text">Wallet</span>
+
+    </a>
+
+    <a href="profile.html" class="nav-item">
+
+        <span class="nav-icon">👤</span>
+
+        <span class="nav-text">Profile</span>
+
+    </a>
+
+    <a href="support.html" class="nav-item">
+
+        <span class="nav-icon">🛟</span>
+
+        <span class="nav-text">Support</span>
+
+    </a>
 
 </nav>
 
 
+<!-- =====================================
+     FLOATING NOTIFICATION BUTTON
+====================================== -->
+
+<button id="floatingNotification" class="floating-btn">
+
+    🔔
+
+</button>
+
+
+<!-- =====================================
+     LOADING SCREEN
+====================================== -->
+
+<div id="loadingScreen" class="loading-screen">
+
+    <div class="loading-content">
+
+        <h2>💜 Vivy</h2>
+
+        <p>Loading your dashboard...</p>
+
+    </div>
 
 </div>
 
 
+<!-- =====================================
+     JAVASCRIPT
+====================================== -->
+
+<script type="module" src="firebase-config.js"></script>
+
+<script type="module" src="auth.js"></script>
 
 <script type="module" src="user-dashboard.js"></script>
 
-
 </body>
-  </html>
+</html>

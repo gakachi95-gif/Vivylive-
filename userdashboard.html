@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vivy 💜 - Premium Calling App User Dashboard">
+    <title>Vivy 💜 | User Dashboard</title>
+    <!-- Link to external CSS would go here -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header id="main-header" class="app-header">
+        <div class="user-profile-section">
+            <img src="https://via.placeholder.com/50" alt="User Profile Picture" class="profile-avatar">
+            <div class="user-info">
+                <span class="username">Alex Rivier</span>
+                <span class="user-uid">UID: USR-000001</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="notification-btn" class="icon-btn" aria-label="Notifications">
+                <i class="icon-notification">🔔</i>
+            </button>
+            <button id="wallet-btn" class="icon-btn" aria-label="Wallet">
+                <i class="icon-wallet">👛</i>
+            </button>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+
+        <!-- SEARCH SECTION -->
+        <section id="search-section" class="search-area">
+            <div class="premium-search-bar">
+                <i class="search-icon">🔍</i>
+                <input type="text" placeholder="Search users by Username or UID..." aria-label="Search users">
+            </div>
+        </section>
+
+        <!-- MAIN FEATURES -->
+        <section id="feature-grid" class="feature-grid">
+            <div class="feature-card" id="feature-random">
+                <div class="feature-icon">🎲</div>
+                <span class="feature-label">Random Match</span>
+            </div>
+            <div class="feature-card" id="feature-audio">
+                <div class="feature-icon">📞</div>
+                <span class="feature-label">Audio Call</span>
+            </div>
+            <div class="feature-card" id="feature-video">
+                <div class="feature-icon">🎥</div>
+                <span class="feature-label">Video Call</span>
+            </div>
+            <div class="feature-card" id="feature-messages">
+                <div class="feature-icon">💬</div>
+                <span class="feature-label">Messages</span>
+            </div>
+        </section>
+
+        <!-- ONLINE USERS -->
+        <section id="online-users-section" class="online-users">
+            <h2 class="section-title">Online Now</h2>
+            
+            <div class="users-list">
+                <!-- User 1 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Sarah Jenkins</span>
+                            <span class="user-id">USR-000125</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇺🇸</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 2 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Marco Rossi</span>
+                            <span class="user-id">USR-000241</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇮🇹</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 3 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Yuki Tanaka</span>
+                            <span class="user-id">USR-000312</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇯🇵</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 4 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Elena Smith</span>
+                            <span class="user-id">USR-000456</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇬🇧</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 5 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Omar Hassan</span>
+                            <span class="user-id">USR-000589</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇪🇬</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 6 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Chloe Dubois</span>
+                            <span class="user-id">USR-000677</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇫🇷</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 7 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Leo Zhang</span>
+                            <span class="user-id">USR-000782</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇨🇳</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+
+                <!-- User 8 -->
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="user-avatar">
+                        <div class="user-details">
+                            <span class="user-name">Mia Wong</span>
+                            <span class="user-id">USR-000811</span>
+                        </div>
+                    </div>
+                    <div class="user-card-meta">
+                        <span class="country-flag">🇸🇬</span>
+                        <span class="status-indicator">Online</span>
+                        <button class="call-btn">Call</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav id="bottom-nav" class="bottom-navigation">
+        <a href="user-dashboard.html" class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">❤️</span>
+            <span class="nav-label">Matches</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🎁</span>
+            <span class="nav-label">Wallet</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Settings</span>
+        </a>
+    </nav>
+
+</body>
+</html>

@@ -1,156 +1,499 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | Vivy 💜</title>
-    <!-- The CSS and JS will be linked here in the final build -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0,
+          maximum-scale=1.0,
+          user-scalable=no">
+
+    <meta name="theme-color" content="#5B2EFF">
+    <meta name="description" content="Vivy 💜 - Match, Call, Live & Earn">
+
+    <title>Vivy 💜 | Sign In</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <main class="auth-container">
-        <!-- Header Section -->
-        <header class="auth-header">
-            <div class="logo-container">
-                <img src="assets/logo.png" alt="Vivy Logo" class="logo">
-            </div>
-            <h1 id="registration-title">Create Your Account</h1>
-            <p class="subtitle">Join Vivy to match with people, make audio and video calls, watch live streams, send gifts, play games and earn rewards.</p>
-        </header>
+<main class="auth-container">
 
-        <!-- Dynamic Role Header (Updated via JS based on session/localStorage) -->
-        <section id="role-indicator" class="role-badge">
-            <!-- Text will be dynamically injected: "Register as User" or "Register as Host" -->
-        </section>
+    <!-- HEADER -->
+    <header class="auth-header">
 
-        <!-- Registration Form -->
-        <form id="registrationForm" novalidate>
-            
-            <!-- Shared Fields Start -->
-            <div class="form-group">
-                <label for="profile_photo">Profile Photo</label>
-                <input type="file" id="profile_photo" name="profile_photo" accept="image/*" required>
-            </div>
+        <div class="logo-container">
+            <h1 class="logo">💜 Vivy</h1>
+        </div>
 
-            <!-- Host Specific: Gallery Photos (Hidden by default) -->
-            <div id="host-gallery-group" class="form-group hidden">
-                <label for="gallery_photos">Gallery Photos (Max 5, Optional)</label>
-                <input type="file" id="gallery_photos" name="gallery_photos" accept="image/*" multiple>
-            </div>
+        <h2 class="welcome-title">
+            Welcome Back
+        </h2>
 
-            <div class="form-group">
-                <label for="full_name">Full Name</label>
-                <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" required>
-            </div>
+        <p class="welcome-text">
+            Sign in to continue or create your Vivy account.
+        </p>
 
-            <!-- Host Specific: Display Name (Hidden by default) -->
-            <div id="display_name_group" class="form-group hidden">
-                <label for="display_name">Display Name</label>
-                <input type="text" id="display_name" name="display_name" placeholder="Public nickname">
+    </header>
+
+    <!-- LOGIN SECTION -->
+
+```    <section id="login-section" class="auth-section">
+
+        <form id="login-form" class="auth-form">
+
+            <div class="input-group">
+                <label for="login-email">Email Address</label>
+
+                <input
+                    type="email"
+                    id="login-email"
+                    name="email"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required>
             </div>
 
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Choose a unique username" required>
+            <div class="input-group">
+                <label for="login-password">Password</label>
+
+                <input
+                    type="password"
+                    id="login-password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required>
             </div>
 
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+            <div class="form-options">
+
+                <label class="remember-me">
+                    <input type="checkbox" id="remember-me">
+                    <span>Remember Me</span>
+                </label>
+
+                <a href="forgot-password.html"
+                   class="forgot-link">
+                    Forgot Password?
+                </a>
+
             </div>
 
-            <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" placeholder="+1 234 567 890" required>
+            <button
+                type="submit"
+                class="primary-btn">
+
+                Sign In
+
+            </button>
+
+            <div class="auth-divider">
+
+                <span>OR</span>
+
             </div>
 
-            <div class="form-group">
-                <label for="country">Country</label>
-                <select id="country" name="country" required>
-                    <option value="" disabled selected>Select your country</option>
-                    <!-- Country list populated here -->
-                </select>
-            </div>
+            <p class="switch-text">
 
-            <div class="form-group">
-                <label for="gender">Gender</label>
-                <select id="gender" name="gender" required>
-                    <option value="" disabled selected>Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+                Don't have a Vivy account?
 
-            <div class="form-group">
-                <label for="dob">Date of Birth</label>
-                <input type="date" id="dob" name="dob" required>
-            </div>
+            </p>
 
-            <!-- Host Specific: Bio (Hidden by default) -->
-            <div id="bio_group" class="form-group hidden">
-                <label for="bio">Short Bio</label>
-                <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
-            </div>
+            <button
+                type="button"
+                id="show-register"
+                class="secondary-btn">
 
-            <!-- Host Specific: Agency Invitation (Hidden by default) -->
-            <div id="agency_group" class="form-group hidden">
-                <label for="agency_code">Agency Invitation Code</label>
-                <input type="text" id="agency_code" name="agency_code" placeholder="Enter invitation code">
-                <span id="agency-error" class="error-msg hidden">Invalid Agency Invitation Code. Please contact your Agency.</span>
-            </div>
+                Create Account
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
-            </div>
+            </button>
 
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" required>
-            </div>
-
-            <div class="form-group">
-                <label for="referral_code">Referral Code (Optional)</label>
-                <input type="text" id="referral_code" name="referral_code" placeholder="Enter code">
-            </div>
-
-            <!-- Checkbox Section -->
-            <div class="agreement-section">
-                <div id="user-agreements">
-                    <label>
-                        <input type="checkbox" name="terms" required> I agree to the Terms & Conditions
-                    </label>
-                    <label>
-                        <input type="checkbox" name="privacy" required> I agree to the Privacy Policy
-                    </label>
-                </div>
-                <div id="host-agreements" class="hidden">
-                    <label>
-                        <input type="checkbox" name="host_agreement" required> I agree to the Host Agreement
-                    </label>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" id="submit_btn" class="btn-primary">Create User Account</button>
-
-            <!-- Host Success Message (Hidden by default) -->
-            <div id="host-success-msg" class="success-container hidden">
-                <p>Application Submitted Successfully.</p>
-                <p>Your Host application has been linked to your Agency and is awaiting Admin approval.</p>
-                <div class="status-badge">Account Status: <span class="status-pending">Pending Approval</span></div>
-            </div>
         </form>
 
-        <!-- Footer Navigation -->
-        <footer class="auth-footer">
-            <p>Already have an account? <a href="login.html">Login</a></p>
-        </footer>
-    </main>
+    </section>
 
-    <script src="register.js"></script>
+    <!-- REGISTER SECTION -->    <section id="register-section" class="auth-section hidden">
+
+        <div class="register-header">
+
+            <span class="step-indicator">
+                Step 1 of 2
+            </span>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+
+            <h2 id="role-title">
+                Register as User
+            </h2>
+
+            <p class="register-text">
+                Complete your basic information to continue.
+            </p>
+
+        </div>
+
+        <form id="register-form" class="auth-form">
+
+            <div id="step-one" class="form-step active">
+
+                <div class="input-group">
+                    <label for="profile-photo">
+                        Profile Photo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="profile-photo"
+                        accept="image/*">
+                </div>
+
+                <div class="input-group">
+                    <label for="fullname">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="fullname"
+                        placeholder="Enter your full name"
+                        required>
+                </div>
+
+                <div class="input-group">
+                    <label for="display-name">
+                        Display Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="display-name"
+                        placeholder="Only required for Hosts">
+
+                </div>
+
+                <div class="input-group">
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        placeholder="Choose a username"
+                        required>
+                </div>
+
+                <div class="input-group">
+                    <label for="register-email">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="register-email"
+                        placeholder="Enter your email"
+                        required>
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">
+                        Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        placeholder="Enter your phone number"
+                        required>
+                </div>
+
+                <div class="host-fields hidden">
+
+                    <div class="input-group">
+                        <label for="agency-code">
+                            Agency Invitation Code
+                        </label>
+
+                        <input
+                            type="text"
+                            id="agency-code"
+                            placeholder="Enter the invitation code provided by your Agency">
+                    </div>
+
+                </div>
+
+                <div class="input-group">
+                    <label for="register-password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="register-password"
+                        placeholder="Create a password"
+                        required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm-password">
+                        Confirm Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirm-password"
+                        placeholder="Confirm your password"
+                        required>
+                </div>
+
+                <button
+                    type="button"
+                    id="next-step"
+                    class="primary-btn">
+
+                    Next
+
+                </button>
+
+            </div>
+
+            <!-- STEP 2 -->            <div id="step-two" class="form-step hidden">
+
+                <div class="input-group">
+                    <label for="country">
+                        Country
+                    </label>
+
+                    <select id="country" required>
+                        <option value="">Select your country</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="gender">
+                        Gender
+                    </label>
+
+                    <select id="gender" required>
+                        <option value="">Select your gender</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="dob">
+                        Date of Birth
+                    </label>
+
+                    <input
+                        type="date"
+                        id="dob"
+                        required>
+                </div>
+
+                <div class="host-fields hidden">
+
+                    <div class="input-group">
+                        <label for="bio">
+                            Short Bio
+                        </label>
+
+                        <textarea
+                            id="bio"
+                            rows="4"
+                            placeholder="Tell users a little about yourself"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="gallery">
+                            Gallery Photos (Optional)
+                        </label>
+
+                        <input
+                            type="file"
+                            id="gallery"
+                            accept="image/*"
+                            multiple>
+                    </div>
+
+                </div>
+
+                <div class="input-group">
+                    <label for="referral-code">
+                        Referral Code (Optional)
+                    </label>
+
+                    <input
+                        type="text"
+                        id="referral-code"
+                        placeholder="Enter referral code">
+                </div>
+
+                <div class="checkbox-group">
+
+                    <label>
+                        <input type="checkbox" required>
+                        I agree to the Terms & Conditions.
+                    </label>
+
+                    <label>
+                        <input type="checkbox" required>
+                        I agree to the Privacy Policy.
+                    </label>
+
+                    <label class="host-fields hidden">
+                        <input type="checkbox">
+                        I agree to the Host Agreement.
+                    </label>
+
+                </div>
+
+                <button
+                    type="submit"
+                    id="create-account"
+                    class="primary-btn">
+
+                    Create Account
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <!-- STATUS MODAL -->    <section id="status-modal" class="status-modal hidden">
+
+        <div class="status-card">
+
+            <!-- HOST SUCCESS MESSAGE -->
+            <div id="host-success" class="status-content hidden">
+
+                <div class="status-icon">
+                    💜
+                </div>
+
+                <h2>
+                    Application Submitted Successfully
+                </h2>
+
+                <p>
+                    Thank you for applying to become a Vivy Host.
+                </p>
+
+                <p>
+                    Your application has been linked to your Agency and is now awaiting review.
+                </p>
+
+                <div class="status-badge">
+                    Pending Approval
+                </div>
+
+                <p class="status-note">
+                    You can sign in using your email and password, but your Host Dashboard will remain locked until your application has been approved by the Admin.
+                </p>
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    id="host-success-btn">
+
+                    Continue to Login
+
+                </button>
+
+            </div>
+
+            <!-- USER SUCCESS MESSAGE -->
+            <div id="user-success" class="status-content hidden">
+
+                <div class="status-icon">
+                    💜
+                </div>
+
+                <h2>
+                    Account Created Successfully
+                </h2>
+
+                <p>
+                    Welcome to Vivy 💜
+                </p>
+
+                <p>
+                    Your account has been created successfully.
+                </p>
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    id="user-success-btn">
+
+                    Continue
+
+                </button>
+
+            </div>
+
+            <!-- INVALID AGENCY CODE -->
+            <div id="agency-error" class="status-content hidden">
+
+                <div class="status-icon error">
+                    ⚠️
+                </div>
+
+                <h2>
+                    Invalid Agency Invitation Code
+                </h2>
+
+                <p>
+                    The invitation code you entered could not be verified.
+                </p>
+
+                <p>
+                    Please contact your Agency and enter a valid invitation code before submitting your application.
+                </p>
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    id="try-again-btn">
+
+                    Try Again
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- FOOTER -->    <footer class="auth-footer">
+
+        <a href="index.html" class="back-link">
+
+            ← Back to Welcome
+
+        </a>
+
+    </footer>
+
+</main>
+
+<script src="auth.js"></script>
+
 </body>
 </html>

@@ -1,214 +1,84 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Primary Meta Tags -->
-    <title>VivyLive 💜</title>
-    <meta name="description" content="Experience premium live streaming, interactive video calls, and virtual gifting. Join the most vibrant community of creators on VivyLive.">
-    <meta name="keywords" content="live streaming, virtual gifts, video chat, host earnings, streaming agency, interactive games">
-    <meta name="author" content="VivyLive">
-    <meta name="robots" content="index, follow">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://vivylive.com/">
-    <meta property="og:title" content="VivyLive 💜 | Watch. Stream. Connect. Earn.">
-    <meta property="og:description" content="Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.">
-    <meta property="og:image" content="assets/images/og-image.jpg">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://vivylive.com/">
-    <meta property="twitter:title" content="VivyLive 💜 | Watch. Stream. Connect. Earn.">
-    <meta property="twitter:description" content="Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.">
-    <meta property="twitter:image" content="assets/images/twitter-card.jpg">
-
-    <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-
-    <!-- External CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/splash.css">
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/sections.css">
+    <title>Vivy 💜</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Splash Screen -->
-    <div id="splash-screen">
+    <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
-            <h1 class="splash-logo">VivyLive 💜</h1>
-            <div class="loader-container">
-                <div class="loader"></div>
+            <h1 class="logo-text">Vivy 💜</h1>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="welcome-screen hidden">
+        <div class="welcome-content">
+            <h1 class="welcome-title">Welcome to Vivy 💜</h1>
+            <p class="welcome-tagline">Connect • Match • Live • Earn</p>
+            
+            <div class="role-selection">
+                <div class="toggle-container">
+                    <button id="user-toggle" class="toggle-btn active">User</button>
+                    <button id="host-toggle" class="toggle-btn">Host</button>
+                </div>
+
+                <div class="feature-section">
+                    <h3>What You Can Do on Vivy 💜</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-shuffle-dots"></i>
+                            <span>Random Match</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-phone"></i>
+                            <span>Audio Call</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-video"></i>
+                            <span>Video Call</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-broadcast-tower"></i>
+                            <span>Live Streaming</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-gift"></i>
+                            <span>Send Gifts</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-gamepad"></i>
+                            <span>Play Games</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-coins"></i>
+                            <span>Earn Coins</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="get-started-btn" class="main-btn">Get Started</button>
             </div>
         </div>
     </div>
 
-    <!-- Navigation Bar -->
-    <header>
-        <nav class="main-nav">
-            <div class="nav-logo">
-                <a href="/">VivyLive 💜</a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#live">Live</a></li>
-                <li><a href="#hosts">Hosts</a></li>
-                <li><a href="#games">Games</a></li>
-                <li><a href="#gifts">Gifts</a></li>
-                <li><a href="#agency">Agency</a></li>
-                <li><a href="#become-host">Become Host</a></li>
-            </ul>
-            <div class="nav-auth">
-                <a href="/login" class="btn-login">Login</a>
-                <a href="/register" class="btn-register">Register</a>
-            </div>
-        </nav>
-    </header>
+    <!-- Main Application Container -->
+    <div id="app-container" class="hidden">
+        <!-- App content goes here -->
+    </div>
 
-    <main>
-        <!-- Hero Section -->
-        <section id="home" class="hero-section">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <h1>Watch. Stream. Connect. Earn.</h1>
-                    <p>Join thousands of creators and users enjoying premium live streaming, video calls, audio calls, games, and virtual gifting.</p>
-                    <div class="hero-cta">
-                        <a href="#live" class="btn-primary">Watch Live</a>
-                        <a href="#become-host" class="btn-secondary">Become a Host</a>
-                        <a href="#" class="btn-outline">Download App</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Trending Live Streams -->
-        <section id="live" class="trending-streams">
-            <h2>Trending Live Streams</h2>
-            <div class="stream-grid">
-                <!-- Stream cards will be dynamically loaded or listed here -->
-            </div>
-        </section>
-
-        <!-- Featured Hosts -->
-        <section id="hosts" class="featured-hosts">
-            <h2>Featured Hosts</h2>
-            <div class="host-grid">
-                <!-- Host profiles will be listed here -->
-            </div>
-        </section>
-
-        <!-- Popular Virtual Gifts -->
-        <section id="gifts" class="virtual-gifts">
-            <h2>Popular Virtual Gifts</h2>
-            <div class="gifts-grid">
-                <!-- Gift items will be listed here -->
-            </div>
-        </section>
-
-        <!-- Interactive Games Preview -->
-        <section id="games" class="games-preview">
-            <h2>Interactive Games</h2>
-            <div class="games-container">
-                <!-- Game categories and previews -->
-            </div>
-        </section>
-
-        <!-- Coin Packages Preview -->
-        <section class="coin-packages">
-            <h2>Recharge Your Balance</h2>
-            <div class="packages-grid">
-                <!-- Coin package pricing and options -->
-            </div>
-        </section>
-
-        <!-- How Hosts Earn -->
-        <section id="how-earn" class="earnings-guide">
-            <h2>How Hosts Earn</h2>
-            <div class="earnings-steps">
-                <!-- Steps: Stream, Receive Gifts, Convert to Cash -->
-            </div>
-        </section>
-
-        <!-- Agency Partnership -->
-        <section id="agency" class="agency-partnership">
-            <h2>Agency Partnership</h2>
-            <div class="agency-content">
-                <!-- Details for agencies wanting to join -->
-            </div>
-        </section>
-
-        <!-- Weekly Leaderboard -->
-        <section class="leaderboard">
-            <h2>Weekly Leaderboard</h2>
-            <div class="leaderboard-table">
-                <!-- Top users and hosts ranking -->
-            </div>
-        </section>
-
-        <!-- Platform Statistics -->
-        <section class="platform-stats">
-            <div class="stat-item">
-                <span class="stat-number">1M+</span>
-                <span class="stat-label">Active Users</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">50K+</span>
-                <span class="stat-label">Certified Hosts</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">100M+</span>
-                <span class="stat-label">Gifts Sent</span>
-            </div>
-        </section>
-
-        <!-- Testimonials -->
-        <section class="testimonials">
-            <h2>Community Stories</h2>
-            <div class="testimonial-grid">
-                <!-- User and Host testimonials -->
-            </div>
-        </section>
-
-        <!-- FAQ -->
-        <section id="faq" class="faq-section">
-            <h2>Frequently Asked Questions</h2>
-            <div class="faq-accordion">
-                <!-- FAQ items -->
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-container">
-            <div class="footer-brand">
-                <p>VivyLive 💜</p>
-                <p>The future of interactive entertainment.</p>
-            </div>
-            <div class="footer-links">
-                <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Contact Support</a></li>
-                    <li><a href="#">Help Center</a></li>
-                </ul>
-            </div>
-            <div class="footer-social">
-                <!-- Social Media Icons Links -->
-            </div>
-            <div class="footer-bottom">
-                &copy; 2023 VivyLive. All rights reserved.
-            </div>
-        </div>
+    <footer class="footer-links">
+        <a href="#" id="agency-login">Agency Login</a>
     </footer>
 
-    <!-- External JavaScript -->
-    <script src="js/splash-screen.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/animations.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+```

@@ -4,90 +4,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account | Vivy 💜</title>
+    <title>Vivy | Onboarding</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <main>
-        <form action="/register" method="POST" id="registration-form">
-            
-            <div class="form-group">
-                <label for="profile-photo">Profile Photo</label>
-                <input type="file" id="profile-photo" name="profile_photo" accept="image/*" required>
-            </div>
+        <header>
+            <h1>💜 Vivy</h1>
+        </header>
 
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="country">Country</label>
-                <select id="country" name="country" required>
-                    <option value="" disabled selected>Select Country</option>
-                    <!-- Options to be populated -->
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Gender</label>
-                <div class="radio-group">
-                    <input type="radio" id="male" name="gender" value="male" required>
-                    <label for="male">Male</label>
-                    
-                    <input type="radio" id="female" name="gender" value="female">
-                    <label for="female">Female</label>
-                    
-                    <input type="radio" id="other" name="gender" value="other">
-                    <label for="other">Other</label>
+        <section>
+            <form action="#" method="POST" enctype="multipart/form-data">
+                
+                <div class="form-group">
+                    <label for="profile-photo">Profile Photo</label>
+                    <input type="file" id="profile-photo" name="profile-photo" accept="image/*">
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="dob">Date of Birth</label>
-                <input type="date" id="dob" name="dob" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-
-            <div class="form-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" name="confirm_password" required>
-            </div>
-
-            <div class="form-group">
-                <label for="agency-code">Agency Invitation Code (Optional)</label>
-                <input type="text" id="agency-code" name="agency_code">
-            </div>
-
-            <div class="terms-container">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">I agree to the Terms & Conditions</label>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="privacy" name="privacy" required>
-                    <label for="privacy">I agree to the Privacy Policy</label>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <select id="country" name="country" required>
+                        <option value="" disabled selected>Select Country</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="Ghana">Ghana</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="South Africa">South Africa</option>
+                        <option value="United States">United States</option>
+                        <option value="Canada">Canada</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="India">India</option>
+                        <option value="China">China</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Australia">Australia</option>
+                        <option value="France">France</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Italy">Italy</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="Spain">Spain</option>
+                        <option value="United Arab Emirates">United Arab Emirates</option>
+                        <!-- Additional countries would be listed here -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="agency-code">Agency Invitation Code (Optional)</label>
+                    <input type="text" id="agency-code" name="agency_code">
+                </div>
+
+                <div class="terms-container">
+                    <label>
+                        <input type="checkbox" name="terms" required> I agree to the Terms & Conditions
+                    </label>
+                    <label>
+                        <input type="checkbox" name="privacy" required> I agree to the Privacy Policy
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit">Create Account</button>
+            </form>
+        </section>
+
+        <footer>
+            <div class="auth-links">
+                <p>Already have an account? <a href="login.html">Login</a></p>
+                <a href="auth.html" class="back-link">← Back</a>
             </div>
-
-            <button type="submit" class="btn-primary">Create Account</button>
-
-        </form>
-
-        <div class="form-footer">
-            <p>Already have an account? <a href="login.html">Login</a></p>
-            <a href="auth.html" class="back-link">← Back</a>
-        </div>
+        </footer>
     </main>
 
 </body>

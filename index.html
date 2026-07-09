@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,79 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vivy 💜</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
-            <h1 class="logo-text">Vivy 💜</h1>
+            <h1 class="splash-logo">Vivy 💜</h1>
             <div class="loader"></div>
         </div>
     </div>
 
     <!-- Welcome Screen -->
-    <div id="welcome-screen" class="welcome-screen hidden">
+    <div id="welcome-screen" class="welcome-screen" style="display: none;">
         <div class="welcome-content">
-            <h1 class="welcome-title">Welcome to Vivy 💜</h1>
-            <p class="welcome-tagline">Connect • Match • Live • Earn</p>
-            
-            <div class="role-selection">
-                <div class="toggle-container">
-                    <button id="user-toggle" class="toggle-btn active">User</button>
-                    <button id="host-toggle" class="toggle-btn">Host</button>
-                </div>
+            <div class="brand-header">
+                <h1>Vivy 💜</h1>
+                <p class="tagline">Connect • Match • Live • Earn</p>
+            </div>
 
-                <div class="feature-section">
-                    <h3>What You Can Do on Vivy 💜</h3>
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <i class="fas fa-shuffle-dots"></i>
-                            <span>Random Match</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-phone"></i>
-                            <span>Audio Call</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-video"></i>
-                            <span>Video Call</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-broadcast-tower"></i>
-                            <span>Live Streaming</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-gift"></i>
-                            <span>Send Gifts</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-gamepad"></i>
-                            <span>Play Games</span>
-                        </div>
-                        <div class="feature-card">
-                            <i class="fas fa-coins"></i>
-                            <span>Earn Coins</span>
-                        </div>
-                    </div>
+            <div class="auth-container">
+                <div class="auth-buttons">
+                    <button class="btn-primary" onclick="location.href='signup.html'">User / Host</button>
                 </div>
+            </div>
 
-                <button id="get-started-btn" class="main-btn">Get Started</button>
+            <div class="footer-links">
+                <a href="agency-login.html" class="agency-link">Agency Login</a>
             </div>
         </div>
     </div>
 
-    <!-- Main Application Container -->
-    <div id="app-container" class="hidden">
-        <!-- App content goes here -->
-    </div>
-
-    <footer class="footer-links">
-        <a href="#" id="agency-login">Agency Login</a>
-    </footer>
-
     <script src="script.js"></script>
 </body>
 </html>
-```

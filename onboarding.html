@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Vivy 💜</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main>
+        <form action="/register" method="POST" id="registration-form">
+            
+            <div class="form-group">
+                <label for="profile-photo">Profile Photo</label>
+                <input type="file" id="profile-photo" name="profile_photo" accept="image/*" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" name="country" required>
+                    <option value="" disabled selected>Select Country</option>
+                    <!-- Options to be populated -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <div class="radio-group">
+                    <input type="radio" id="male" name="gender" value="male" required>
+                    <label for="male">Male</label>
+                    
+                    <input type="radio" id="female" name="gender" value="female">
+                    <label for="female">Female</label>
+                    
+                    <input type="radio" id="other" name="gender" value="other">
+                    <label for="other">Other</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm_password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="agency-code">Agency Invitation Code (Optional)</label>
+                <input type="text" id="agency-code" name="agency_code">
+            </div>
+
+            <div class="terms-container">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms">I agree to the Terms & Conditions</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="privacy" name="privacy" required>
+                    <label for="privacy">I agree to the Privacy Policy</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Create Account</button>
+
+        </form>
+
+        <div class="form-footer">
+            <p>Already have an account? <a href="login.html">Login</a></p>
+            <a href="auth.html" class="back-link">← Back</a>
+        </div>
+    </main>
+
+</body>
+</html>

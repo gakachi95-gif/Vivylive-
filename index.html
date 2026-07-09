@@ -1,26 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivy 💜 - Welcome</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Vivy - Welcome</title>  
-    <link rel="stylesheet" href="style.css">  
-</head>  
-<body>  <main class="onboarding-container">  
-    <div class="brand-section">  
-        <h1 class="logo">💜 Vivy</h1>  
-        <p class="tagline">Match • Call • Live • Earn</p>  
-    </div>  
+<body>
 
-    <!-- Continue as User -->
-<a href="auth.html" id="user-btn">👤 Continue as User</a>
+<main class="onboarding-container">
 
-<!-- Become a Host -->
-<a href="auth.html" id="host-btn">🎤 Become a Host</a>
+    <!-- Vivy Logo -->
+    <div class="brand-section">
 
-<!-- Hidden Agency Login -->
-<a href="agency-login.html" class="agency-link">Agency Login</a>
+        <h1 class="logo">
+            <span class="heart">💜</span>
+            <span class="logo-text">Vivy</span>
+        </h1>
+
+        <p class="tagline">
+            Match • Call • Live • Earn
+        </p>
+
+    </div>
+
+    <!-- Main Buttons -->
+
+    <div class="action-buttons">
+
+        <a href="auth.html?role=user" class="btn-premium">
+            👤 Continue as User
+        </a>
+
+        <a href="auth.html?role=host" class="btn-premium">
+            🎤 Become a Host
+        </a>
+
+    </div>
+
+    <!-- Hidden Agency Login -->
+
+    <div class="agency-login">
+
+        <a href="agency-login.html" class="agency-link">
+            Agency Login
+        </a>
+
+    </div>
+
 </main>
 
-</body>  
-</html>
+</body>
+        </html>

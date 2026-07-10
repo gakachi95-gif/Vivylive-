@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F0B1D">
+
+<title>Dashboard | Vivy 💜</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="dashboard-body">
+
+<!-- ======================================================
+     PREMIUM LOADING SCREEN
+====================================================== -->
+<div id="loadingScreen" class="loading-screen">
+
+    <div class="loading-content">
+
+        <div class="loading-logo">Vivy 💜</div>
+
+        <div class="loading-spinner">
+            <span class="spinner-ring"></span>
+            <span class="spinner-ring"></span>
+            <span class="spinner-ring"></span>
+        </div>
+
+        <p class="loading-text">Connecting you to the world…</p>
+
+    </div>
+
+</div>
+
+<!-- ======================================================
+     APP SHELL
+====================================================== -->
+<div class="dashboard-shell">
+
+    <!-- ==================================================
+         1. HEADER
+    ================================================== -->
+    <header class="dashboard-header">
+
+        <div class="header-profile">
+
+            <div class="profile-photo-wrap">
+                <img id="userPhoto" class="profile-photo" src="" alt="Profile photo">
+                <span class="profile-online-dot"></span>
+            </div>
+
+            <div class="header-user-info">
+                <h1 id="username" class="header-username">Loading…</h1>
+                <p class="header-uid">
+                    UID: <span id="userUid">--------</span>
+                </p>
+            </div>
+
+        </div>
+
+        <div class="header-actions">
+
+            <button id="notificationBtn" type="button" class="icon-btn" aria-label="Notifications">
+                <span class="icon-bell"></span>
+                <span class="notification-dot"></span>
+            </button>
+
+            <button id="settingsBtn" type="button" class="icon-btn" aria-label="Settings">
+                <span class="icon-settings"></span>
+            </button>
+
+        </div>
+
+    </header>
+
+    <main class="dashboard-main">
+
+        <!-- ==============================================
+             2. WALLET CARD
+        ============================================== -->
+        <section class="wallet-card glass-card">
+
+            <div class="wallet-balances">
+
+                <div class="wallet-balance-item">
+                    <span class="wallet-icon icon-coin"></span>
+                    <div class="wallet-balance-text">
+                        <span id="coinBalance" class="wallet-balance-value">0</span>
+                        <span class="wallet-balance-label">Coins</span>
+                    </div>
+                </div>
+
+                <div class="wallet-divider"></div>
+
+                <div class="wallet-balance-item">
+                    <span class="wallet-icon icon-diamond"></span>
+                    <div class="wallet-balance-text">
+                        <span id="walletBalance" class="wallet-balance-value">0.00</span>
+                        <span class="wallet-balance-label">Wallet</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="wallet-actions">
+
+                <button id="buyCoinsBtn" type="button" class="btn btn-wallet btn-buy-coins">
+                    Buy Coins
+                </button>
+
+                <button id="rechargeBtn" type="button" class="btn btn-wallet btn-recharge">
+                    Recharge
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             3. QUICK ACTIONS
+        ============================================== -->
+        <section class="quick-actions" aria-label="Quick actions">
+
+            <button id="randomMatchBtn" type="button" class="quick-action-tile quick-action-random">
+                <span class="quick-action-icon icon-shuffle"></span>
+                <span class="quick-action-label">Random Match</span>
+            </button>
+
+            <button id="audioCallBtn" type="button" class="quick-action-tile quick-action-audio">
+                <span class="quick-action-icon icon-phone"></span>
+                <span class="quick-action-label">Audio Call</span>
+            </button>
+
+            <button id="videoCallBtn" type="button" class="quick-action-tile quick-action-video">
+                <span class="quick-action-icon icon-video"></span>
+                <span class="quick-action-label">Video Call</span>
+            </button>
+
+            <button id="messagesBtn" type="button" class="quick-action-tile quick-action-messages">
+                <span class="quick-action-icon icon-chat"></span>
+                <span class="quick-action-label">Messages</span>
+            </button>
+
+            <button id="favoritesBtn" type="button" class="quick-action-tile quick-action-favorites">
+                <span class="quick-action-icon icon-heart"></span>
+                <span class="quick-action-label">Favorites</span>
+            </button>
+
+        </section>
+
+        <!-- ==============================================
+             4. SEARCH BAR
+        ============================================== -->
+        <section class="search-section" aria-label="Search hosts">
+
+            <div class="search-bar glass-card">
+
+                <span class="search-icon" aria-hidden="true"></span>
+
+                <input
+                    id="searchHost"
+                    type="search"
+                    class="search-input"
+                    placeholder="Search by username, host UID or country"
+                    autocomplete="off">
+
+                <button id="searchFilterBtn" type="button" class="search-filter-btn" aria-label="Search filters">
+                    <span class="icon-filter"></span>
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             6. FILTER CHIPS
+        ============================================== -->
+        <section class="filter-chips-section" aria-label="Filters">
+
+            <div class="filter-chips">
+
+                <button type="button" class="filter-chip filter-chip-active" data-filter="all">All</button>
+                <button type="button" class="filter-chip" data-filter="female">Female</button>
+                <button type="button" class="filter-chip" data-filter="male">Male</button>
+                <button type="button" class="filter-chip" data-filter="online">Online</button>
+                <button type="button" class="filter-chip" data-filter="verified">Verified</button>
+                <button type="button" class="filter-chip" data-filter="country">Country</button>
+                <button type="button" class="filter-chip" data-filter="newest">Newest</button>
+                <button type="button" class="filter-chip" data-filter="popular">Popular</button>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             5. HOST SECTIONS
+        ============================================== -->
+
+        <!-- New Hosts -->
+        <section class="host-section" aria-label="New hosts">
+
+            <div class="host-section-header">
+                <h2 class="host-section-title">New Hosts</h2>
+                <button type="button" class="see-all-btn" data-target="newHosts">See All</button>
+            </div>
+
+            <div id="newHosts" class="host-row">
+
+                <!-- Host cards injected here via JS using #hostCardTemplate -->
+
+            </div>
+
+        </section>
+
+        <!-- Online Hosts -->
+        <section class="host-section" aria-label="Online hosts">
+
+            <div class="host-section-header">
+                <h2 class="host-section-title">Online Hosts</h2>
+                <button type="button" class="see-all-btn" data-target="onlineHosts">See All</button>
+            </div>
+
+            <div id="onlineHosts" class="host-row">
+
+                <!-- Empty state (default). Replaced by JS when hosts are online. -->
+                <div class="empty-state empty-state-hosts">
+                    <div class="empty-state-icon icon-empty-hosts"></div>
+                    <p class="empty-state-title">No hosts online right now</p>
+                    <p class="empty-state-subtitle">Check back soon or try a Random Match instead.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Popular Hosts -->
+        <section class="host-section" aria-label="Popular hosts">
+
+            <div class="host-section-header">
+                <h2 class="host-section-title">Popular Hosts</h2>
+                <button type="button" class="see-all-btn" data-target="popularHosts">See All</button>
+            </div>
+
+            <div id="popularHosts" class="host-row">
+
+                <!-- Host cards injected here via JS using #hostCardTemplate -->
+
+            </div>
+
+        </section>
+
+        <!-- Your Favorites -->
+        <section class="host-section" aria-label="Your favorite hosts">
+
+            <div class="host-section-header">
+                <h2 class="host-section-title">Your Favorites</h2>
+                <button type="button" class="see-all-btn" data-target="favoriteHosts">See All</button>
+            </div>
+
+            <div id="favoriteHosts" class="host-row">
+
+                <!-- Empty state (default). Replaced by JS when user has favorites. -->
+                <div class="empty-state empty-state-hosts">
+                    <div class="empty-state-icon icon-empty-heart"></div>
+                    <p class="empty-state-title">No favorites yet</p>
+                    <p class="empty-state-subtitle">Tap the heart on a host to save them here.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Browse All Hosts -->
+        <section class="host-section host-section-grid" aria-label="Browse all hosts">
+
+            <div class="host-section-header">
+                <h2 class="host-section-title">Browse All Hosts</h2>
+            </div>
+
+            <div id="allHosts" class="host-grid">
+
+                <!-- Host cards injected here via JS using #hostCardTemplate -->
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             7. USER STATISTICS
+        ============================================== -->
+        <section class="stats-section glass-card" aria-label="Your statistics">
+
+            <h2 class="section-title">Your Stats</h2>
+
+            <div class="stats-grid">
+
+                <div class="stat-item" data-stat="friends">
+                    <span class="stat-icon icon-friends"></span>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Friends</span>
+                </div>
+
+                <div class="stat-item" data-stat="callsMade">
+                    <span class="stat-icon icon-call"></span>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Calls Made</span>
+                </div>
+
+                <div class="stat-item" data-stat="messagesSent">
+                    <span class="stat-icon icon-chat"></span>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Messages</span>
+                </div>
+
+                <div class="stat-item" data-stat="favoriteHostsCount">
+                    <span class="stat-icon icon-heart"></span>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Favorite Hosts</span>
+                </div>
+
+                <div class="stat-item" data-stat="coinsSpent">
+                    <span class="stat-icon icon-coin"></span>
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Coins Spent</span>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             11. DAILY REWARD CARD
+        ============================================== -->
+        <section class="daily-reward-card glass-card" aria-label="Daily reward">
+
+            <div class="daily-reward-info">
+                <span class="daily-reward-icon icon-gift"></span>
+                <div class="daily-reward-text">
+                    <h3 class="daily-reward-title">Daily Reward</h3>
+                    <p class="daily-reward-subtitle">Log in daily to earn free coins</p>
+                </div>
+            </div>
+
+            <button id="claimRewardBtn" type="button" class="btn btn-claim-reward">
+                Claim
+            </button>
+
+        </section>
+
+        <!-- ==============================================
+             12. INVITE FRIENDS / REFERRAL CARD
+        ============================================== -->
+        <section class="invite-card glass-card" aria-label="Invite friends">
+
+            <div class="invite-info">
+                <span class="invite-icon icon-invite"></span>
+                <div class="invite-text">
+                    <h3 class="invite-title">Invite Friends</h3>
+                    <p class="invite-subtitle">Share your code and earn bonus coins together</p>
+                </div>
+            </div>
+
+            <div class="invite-code-row">
+                <span id="referralCode" class="invite-code">--------</span>
+                <button id="inviteShareBtn" type="button" class="btn btn-invite-share">
+                    Share
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             8. NOTIFICATIONS
+        ============================================== -->
+        <section class="notifications-section" aria-label="Notifications">
+
+            <div class="section-header-row">
+                <h2 class="section-title">Notifications</h2>
+                <button type="button" class="see-all-btn" data-target="notificationsList">See All</button>
+            </div>
+
+            <div id="notificationsList" class="notifications-list">
+
+                <!-- Empty state (default). Replaced by JS when notifications exist. -->
+                <div class="empty-state empty-state-notifications">
+                    <div class="empty-state-icon icon-empty-bell"></div>
+                    <p class="empty-state-title">You're all caught up</p>
+                    <p class="empty-state-subtitle">New notifications will show up here.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             9. RECENT CALLS
+        ============================================== -->
+        <section class="recent-calls-section" aria-label="Recent calls">
+
+            <div class="section-header-row">
+                <h2 class="section-title">Recent Calls</h2>
+                <button type="button" class="see-all-btn" data-target="recentCalls">See All</button>
+            </div>
+
+            <div id="recentCalls" class="recent-calls-list">
+
+                <!-- Empty state (default). Replaced by JS when call history exists. -->
+                <div class="empty-state empty-state-calls">
+                    <div class="empty-state-icon icon-empty-call"></div>
+                    <p class="empty-state-title">No recent calls</p>
+                    <p class="empty-state-subtitle">Start a Random Match to make your first call.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ==============================================
+             10. RECENT MESSAGES
+        ============================================== -->
+        <section class="recent-messages-section" aria-label="Recent messages">
+
+            <div class="section-header-row">
+                <h2 class="section-title">Recent Messages</h2>
+                <button type="button" class="see-all-btn" data-target="recentMessages">See All</button>
+            </div>
+
+            <div id="recentMessages" class="recent-messages-list">
+
+                <!-- Empty state (default). Replaced by JS when conversations exist. -->
+                <div class="empty-state empty-state-messages">
+                    <div class="empty-state-icon icon-empty-chat"></div>
+                    <p class="empty-state-title">No messages yet</p>
+                    <p class="empty-state-subtitle">Match with someone new to start chatting.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ==================================================
+         13. FLOATING RANDOM MATCH BUTTON
+    ================================================== -->
+    <button id="floatingRandomMatchBtn" type="button" class="fab-random-match" aria-label="Start random match">
+        <span class="icon-shuffle"></span>
+    </button>
+
+    <!-- ==================================================
+         14. BOTTOM NAVIGATION
+    ================================================== -->
+    <nav class="bottom-nav" aria-label="Primary navigation">
+
+        <a href="user-dashboard.html" class="bottom-nav-item bottom-nav-active">
+            <span class="bottom-nav-icon icon-home"></span>
+            <span class="bottom-nav-label">Home</span>
+        </a>
+
+        <a href="messages.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon icon-chat"></span>
+            <span class="bottom-nav-label">Messages</span>
+        </a>
+
+        <a href="wallet.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon icon-wallet"></span>
+            <span class="bottom-nav-label">Wallet</span>
+        </a>
+
+        <a href="profile.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon icon-user"></span>
+            <span class="bottom-nav-label">Profile</span>
+        </a>
+
+        <a href="support.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon icon-support"></span>
+            <span class="bottom-nav-label">Support</span>
+        </a>
+
+    </nav>
+
+</div>
+
+<!-- ======================================================
+     HOST CARD TEMPLATE
+     Cloned by JS to populate newHosts / onlineHosts /
+     popularHosts / favoriteHosts / allHosts containers.
+====================================================== -->
+<template id="hostCardTemplate">
+
+    <article class="host-card glass-card" data-host-uid="">
+
+        <button type="button" class="host-favorite-btn" aria-label="Add to favorites">
+            <span class="icon-heart"></span>
+        </button>
+
+        <div class="host-photo-wrap">
+            <img class="host-photo" src="" alt="Host photo">
+            <span class="host-online-indicator"></span>
+        </div>
+
+        <div class="host-card-info">
+
+            <div class="host-card-name-row">
+                <span class="host-username"></span>
+                <span class="host-verified-badge" title="Verified host">
+                    <span class="icon-verified"></span>
+                </span>
+            </div>
+
+            <p class="host-uid">UID: <span class="host-uid-value"></span></p>
+
+            <div class="host-meta-row">
+                <img class="host-country-flag" src="" alt="Country flag">
+                <span class="host-age"></span>
+                <span class="host-gender-icon"></span>
+            </div>
+
+        </div>
+
+        <div class="host-card-actions">
+
+            <button type="button" class="host-action-btn host-message-btn" aria-label="Message host">
+                <span class="icon-chat"></span>
+            </button>
+
+            <button type="button" class="host-action-btn host-audio-btn" aria-label="Audio call host">
+                <span class="icon-phone"></span>
+            </button>
+
+            <button type="button" class="host-action-btn host-video-btn" aria-label="Video call host">
+                <span class="icon-video"></span>
+            </button>
+
+        </div>
+
+    </article>
+
+</template>
+
+<script type="module" src="auth-guard.js"></script>
+<script type="module" src="user-dashboard.js"></script>
+
+</body>
+          </html>

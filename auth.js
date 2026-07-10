@@ -41,12 +41,12 @@ import {
 // Firestore Collections
 // ======================================================
 
-const USERS_COLLECTION = "accounts";
+const USERS_COLLECTION = "users";
 const AGENCIES_COLLECTION = "agencies";
 const COUNTERS_COLLECTION = "counters";
 
 // ======================================================
-// Alert Helper
+// Friendly Alert
 // ======================================================
 
 function showMessage(message) {
@@ -54,7 +54,7 @@ function showMessage(message) {
 }
 
 // ======================================================
-// Friendly Firebase Errors
+// Firebase Error Messages
 // ======================================================
 
 function getErrorMessage(error) {
@@ -78,7 +78,7 @@ function getErrorMessage(error) {
             return "Password must contain at least 6 characters.";
 
         case "auth/network-request-failed":
-            return "Network error. Check your internet connection.";
+            return "Network error. Please check your internet connection.";
 
         case "permission-denied":
             return "Database permission denied.";
@@ -86,6 +86,7 @@ function getErrorMessage(error) {
         default:
             console.error(error);
             return error.message || "Something went wrong.";
+
     }
 
 }
@@ -97,12 +98,12 @@ function getErrorMessage(error) {
 // AGY-000001
 // ======================================================
 
-async function generateSequentialId(accountType) {
+async function generateSequentialId(role) {
 
     let counterId;
     let prefix;
 
-    switch (accountType) {
+    switch (role) {
 
         case "user":
             counterId = "users";
@@ -120,18 +121,24 @@ async function generateSequentialId(accountType) {
             break;
 
         default:
-            throw new Error("Invalid account type.");
+            throw new Error("Invalid account role.");
+
     }
 
-    const counterRef = doc(db, COUNTERS_COLLECTION, counterId);
+    const counterRef = doc(
+        db,
+        COUNTERS_COLLECTION,
+        counterId
+    );
 
     return await runTransaction(db, async (transaction) => {
 
-        const snapshot = await transaction.get(counterRef);
+        const counterSnap =
+            await transaction.get(counterRef);
 
-        let count = 1;
+        let currentCount = 1;
 
-        if (!snapshot.exists()) {
+        if (!counterSnap.exists()) {
 
             transaction.set(counterRef, {
                 count: 1
@@ -139,15 +146,16 @@ async function generateSequentialId(accountType) {
 
         } else {
 
-            count = snapshot.data().count + 1;
+            currentCount =
+                counterSnap.data().count + 1;
 
             transaction.update(counterRef, {
-                count: count
+                count: currentCount
             });
 
         }
 
-        return `${prefix}-${String(count).padStart(6, "0")}`;
+        return `${prefix}-${String(currentCount).padStart(6, "0")}`;
 
     });
 
@@ -194,18 +202,21 @@ export async function registerAccount(formData) {
         // Host Registration
         // ------------------------------------------
 
-        if (agencyCode && agencyCode.trim() !== "") {
+        if (agencyCode.trim() !== "") {
 
             const agencyQuery = query(
                 collection(db, AGENCIES_COLLECTION),
                 where("invitationCode", "==", agencyCode.trim())
             );
 
-            const agencySnapshot = await getDocs(agencyQuery);
+            const agencySnapshot =
+                await getDocs(agencyQuery);
 
             if (agencySnapshot.empty) {
 
-                showMessage("Invalid Agency Invitation Code.");
+                showMessage(
+                    "Invalid Agency Invitation Code."
+                );
 
                 return false;
 
@@ -238,7 +249,7 @@ export async function registerAccount(formData) {
             await generateSequentialId(role);
 
         // ------------------------------------------
-        // Create User Profile
+        // Create Firestore Profile
         // ------------------------------------------
 
         const profile = {
@@ -306,23 +317,20 @@ export async function registerAccount(formData) {
         };
 
         // ------------------------------------------
-        // Save Firestore Profile
+        // Save Profile
         // ------------------------------------------
 
         await setDoc(
-
             doc(
                 db,
                 USERS_COLLECTION,
                 firebaseUid
             ),
-
             profile
-
         );
 
         // ------------------------------------------
-        // Registration Successful
+        // Host Registration
         // ------------------------------------------
 
         if (role === "host") {
@@ -333,17 +341,23 @@ export async function registerAccount(formData) {
 
             await signOut(auth);
 
-            window.location.href = "login.html";
+            window.location.replace("login.html");
 
             return true;
 
         }
 
+        // ------------------------------------------
+        // User Registration
+        // ------------------------------------------
+
         showMessage(
             "💜 Account created successfully!"
         );
 
-        window.location.href = "user-dashboard.html";
+        window.location.replace(
+            "user-dashboard.html"
+        );
 
         return true;
 
@@ -361,7 +375,7 @@ export async function registerAccount(formData) {
 
     }
 
-}// ======================================================
+                }// ======================================================
 // Part 3 - Login System
 // ======================================================
 
@@ -383,7 +397,7 @@ export async function loginUser(email, password) {
         const firebaseUid = credential.user.uid;
 
         // ------------------------------------------
-        // Get Firestore Profile
+        // Get User Profile
         // ------------------------------------------
 
         const profileRef = doc(
@@ -400,8 +414,10 @@ export async function loginUser(email, password) {
             await signOut(auth);
 
             showMessage(
-                "Account profile not found."
+                "Your account profile could not be found."
             );
+
+            window.location.replace("login.html");
 
             return false;
 
@@ -409,6 +425,22 @@ export async function loginUser(email, password) {
 
         const profile =
             profileSnap.data();
+
+        // ------------------------------------------
+        // Blocked Account
+        // ------------------------------------------
+
+        if (profile.isBlocked === true) {
+
+            await signOut(auth);
+
+            showMessage(
+                "Your account has been blocked."
+            );
+
+            return false;
+
+        }
 
         // ------------------------------------------
         // Update Online Status
@@ -428,8 +460,9 @@ export async function loginUser(email, password) {
 
         if (profile.role === "user") {
 
-            window.location.href =
-                "user-dashboard.html";
+            window.location.replace(
+                "user-dashboard.html"
+            );
 
             return true;
 
@@ -443,8 +476,9 @@ export async function loginUser(email, password) {
 
             if (profile.status === "approved") {
 
-                window.location.href =
-                    "host-dashboard.html";
+                window.location.replace(
+                    "host-dashboard.html"
+                );
 
                 return true;
 
@@ -452,14 +486,15 @@ export async function loginUser(email, password) {
 
             if (profile.status === "pending") {
 
-                showMessage(
-                    "💜 Your Host application is still awaiting approval."
-                );
-
                 await signOut(auth);
 
-                window.location.href =
-                    "login.html";
+                showMessage(
+                    "💜 Your Host application is still awaiting Admin approval."
+                );
+
+                window.location.replace(
+                    "login.html"
+                );
 
                 return false;
 
@@ -467,14 +502,15 @@ export async function loginUser(email, password) {
 
             if (profile.status === "rejected") {
 
-                showMessage(
-                    "Your Host application was rejected."
-                );
-
                 await signOut(auth);
 
-                window.location.href =
-                    "login.html";
+                showMessage(
+                    "Your Host application has been rejected."
+                );
+
+                window.location.replace(
+                    "login.html"
+                );
 
                 return false;
 
@@ -483,32 +519,36 @@ export async function loginUser(email, password) {
         }
 
         // ------------------------------------------
-        // Future Agency Login
+        // Agency Login
         // ------------------------------------------
 
         if (profile.role === "agency") {
 
-            // Future:
-            // window.location.href =
-            // "agency-dashboard.html";
+            window.location.replace(
+                "agency-dashboard.html"
+            );
 
             return true;
 
         }
 
         // ------------------------------------------
-        // Future Admin Login
+        // Admin Login
         // ------------------------------------------
 
         if (profile.role === "admin") {
 
-            // Future:
-            // window.location.href =
-            // "admin-dashboard.html";
+            window.location.replace(
+                "admin-dashboard.html"
+            );
 
             return true;
 
         }
+
+        // ------------------------------------------
+        // Unknown Role
+        // ------------------------------------------
 
         await signOut(auth);
 
@@ -549,24 +589,27 @@ if (loginForm) {
 
             event.preventDefault();
 
-            await loginUser(
-
+            const email =
                 document
                     .getElementById("email")
                     .value
-                    .trim(),
+                    .trim();
 
+            const password =
                 document
                     .getElementById("password")
-                    .value
+                    .value;
 
+            await loginUser(
+                email,
+                password
             );
 
         }
 
     );
 
-                }// ======================================================
+                            }// ======================================================
 // Part 4 - Authentication Guard
 // ======================================================
 
@@ -577,7 +620,23 @@ export function initAuthGuard() {
         const currentPage =
             window.location.pathname
             .split("/")
-            .pop();
+            .pop() || "index.html";
+
+        // ------------------------------------------
+        // Protected Pages
+        // ------------------------------------------
+
+        const protectedPages = [
+
+            "user-dashboard.html",
+
+            "host-dashboard.html",
+
+            "agency-dashboard.html",
+
+            "admin-dashboard.html"
+
+        ];
 
         // ------------------------------------------
         // User Not Logged In
@@ -585,14 +644,9 @@ export function initAuthGuard() {
 
         if (!user) {
 
-            if (
-                currentPage === "user-dashboard.html" ||
-                currentPage === "host-dashboard.html" ||
-                currentPage === "agency-dashboard.html" ||
-                currentPage === "admin-dashboard.html"
-            ) {
+            if (protectedPages.includes(currentPage)) {
 
-                window.location.href = "login.html";
+                window.location.replace("login.html");
 
             }
 
@@ -603,7 +657,7 @@ export function initAuthGuard() {
         try {
 
             // ------------------------------------------
-            // Get User Profile
+            // Load Firestore Profile
             // ------------------------------------------
 
             const profileRef = doc(
@@ -619,8 +673,9 @@ export function initAuthGuard() {
 
                 await signOut(auth);
 
-                window.location.href =
-                    "login.html";
+                window.location.replace(
+                    "login.html"
+                );
 
                 return;
 
@@ -628,6 +683,26 @@ export function initAuthGuard() {
 
             const profile =
                 profileSnap.data();
+
+            // ------------------------------------------
+            // Blocked User
+            // ------------------------------------------
+
+            if (profile.isBlocked === true) {
+
+                await signOut(auth);
+
+                showMessage(
+                    "Your account has been blocked."
+                );
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+
+            }
 
             // ------------------------------------------
             // Update Online Status
@@ -643,33 +718,82 @@ export function initAuthGuard() {
 
             // ------------------------------------------
             // Redirect Logged-in Users
-            // Away From Login & Registration Pages
+            // Away From Auth Pages
             // ------------------------------------------
 
             if (
+
+                currentPage === "index.html" ||
+
+                currentPage === "auth.html" ||
+
                 currentPage === "login.html" ||
-                currentPage === "onboarding.html" ||
-                currentPage === "auth.html"
+
+                currentPage === "onboarding.html"
+
             ) {
 
-                if (profile.role === "user") {
+                switch (profile.role) {
 
-                    window.location.href =
-                        "user-dashboard.html";
+                    case "user":
 
-                    return;
+                        window.location.replace(
+                            "user-dashboard.html"
+                        );
 
-                }
+                        return;
 
-                if (
-                    profile.role === "host" &&
-                    profile.status === "approved"
-                ) {
+                    case "host":
 
-                    window.location.href =
-                        "host-dashboard.html";
+                        if (
+                            profile.status === "approved"
+                        ) {
 
-                    return;
+                            window.location.replace(
+                                "host-dashboard.html"
+                            );
+
+                        } else {
+
+                            await signOut(auth);
+
+                            showMessage(
+                                "💜 Your Host account is awaiting Admin approval."
+                            );
+
+                            window.location.replace(
+                                "login.html"
+                            );
+
+                        }
+
+                        return;
+
+                    case "agency":
+
+                        window.location.replace(
+                            "agency-dashboard.html"
+                        );
+
+                        return;
+
+                    case "admin":
+
+                        window.location.replace(
+                            "admin-dashboard.html"
+                        );
+
+                        return;
+
+                    default:
+
+                        await signOut(auth);
+
+                        window.location.replace(
+                            "login.html"
+                        );
+
+                        return;
 
                 }
 
@@ -680,31 +804,18 @@ export function initAuthGuard() {
             // ------------------------------------------
 
             if (
-                currentPage === "user-dashboard.html"
+
+                currentPage === "user-dashboard.html" &&
+
+                profile.role !== "user"
+
             ) {
 
-                if (
-                    profile.role !== "user"
-                ) {
+                window.location.replace(
+                    "login.html"
+                );
 
-                    if (
-                        profile.role === "host" &&
-                        profile.status === "approved"
-                    ) {
-
-                        window.location.href =
-                            "host-dashboard.html";
-
-                        return;
-
-                    }
-
-                    window.location.href =
-                        "login.html";
-
-                    return;
-
-                }
+                return;
 
             }
 
@@ -720,8 +831,9 @@ export function initAuthGuard() {
                     profile.role !== "host"
                 ) {
 
-                    window.location.href =
-                        "login.html";
+                    window.location.replace(
+                        "login.html"
+                    );
 
                     return;
 
@@ -731,14 +843,15 @@ export function initAuthGuard() {
                     profile.status !== "approved"
                 ) {
 
+                    await signOut(auth);
+
                     showMessage(
                         "💜 Your Host account is awaiting Admin approval."
                     );
 
-                    await signOut(auth);
-
-                    window.location.href =
-                        "login.html";
+                    window.location.replace(
+                        "login.html"
+                    );
 
                     return;
 
@@ -751,19 +864,18 @@ export function initAuthGuard() {
             // ------------------------------------------
 
             if (
-                currentPage === "agency-dashboard.html"
+
+                currentPage === "agency-dashboard.html" &&
+
+                profile.role !== "agency"
+
             ) {
 
-                if (
-                    profile.role !== "agency"
-                ) {
+                window.location.replace(
+                    "login.html"
+                );
 
-                    window.location.href =
-                        "login.html";
-
-                    return;
-
-                }
+                return;
 
             }
 
@@ -772,19 +884,18 @@ export function initAuthGuard() {
             // ------------------------------------------
 
             if (
-                currentPage === "admin-dashboard.html"
+
+                currentPage === "admin-dashboard.html" &&
+
+                profile.role !== "admin"
+
             ) {
 
-                if (
-                    profile.role !== "admin"
-                ) {
+                window.location.replace(
+                    "login.html"
+                );
 
-                    window.location.href =
-                        "login.html";
-
-                    return;
-
-                }
+                return;
 
             }
 
@@ -796,8 +907,9 @@ export function initAuthGuard() {
 
             await signOut(auth);
 
-            window.location.href =
-                "login.html";
+            window.location.replace(
+                "login.html"
+            );
 
         }
 
@@ -809,13 +921,12 @@ export function initAuthGuard() {
 // Start Authentication Guard
 // ======================================================
 
-initAuthGuard();
-// ======================================================
+initAuthGuard();// ======================================================
 // Part 5 - Logout, Form Connections & Helper Functions
 // ======================================================
 
 // ------------------------------------------
-// Logout User
+// Logout
 // ------------------------------------------
 
 export async function logoutUser() {
@@ -832,19 +943,26 @@ export async function logoutUser() {
                 user.uid
             );
 
-            await updateDoc(profileRef, {
+            const profileSnap =
+                await getDoc(profileRef);
 
-                isOnline: false,
+            if (profileSnap.exists()) {
 
-                lastSeen: serverTimestamp()
+                await updateDoc(profileRef, {
 
-            });
+                    isOnline: false,
+
+                    lastSeen: serverTimestamp()
+
+                });
+
+            }
 
         }
 
         await signOut(auth);
 
-        window.location.href = "login.html";
+        window.location.replace("login.html");
 
     }
 
@@ -858,11 +976,11 @@ export async function logoutUser() {
 
 }
 
-// Make Logout Available Globally
+// Make available globally
 window.logoutUser = logoutUser;
 
 // ======================================================
-// Automatically Connect Registration Form
+// Connect Registration Form
 // ======================================================
 
 const onboardingForm =
@@ -955,20 +1073,18 @@ export function isLoggedIn() {
 // ✔ Admin Dashboard
 // ✔ Audio Calls
 // ✔ Video Calls
-// ✔ Messaging
 // ✔ Random Match
 // ✔ Online Hosts
+// ✔ Messaging
 // ✔ AI Moderation
+// ✔ Payroll
 // ✔ Coin System
+// ✔ Paystack
 // ✔ Gifts
-// ✔ Paystack Coin Purchase
-// ✔ Payroll System
-// ✔ Host Earnings
-// ✔ Agency Earnings
-// ✔ Notifications
-// ✔ Friends
-// ✔ Call History
 // ✔ Support Team
+// ✔ Notifications
+// ✔ Call History
+// ✔ Wallet
 // ✔ Profile Verification
 
 // ======================================================

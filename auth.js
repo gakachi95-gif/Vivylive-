@@ -320,14 +320,37 @@ export async function registerAccount(formData) {
         // Save Profile
         // ------------------------------------------
 
-        await setDoc(
-            doc(
-                db,
-                USERS_COLLECTION,
-                firebaseUid
-            ),
-            profile
-        );
+        try {
+
+    const profileRef = doc(
+        db,
+        USERS_COLLECTION,
+        firebaseUid
+    );
+
+    console.log("Saving profile to Firestore...");
+
+    console.log(profile);
+
+    await setDoc(
+        profileRef,
+        profile
+    );
+
+    console.log("Profile saved successfully.");
+
+}
+catch (error) {
+
+    console.error("Firestore Error:", error);
+
+    alert("Error Code: " + error.code);
+
+    alert("Error Message: " + error.message);
+
+    throw error;
+
+}
 
         // ------------------------------------------
         // Host Registration

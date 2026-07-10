@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Create Account | Vivy 💜</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<main class="auth-container">
+
+    <section class="auth-card">
+
+        <header class="auth-header">
+
+            <h1>Create Your Vivy 💜 Account</h1>
+
+            <p>
+                Join Vivy and start connecting instantly.
+            </p>
+
+        </header>
+
+        <form id="onboardingForm">
+
+            <div class="form-group">
+
+                <label>Username</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Choose a username"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Email Address</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Country</label>
+
+                <select id="country" required>
+
+                    <option value="">Select Country</option>
+
+                    <option>Nigeria</option>
+                    <option>Ghana</option>
+                    <option>Kenya</option>
+                    <option>South Africa</option>
+                    <option>United States</option>
+                    <option>Canada</option>
+                    <option>United Kingdom</option>
+                    <option>India</option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Gender</label>
+
+                <select id="gender" required>
+
+                    <option value="">Select Gender</option>
+
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Date of Birth</label>
+
+                <input
+                    type="date"
+                    id="dob"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Password</label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Minimum 6 characters"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Confirm Password</label>
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Re-enter password"
+                    required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Agency Invitation Code (Optional)</label>
+
+                <input
+                    type="text"
+                    id="agencyCode"
+                    placeholder="Leave empty if registering as User">
+
+            </div>
+
+            <div class="checkbox-group">
+
+                <label>
+
+                    <input type="checkbox" required>
+
+                    I agree to the Terms & Conditions
+
+                </label>
+
+            </div>
+
+            <div class="checkbox-group">
+
+                <label>
+
+                    <input type="checkbox" required>
+
+                    I agree to the Privacy Policy
+
+                </label>
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn btn-primary">
+
+                Create Account
+
+            </button>
+
+        </form>
+
+        <footer class="auth-footer">
+
+            <p>
+
+                Already have an account?
+
+                <a href="login.html">
+
+                    Login
+
+                </a>
+
+            </p>
+
+            <a
+                href="auth.html"
+                class="back-link">
+
+                ← Back
+
+            </a>
+
+        </footer>
+
+    </section>
+
+</main>
+
+<script type="module" src="auth.js"></script>
+
+</body>
+                  </html>

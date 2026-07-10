@@ -116,91 +116,59 @@ body::before {
 }
 
 /* ==========================================================================
-   LOADING SCREEN — premium, auto-dismisses via pure CSS
+   SKELETON PLACEHOLDERS — instant paint while data streams in
+   (replaces the old blocking full-screen loader)
 ========================================================================== */
-#loadingScreen {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at 50% 40%, #1c1140, var(--bg-bottom) 75%);
-    animation: loading-dismiss 2.4s ease forwards;
+@keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-@keyframes loading-dismiss {
-    0%   { opacity: 1; visibility: visible; }
-    75%  { opacity: 1; visibility: visible; }
-    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+.skeleton {
+    background: linear-gradient(
+        100deg,
+        rgba(255,255,255,0.06) 30%,
+        rgba(255,255,255,0.14) 50%,
+        rgba(255,255,255,0.06) 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--r-sm);
+    color: transparent !important;
 }
 
-.loading-content {
+.skeleton-card {
+    width: 130px;
+    flex-shrink: 0;
+    border-radius: var(--r-md);
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 22px;
+    gap: 9px;
 }
 
-.loading-logo {
-    font-size: 2.6rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #fff, var(--secondary));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 0 22px rgba(123, 47, 247, 0.7));
-    animation: logo-pulse 1.8s ease-in-out infinite;
+.skeleton-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--r-sm);
 }
 
-@keyframes logo-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+.skeleton-line {
+    height: 10px;
+    width: 70%;
 }
 
-.loading-orbit {
-    position: relative;
-    width: 60px;
-    height: 60px;
+.skeleton-line.short { width: 45%; }
+
+#userPhoto.skeleton,
+#username.skeleton,
+#userUid.skeleton,
+#coinBalance.skeleton,
+#walletBalance.skeleton {
+    border-radius: var(--r-sm);
 }
 
-.orbit-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    border-top-color: var(--secondary);
-    animation: spin 1s linear infinite;
-}
-
-.orbit-ring:nth-child(2) {
-    inset: 9px;
-    border-top-color: var(--primary);
-    animation-duration: 0.75s;
-    animation-direction: reverse;
-}
-
-.orbit-ring:nth-child(3) {
-    inset: 18px;
-    border-top-color: #fff;
-    animation-duration: 0.55s;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.loading-text {
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    letter-spacing: 0.4px;
-    animation: text-fade 1.6s ease-in-out infinite;
-}
-
-@keyframes text-fade {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
+#userPhoto.skeleton { border-radius: 50%; }
 
 /* ==========================================================================
    APP SHELL
@@ -250,6 +218,43 @@ body::before {
 .profile-photo-wrap {
     position: relative;
     flex-shrink: 0;
+    cursor: pointer;
+}
+
+.header-id-block {
+    cursor: pointer;
+}
+
+.photo-upload-progress {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 11, 29, 0.6);
+    border-radius: 50%;
+}
+
+.photo-upload-progress svg {
+    width: 40px;
+    height: 40px;
+    transform: rotate(-90deg);
+}
+
+.photo-upload-progress .progress-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 3;
+}
+
+.photo-upload-progress .progress-fill {
+    fill: none;
+    stroke: var(--secondary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 106.8;
+    stroke-dashoffset: 106.8;
+    transition: stroke-dashoffset 0.2s ease;
 }
 
 #userPhoto {
@@ -1545,27 +1550,6 @@ body::before {
 </svg>
 
 <!-- ======================================================
-     LOADING SCREEN
-====================================================== -->
-<div id="loadingScreen">
-
-    <div class="loading-content">
-
-        <div class="loading-logo">Vivy 💜</div>
-
-        <div class="loading-orbit">
-            <span class="orbit-ring"></span>
-            <span class="orbit-ring"></span>
-            <span class="orbit-ring"></span>
-        </div>
-
-        <p class="loading-text">Connecting you to the world…</p>
-
-    </div>
-
-</div>
-
-<!-- ======================================================
      APP SHELL
 ====================================================== -->
 <div class="app">
@@ -1575,14 +1559,21 @@ body::before {
 
         <div class="header-left">
 
-            <div class="profile-photo-wrap">
-                <img id="userPhoto" src="" alt="Profile photo">
+            <div class="profile-photo-wrap" id="profilePhotoWrap" role="button" aria-label="Change profile photo">
+                <img id="userPhoto" class="skeleton" src="" alt="Profile photo">
                 <span class="profile-online-dot"></span>
+                <div class="photo-upload-progress" id="photoUploadProgress" hidden>
+                    <svg viewBox="0 0 40 40">
+                        <circle class="progress-track" cx="20" cy="20" r="17"></circle>
+                        <circle class="progress-fill" id="photoProgressRing" cx="20" cy="20" r="17"></circle>
+                    </svg>
+                </div>
+                <input type="file" id="profilePhotoInput" accept="image/*" hidden>
             </div>
 
-            <div class="header-id-block">
-                <h1 id="username">Loading…</h1>
-                <p class="header-uid-row">UID <span id="userUid">--------</span></p>
+            <div class="header-id-block" id="headerIdBlock" role="button" aria-label="Open profile">
+                <h1 id="username" class="skeleton">Loading…</h1>
+                <p class="header-uid-row">UID <span id="userUid" class="skeleton">--------</span></p>
             </div>
 
         </div>
@@ -1610,7 +1601,7 @@ body::before {
     <main class="app-main">
 
         <!-- WALLET CARD -->
-        <section class="wallet-card glass-card animate-in" style="animation-delay:0.05s">
+        <section id="walletCard" class="wallet-card glass-card animate-in" style="animation-delay:0.05s">
 
             <div class="wallet-glow"></div>
 
@@ -1622,24 +1613,24 @@ body::before {
 
                 <div class="wallet-balances">
 
-                    <div class="wallet-balance-item">
+                    <div class="wallet-balance-item" id="coinCardItem">
                         <span class="wallet-icon-circle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1.3 2-3 2.5-3 1.1-3 2.5 1.3 2.5 3 2.5 3-1.1 3-2.5"/></svg>
                         </span>
                         <div class="wallet-balance-text">
-                            <span id="coinBalance">0</span>
+                            <span id="coinBalance" class="skeleton">0</span>
                             <span class="wallet-balance-label">Coins</span>
                         </div>
                     </div>
 
                     <div class="wallet-divider"></div>
 
-                    <div class="wallet-balance-item">
+                    <div class="wallet-balance-item" id="walletCardItem">
                         <span class="wallet-icon-circle">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
                         </span>
                         <div class="wallet-balance-text">
-                            <span id="walletBalance">0.00</span>
+                            <span id="walletBalance" class="skeleton">0.00</span>
                             <span class="wallet-balance-label">Wallet</span>
                         </div>
                     </div>
@@ -1737,7 +1728,9 @@ body::before {
             </div>
 
             <div id="newHosts" class="host-rail">
-                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
             </div>
 
         </section>
@@ -1774,7 +1767,9 @@ body::before {
             </div>
 
             <div id="popularHosts" class="host-rail">
-                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
             </div>
 
         </section>
@@ -1810,7 +1805,10 @@ body::before {
             </div>
 
             <div id="allHosts" class="host-grid">
-                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
+                <div class="host-card skeleton-card" style="width:auto"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card" style="width:auto"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card" style="width:auto"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+                <div class="host-card skeleton-card" style="width:auto"><div class="skeleton skeleton-photo"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
             </div>
 
         </section>
@@ -1980,7 +1978,7 @@ body::before {
         </section>
 
         <!-- REFERRAL -->
-        <section class="invite-card glass-card animate-in" style="animation-delay:0.38s" aria-label="Invite friends">
+        <section id="inviteCard" class="invite-card glass-card animate-in" style="animation-delay:0.38s" aria-label="Invite friends">
 
             <div class="invite-top">
                 <span class="invite-icon-circle">
@@ -2098,8 +2096,8 @@ body::before {
 
 </template>
 
-<script type="module" src="js/auth-guard.js"></script>
-<script type="module" src="js/user-dashboard.js"></script>
+<script type="module" src="auth-guard.js"></script>
+<script type="module" src="user-dashboard.js"></script>
 
 </body>
-     </html>
+   </html>

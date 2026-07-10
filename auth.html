@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication | Vivy 💜</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="auth-container">
+
+    <section class="auth-card">
+
+        <div class="auth-logo">
+            <img src="logo.png" alt="Vivy Logo" class="logo">
+            <h1>Vivy 💜</h1>
+            <p>Match • Call • Connect</p>
+        </div>
+
+        <div class="auth-buttons">
+
+            <a href="login.html" class="btn-primary">
+                Login
+            </a>
+
+            <span class="divider">OR</span>
+
+            <a href="onboarding.html" class="btn-secondary">
+                Create Account
+            </a>
+
+        </div>
+
+        <footer class="auth-footer">
+
+            <a href="index.html">
+                ← Back to Home
+            </a>
+
+        </footer>
+
+    </section>
+
+</main>
+
+<script type="module">
+
+import { auth } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+onAuthStateChanged(auth,(user)=>{
+
+    if(user){
+
+        window.location.replace("user-dashboard.html");
+
+    }
+
+});
+
+</script>
+
+</body>
+              </html>

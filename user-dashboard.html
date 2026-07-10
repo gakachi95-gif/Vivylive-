@@ -3,30 +3,1560 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0F0B1D">
 
 <title>Dashboard | Vivy 💜</title>
 
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* ==========================================================================
+   VIVY — Premium Android App Dashboard
+   Self-contained: all styles/animations live in this file only.
+========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #7B2FF7;
+    --secondary: #A855F7;
+    --bg-top: #1A1035;
+    --bg-bottom: #0F0B1D;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-hover: rgba(255, 255, 255, 0.1);
+    --text: #F5F3FA;
+    --text-dim: #AFA5CC;
+    --text-faint: #6E6588;
+    --online: #4ADE80;
+    --verified: #38BDF8;
+    --danger: #FB7185;
+    --gold: #FBBF24;
+    --r-xl: 24px;
+    --r-lg: 20px;
+    --r-md: 16px;
+    --r-sm: 12px;
+    --nav-h: 66px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+    height: 100%;
+    overscroll-behavior-y: none;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 55%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    animation: page-fade-in 0.6s ease both;
+}
+
+@keyframes page-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+button, input {
+    font-family: inherit;
+    color: inherit;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Ambient glow behind everything */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(123, 47, 247, 0.4), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.3), transparent 35%),
+        radial-gradient(circle at 10% 90%, rgba(123, 47, 247, 0.2), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.glass-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-xl);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Staggered slide-up entrance for cards */
+.animate-in {
+    animation: slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   LOADING SCREEN — premium, auto-dismisses via pure CSS
+========================================================================== */
+#loadingScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 40%, #1c1140, var(--bg-bottom) 75%);
+    animation: loading-dismiss 2.4s ease forwards;
+}
+
+@keyframes loading-dismiss {
+    0%   { opacity: 1; visibility: visible; }
+    75%  { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+}
+
+.loading-logo {
+    font-size: 2.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 22px rgba(123, 47, 247, 0.7));
+    animation: logo-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes logo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.loading-orbit {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.orbit-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--secondary);
+    animation: spin 1s linear infinite;
+}
+
+.orbit-ring:nth-child(2) {
+    inset: 9px;
+    border-top-color: var(--primary);
+    animation-duration: 0.75s;
+    animation-direction: reverse;
+}
+
+.orbit-ring:nth-child(3) {
+    inset: 18px;
+    border-top-color: #fff;
+    animation-duration: 0.55s;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    letter-spacing: 0.4px;
+    animation: text-fade 1.6s ease-in-out infinite;
+}
+
+@keyframes text-fade {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* ==========================================================================
+   APP SHELL
+========================================================================== */
+.app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+@media (min-width: 481px) {
+    body { background-color: #050308; }
+    .app {
+        box-shadow: 0 0 100px rgba(123, 47, 247, 0.3);
+        border-left: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+    }
+}
+
+/* ==========================================================================
+   HEADER — sticky
+========================================================================== */
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: calc(14px + var(--safe-top)) 16px 12px;
+    background: rgba(15, 11, 29, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.profile-photo-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+#userPhoto {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.profile-online-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 2px solid var(--bg-bottom);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+    50% { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+}
+
+.header-id-block {
+    min-width: 0;
+}
+
+#username {
+    font-size: 0.92rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+}
+
+.header-uid-row {
+    font-size: 0.66rem;
+    color: var(--text-faint);
+}
+
+#userUid {
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.header-coin-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(123, 47, 247, 0.35), rgba(168, 85, 247, 0.2));
+    border: 1px solid var(--glass-border);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.coin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FFE9A8, var(--gold) 65%);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.7);
+    flex-shrink: 0;
+}
+
+.icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.icon-btn:active {
+    transform: scale(0.88);
+    background: var(--glass-hover);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text);
+    transition: transform 0.2s ease;
+}
+
+.icon-btn:active svg {
+    transform: rotate(-8deg);
+}
+
+.ping-dot {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    border: 1.5px solid var(--bg-bottom);
+    animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   MAIN
+========================================================================== */
+.app-main {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 16px 16px calc(var(--nav-h) + 30px + var(--safe-bottom));
+}
+
+.section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.see-all {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   WALLET CARD
+========================================================================== */
+.wallet-card {
+    position: relative;
+    padding: 20px;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(123, 47, 247, 0.45), rgba(168, 85, 247, 0.18)),
+        var(--glass);
+}
+
+.wallet-glow {
+    position: absolute;
+    inset: -40%;
+    background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.12), transparent 30%);
+    animation: wallet-rotate 6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes wallet-rotate {
+    to { transform: rotate(360deg); }
+}
+
+.wallet-inner {
+    position: relative;
+    z-index: 1;
+}
+
+.wallet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.wallet-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.wallet-balances {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.wallet-balance-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.wallet-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wallet-icon-circle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.wallet-balance-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+#coinBalance, #walletBalance {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.wallet-balance-label {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.wallet-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.wallet-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    border: none;
+    border-radius: var(--r-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.2s ease;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-primary-solid {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--primary);
+}
+
+.btn-primary-outline {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+/* ==========================================================================
+   QUICK ACTIONS
+========================================================================== */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.quick-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 4px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.quick-tile:active {
+    transform: scale(0.92);
+    background: var(--glass-hover);
+}
+
+.quick-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 14px rgba(123, 47, 247, 0.4);
+    transition: transform 0.25s ease;
+}
+
+.quick-tile:active .quick-icon-circle {
+    transform: scale(0.9) rotate(-4deg);
+}
+
+.quick-icon-circle svg {
+    width: 19px;
+    height: 19px;
+    stroke: #fff;
+}
+
+.quick-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    text-align: center;
+    color: var(--text-dim);
+    line-height: 1.15;
+}
+
+/* ==========================================================================
+   SEARCH
+========================================================================== */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: 999px;
+}
+
+.search-bar svg {
+    width: 17px;
+    height: 17px;
+    stroke: var(--text-faint);
+    flex-shrink: 0;
+}
+
+#searchHost {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.83rem;
+}
+
+#searchHost::placeholder {
+    color: var(--text-faint);
+}
+
+.search-scope-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.search-scope-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ==========================================================================
+   FILTER CHIPS
+========================================================================== */
+.filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.chip:active { transform: scale(0.94); }
+
+.chip.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(123, 47, 247, 0.4);
+}
+
+/* ==========================================================================
+   HOST SECTIONS — rails & grid
+========================================================================== */
+.host-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 2px 8px;
+}
+
+.host-rail::-webkit-scrollbar { display: none; }
+
+.host-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* Standard host card (New / Popular / All / Favorites) */
+.host-card {
+    position: relative;
+    flex-shrink: 0;
+    width: 152px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.host-grid .host-card {
+    width: auto;
+}
+
+.host-card:active {
+    transform: scale(0.96);
+}
+
+.host-card:focus-within,
+.host-card.is-selected {
+    box-shadow: 0 0 0 2px var(--secondary), 0 8px 24px rgba(168, 85, 247, 0.35);
+}
+
+.host-fav-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 11, 29, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.host-fav-btn:active { transform: scale(0.85); }
+
+.host-fav-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: #fff;
+    fill: none;
+}
+
+.host-fav-btn.is-favorited svg {
+    fill: var(--danger);
+    stroke: var(--danger);
+}
+
+.host-photo-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.host-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.host-online-dot {
+    position: absolute;
+    bottom: 7px;
+    right: 7px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 2px solid #1A1330;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.host-name-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.host-username {
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.verified-badge {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--verified);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.verified-badge svg {
+    width: 9px;
+    height: 9px;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.host-uid-text {
+    font-size: 0.62rem;
+    color: var(--text-faint);
+}
+
+.host-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.66rem;
+    color: var(--text-dim);
+}
+
+.host-flag {
+    width: 15px;
+    height: 11px;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+.gender-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.host-actions-row {
+    display: flex;
+    gap: 5px;
+}
+
+.host-mini-btn {
+    flex: 1;
+    height: 30px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.host-mini-btn:active { transform: scale(0.88); }
+
+.host-mini-btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: var(--text);
+}
+
+.host-mini-btn.video-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+}
+
+.host-mini-btn.video-btn svg { stroke: #fff; }
+
+/* Story-style rail for Online Hosts */
+.host-rail.stories .host-card {
+    width: 96px;
+    align-items: center;
+    text-align: center;
+    padding: 8px 6px 10px;
+    gap: 6px;
+}
+
+.host-rail.stories .host-photo-frame {
+    width: 68px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    padding: 2.5px;
+    background: linear-gradient(135deg, var(--gold), var(--secondary), var(--primary));
+}
+
+.host-rail.stories .host-photo-frame img {
+    border-radius: 50%;
+    border: 2px solid #1A1330;
+}
+
+.host-rail.stories .host-online-dot {
+    bottom: 2px;
+    right: 2px;
+}
+
+.host-rail.stories .host-username {
+    font-size: 0.68rem;
+}
+
+.host-rail.stories .host-uid-text,
+.host-rail.stories .host-meta-row {
+    display: none;
+}
+
+.host-rail.stories .host-actions-row {
+    display: none;
+}
+
+/* ==========================================================================
+   EMPTY STATES
+========================================================================== */
+.empty-state {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 32px 20px;
+    border-radius: var(--r-md);
+    border: 1.5px dashed var(--glass-border);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.empty-icon-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    animation: float-soft 3s ease-in-out infinite;
+}
+
+@keyframes float-soft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.empty-icon-circle svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--secondary);
+}
+
+.empty-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.empty-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    max-width: 220px;
+}
+
+/* ==========================================================================
+   STATS
+========================================================================== */
+.stats-card {
+    padding: 18px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: var(--r-sm);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.stat-item:active {
+    transform: scale(0.94);
+    background: var(--glass-hover);
+}
+
+.stat-icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon-circle svg {
+    width: 15px;
+    height: 15px;
+    stroke: var(--secondary);
+}
+
+.stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.62rem;
+    color: var(--text-faint);
+}
+
+/* ==========================================================================
+   RECENT CALLS / MESSAGES
+========================================================================== */
+.list-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--r-md);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.list-row:active {
+    transform: scale(0.98);
+    background: var(--glass-hover);
+}
+
+.list-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.list-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.list-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.list-name {
+    font-size: 0.83rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-time {
+    font-size: 0.64rem;
+    color: var(--text-faint);
+    flex-shrink: 0;
+}
+
+.list-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.list-sub-row svg {
+    width: 12px;
+    height: 12px;
+}
+
+.call-missed { color: var(--danger); }
+
+.unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--secondary);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.8);
+}
+
+/* ==========================================================================
+   DAILY REWARD — the showpiece
+========================================================================== */
+.reward-card {
+    position: relative;
+    padding: 22px 18px 20px;
+    overflow: hidden;
+    border-radius: var(--r-xl);
+    background:
+        radial-gradient(circle at 20% 15%, rgba(251, 191, 36, 0.22), transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(123, 47, 247, 0.5), transparent 50%),
+        linear-gradient(160deg, #2a1150, #150c2e 70%);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    box-shadow: 0 10px 40px rgba(123, 47, 247, 0.35);
+}
+
+.reward-sparkle {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+    animation: sparkle-twinkle 2.6s ease-in-out infinite;
+}
+
+.reward-sparkle:nth-child(1) { width: 4px; height: 4px; top: 14%; left: 12%; animation-delay: 0s; }
+.reward-sparkle:nth-child(2) { width: 3px; height: 3px; top: 24%; left: 82%; animation-delay: 0.5s; }
+.reward-sparkle:nth-child(3) { width: 5px; height: 5px; top: 60%; left: 90%; animation-delay: 1s; }
+.reward-sparkle:nth-child(4) { width: 3px; height: 3px; top: 75%; left: 8%; animation-delay: 1.5s; }
+.reward-sparkle:nth-child(5) { width: 4px; height: 4px; top: 8%; left: 55%; animation-delay: 2s; }
+
+@keyframes sparkle-twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+.reward-coin {
+    position: absolute;
+    font-size: 1.1rem;
+    animation: coin-float 3.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+}
+
+.reward-coin:nth-child(6) { top: 18%; right: 14%; animation-delay: 0s; }
+.reward-coin:nth-child(7) { top: 55%; left: 6%; animation-delay: 1s; font-size: 0.85rem; }
+.reward-coin:nth-child(8) { top: 68%; right: 22%; animation-delay: 2s; font-size: 0.9rem; }
+
+@keyframes coin-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.85; }
+    50% { transform: translateY(-12px) rotate(15deg); opacity: 1; }
+}
+
+.reward-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.reward-chest {
+    font-size: 2.4rem;
+    animation: chest-bounce 2.2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(251, 191, 36, 0.5));
+}
+
+@keyframes chest-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-6px) scale(1.04); }
+    50% { transform: translateY(0) scale(1); }
+}
+
+.reward-heading {
+    font-size: 1.02rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.reward-subheading {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.reward-today-amount {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.reward-today-amount .amount {
+    font-size: 1.9rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--gold), #fff8e1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.reward-today-amount .amount-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+/* 7-day calendar */
+.reward-calendar {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.reward-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 2px;
+    border-radius: var(--r-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+}
+
+.reward-day .day-num {
+    font-size: 0.58rem;
+    color: var(--text-faint);
+    font-weight: 600;
+}
+
+.reward-day .day-icon {
+    font-size: 0.9rem;
+}
+
+.reward-day.is-done {
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.reward-day.is-today {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(123, 47, 247, 0.5);
+    animation: today-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes today-glow {
+    0%, 100% { box-shadow: 0 4px 14px rgba(123, 47, 247, 0.5); }
+    50% { box-shadow: 0 4px 22px rgba(168, 85, 247, 0.85); }
+}
+
+.reward-day.is-mega {
+    background: linear-gradient(160deg, rgba(251, 191, 36, 0.28), rgba(123, 47, 247, 0.3));
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.reward-day.is-mega .day-num {
+    color: var(--gold);
+}
+
+.reward-claim-btn {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #2a1400;
+    background: linear-gradient(135deg, #FFE9A8, var(--gold) 60%, #F59E0B);
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+    cursor: pointer;
+    animation: claim-pulse 2.2s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+
+.reward-claim-btn:active {
+    transform: scale(0.96);
+}
+
+@keyframes claim-pulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4); }
+    50% { box-shadow: 0 8px 34px rgba(251, 191, 36, 0.7); }
+}
+
+.reward-countdown {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-size: 0.66rem;
+    color: var(--text-faint);
+    margin-top: 10px;
+}
+
+/* Claimed state (JS toggles .is-claimed on .reward-card) */
+.reward-default-state { display: block; }
+.reward-claimed-state { display: none; }
+
+.reward-card.is-claimed .reward-default-state { display: none; }
+.reward-card.is-claimed .reward-claimed-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 20px 0 6px;
+    position: relative;
+    z-index: 1;
+}
+
+.claimed-burst {
+    font-size: 2.6rem;
+    animation: burst-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes burst-pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+.claimed-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.claimed-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+/* ==========================================================================
+   REFERRAL
+========================================================================== */
+.invite-card {
+    padding: 18px;
+}
+
+.invite-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.invite-icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(123, 47, 247, 0.4);
+}
+
+.invite-icon-circle svg {
+    width: 21px;
+    height: 21px;
+    stroke: #fff;
+}
+
+.invite-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.invite-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    margin-top: 2px;
+}
+
+.invite-code-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#referralCode {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px dashed var(--glass-border);
+    border-radius: var(--r-sm);
+}
+
+.copy-btn {
+    padding: 12px 18px;
+    font-size: 0.78rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   FLOATING RANDOM MATCH BUTTON
+========================================================================== */
+.fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(var(--nav-h) + 20px + var(--safe-bottom));
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 60;
+    box-shadow: 0 8px 26px rgba(123, 47, 247, 0.55);
+    animation: fab-pulse 2.4s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+
+.fab:active {
+    transform: scale(0.9);
+}
+
+@keyframes fab-pulse {
+    0%, 100% { box-shadow: 0 8px 26px rgba(123, 47, 247, 0.55); }
+    50% { box-shadow: 0 8px 26px rgba(123, 47, 247, 0.55), 0 0 0 10px rgba(123, 47, 247, 0.12); }
+}
+
+.fab svg {
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
+}
+
+/* ==========================================================================
+   BOTTOM NAVIGATION
+========================================================================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: calc(var(--nav-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(15, 11, 29, 0.85);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--glass-border);
+    z-index: 55;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+    padding: 6px 0;
+    color: var(--text-faint);
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-item:active {
+    transform: scale(0.9);
+}
+
+.nav-item svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.nav-item.active {
+    color: var(--secondary);
+}
+
+.nav-item.active svg {
+    stroke: url(#navGradient);
+    transform: translateY(-2px);
+}
+
+.nav-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+}
+
+.nav-indicator {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--secondary);
+    opacity: 0;
+}
+
+.nav-item.active .nav-indicator {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+</style>
 
 </head>
 
-<body class="dashboard-body">
+<body>
+
+<!-- SVG defs for gradient nav icon -->
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7B2FF7"/>
+            <stop offset="100%" stop-color="#A855F7"/>
+        </linearGradient>
+    </defs>
+</svg>
 
 <!-- ======================================================
-     PREMIUM LOADING SCREEN
+     LOADING SCREEN
 ====================================================== -->
-<div id="loadingScreen" class="loading-screen">
+<div id="loadingScreen">
 
     <div class="loading-content">
 
         <div class="loading-logo">Vivy 💜</div>
 
-        <div class="loading-spinner">
-            <span class="spinner-ring"></span>
-            <span class="spinner-ring"></span>
-            <span class="spinner-ring"></span>
+        <div class="loading-orbit">
+            <span class="orbit-ring"></span>
+            <span class="orbit-ring"></span>
+            <span class="orbit-ring"></span>
         </div>
 
         <p class="loading-text">Connecting you to the world…</p>
@@ -38,291 +1568,286 @@
 <!-- ======================================================
      APP SHELL
 ====================================================== -->
-<div class="dashboard-shell">
+<div class="app">
 
-    <!-- ==================================================
-         1. HEADER
-    ================================================== -->
-    <header class="dashboard-header">
+    <!-- HEADER -->
+    <header class="app-header">
 
-        <div class="header-profile">
+        <div class="header-left">
 
             <div class="profile-photo-wrap">
-                <img id="userPhoto" class="profile-photo" src="" alt="Profile photo">
+                <img id="userPhoto" src="" alt="Profile photo">
                 <span class="profile-online-dot"></span>
             </div>
 
-            <div class="header-user-info">
-                <h1 id="username" class="header-username">Loading…</h1>
-                <p class="header-uid">
-                    UID: <span id="userUid">--------</span>
-                </p>
+            <div class="header-id-block">
+                <h1 id="username">Loading…</h1>
+                <p class="header-uid-row">UID <span id="userUid">--------</span></p>
             </div>
 
         </div>
 
-        <div class="header-actions">
+        <div class="header-right">
+
+            <div class="header-coin-pill">
+                <span class="coin-dot"></span>
+                <span id="headerCoinDisplay">0</span>
+            </div>
 
             <button id="notificationBtn" type="button" class="icon-btn" aria-label="Notifications">
-                <span class="icon-bell"></span>
-                <span class="notification-dot"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="ping-dot"></span>
             </button>
 
             <button id="settingsBtn" type="button" class="icon-btn" aria-label="Settings">
-                <span class="icon-settings"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
 
         </div>
 
     </header>
 
-    <main class="dashboard-main">
+    <main class="app-main">
 
-        <!-- ==============================================
-             2. WALLET CARD
-        ============================================== -->
-        <section class="wallet-card glass-card">
+        <!-- WALLET CARD -->
+        <section class="wallet-card glass-card animate-in" style="animation-delay:0.05s">
 
-            <div class="wallet-balances">
+            <div class="wallet-glow"></div>
 
-                <div class="wallet-balance-item">
-                    <span class="wallet-icon icon-coin"></span>
-                    <div class="wallet-balance-text">
-                        <span id="coinBalance" class="wallet-balance-value">0</span>
-                        <span class="wallet-balance-label">Coins</span>
-                    </div>
+            <div class="wallet-inner">
+
+                <div class="wallet-top">
+                    <span class="wallet-tag">Your Balance</span>
                 </div>
 
-                <div class="wallet-divider"></div>
+                <div class="wallet-balances">
 
-                <div class="wallet-balance-item">
-                    <span class="wallet-icon icon-diamond"></span>
-                    <div class="wallet-balance-text">
-                        <span id="walletBalance" class="wallet-balance-value">0.00</span>
-                        <span class="wallet-balance-label">Wallet</span>
+                    <div class="wallet-balance-item">
+                        <span class="wallet-icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1.3 2-3 2.5-3 1.1-3 2.5 1.3 2.5 3 2.5 3-1.1 3-2.5"/></svg>
+                        </span>
+                        <div class="wallet-balance-text">
+                            <span id="coinBalance">0</span>
+                            <span class="wallet-balance-label">Coins</span>
+                        </div>
                     </div>
+
+                    <div class="wallet-divider"></div>
+
+                    <div class="wallet-balance-item">
+                        <span class="wallet-icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
+                        </span>
+                        <div class="wallet-balance-text">
+                            <span id="walletBalance">0.00</span>
+                            <span class="wallet-balance-label">Wallet</span>
+                        </div>
+                    </div>
+
                 </div>
 
-            </div>
-
-            <div class="wallet-actions">
-
-                <button id="buyCoinsBtn" type="button" class="btn btn-wallet btn-buy-coins">
-                    Buy Coins
-                </button>
-
-                <button id="rechargeBtn" type="button" class="btn btn-wallet btn-recharge">
-                    Recharge
-                </button>
+                <div class="wallet-actions">
+                    <button id="buyCoinsBtn" type="button" class="btn btn-primary-solid">Buy Coins</button>
+                    <button id="rechargeBtn" type="button" class="btn btn-primary-outline">Recharge</button>
+                </div>
 
             </div>
 
         </section>
 
-        <!-- ==============================================
-             3. QUICK ACTIONS
-        ============================================== -->
-        <section class="quick-actions" aria-label="Quick actions">
+        <!-- QUICK ACTIONS -->
+        <section class="quick-actions animate-in" style="animation-delay:0.1s" aria-label="Quick actions">
 
-            <button id="randomMatchBtn" type="button" class="quick-action-tile quick-action-random">
-                <span class="quick-action-icon icon-shuffle"></span>
-                <span class="quick-action-label">Random Match</span>
+            <button id="randomMatchBtn" type="button" class="quick-tile">
+                <span class="quick-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                </span>
+                <span class="quick-label">Random Match</span>
             </button>
 
-            <button id="audioCallBtn" type="button" class="quick-action-tile quick-action-audio">
-                <span class="quick-action-icon icon-phone"></span>
-                <span class="quick-action-label">Audio Call</span>
+            <button id="audioCallBtn" type="button" class="quick-tile">
+                <span class="quick-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </span>
+                <span class="quick-label">Audio Call</span>
             </button>
 
-            <button id="videoCallBtn" type="button" class="quick-action-tile quick-action-video">
-                <span class="quick-action-icon icon-video"></span>
-                <span class="quick-action-label">Video Call</span>
+            <button id="videoCallBtn" type="button" class="quick-tile">
+                <span class="quick-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                </span>
+                <span class="quick-label">Video Call</span>
             </button>
 
-            <button id="messagesBtn" type="button" class="quick-action-tile quick-action-messages">
-                <span class="quick-action-icon icon-chat"></span>
-                <span class="quick-action-label">Messages</span>
+            <button id="messagesBtn" type="button" class="quick-tile">
+                <span class="quick-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </span>
+                <span class="quick-label">Messages</span>
             </button>
 
-            <button id="favoritesBtn" type="button" class="quick-action-tile quick-action-favorites">
-                <span class="quick-action-icon icon-heart"></span>
-                <span class="quick-action-label">Favorites</span>
+            <button id="favoritesBtn" type="button" class="quick-tile">
+                <span class="quick-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </span>
+                <span class="quick-label">Favorites</span>
             </button>
 
         </section>
 
-        <!-- ==============================================
-             4. SEARCH BAR
-        ============================================== -->
-        <section class="search-section" aria-label="Search hosts">
+        <!-- SEARCH -->
+        <section class="animate-in" style="animation-delay:0.14s" aria-label="Search hosts">
 
             <div class="search-bar glass-card">
 
-                <span class="search-icon" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
 
-                <input
-                    id="searchHost"
-                    type="search"
-                    class="search-input"
-                    placeholder="Search by username, host UID or country"
-                    autocomplete="off">
+                <input id="searchHost" type="search" placeholder="Search username, UID or country" autocomplete="off">
 
-                <button id="searchFilterBtn" type="button" class="search-filter-btn" aria-label="Search filters">
-                    <span class="icon-filter"></span>
+                <button id="searchScopeBtn" type="button" class="search-scope-btn" aria-label="Search filters">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
                 </button>
 
             </div>
 
         </section>
 
-        <!-- ==============================================
-             6. FILTER CHIPS
-        ============================================== -->
-        <section class="filter-chips-section" aria-label="Filters">
+        <!-- FILTER CHIPS -->
+        <section class="animate-in" style="animation-delay:0.16s" aria-label="Filters">
 
             <div class="filter-chips">
-
-                <button type="button" class="filter-chip filter-chip-active" data-filter="all">All</button>
-                <button type="button" class="filter-chip" data-filter="female">Female</button>
-                <button type="button" class="filter-chip" data-filter="male">Male</button>
-                <button type="button" class="filter-chip" data-filter="online">Online</button>
-                <button type="button" class="filter-chip" data-filter="verified">Verified</button>
-                <button type="button" class="filter-chip" data-filter="country">Country</button>
-                <button type="button" class="filter-chip" data-filter="newest">Newest</button>
-                <button type="button" class="filter-chip" data-filter="popular">Popular</button>
-
+                <button type="button" class="chip active" data-filter="all">All</button>
+                <button type="button" class="chip" data-filter="female">Female</button>
+                <button type="button" class="chip" data-filter="male">Male</button>
+                <button type="button" class="chip" data-filter="online">Online</button>
+                <button type="button" class="chip" data-filter="verified">Verified</button>
+                <button type="button" class="chip" data-filter="country">Country</button>
+                <button type="button" class="chip" data-filter="newest">Newest</button>
+                <button type="button" class="chip" data-filter="popular">Popular</button>
             </div>
 
         </section>
 
-        <!-- ==============================================
-             5. HOST SECTIONS
-        ============================================== -->
+        <!-- NEW HOSTS -->
+        <section class="animate-in" style="animation-delay:0.18s" aria-label="New hosts">
 
-        <!-- New Hosts -->
-        <section class="host-section" aria-label="New hosts">
-
-            <div class="host-section-header">
-                <h2 class="host-section-title">New Hosts</h2>
-                <button type="button" class="see-all-btn" data-target="newHosts">See All</button>
+            <div class="section-header-row">
+                <h2 class="section-title">⭐ New Hosts</h2>
+                <button type="button" class="see-all" data-target="newHosts">See All</button>
             </div>
 
-            <div id="newHosts" class="host-row">
-
-                <!-- Host cards injected here via JS using #hostCardTemplate -->
-
+            <div id="newHosts" class="host-rail">
+                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
             </div>
 
         </section>
 
-        <!-- Online Hosts -->
-        <section class="host-section" aria-label="Online hosts">
+        <!-- ONLINE HOSTS — story style -->
+        <section class="animate-in" style="animation-delay:0.2s" aria-label="Online hosts">
 
-            <div class="host-section-header">
-                <h2 class="host-section-title">Online Hosts</h2>
-                <button type="button" class="see-all-btn" data-target="onlineHosts">See All</button>
+            <div class="section-header-row">
+                <h2 class="section-title">🟢 Online Hosts</h2>
+                <button type="button" class="see-all" data-target="onlineHosts">See All</button>
             </div>
 
-            <div id="onlineHosts" class="host-row">
+            <div id="onlineHosts" class="host-rail stories">
 
                 <!-- Empty state (default). Replaced by JS when hosts are online. -->
-                <div class="empty-state empty-state-hosts">
-                    <div class="empty-state-icon icon-empty-hosts"></div>
-                    <p class="empty-state-title">No hosts online right now</p>
-                    <p class="empty-state-subtitle">Check back soon or try a Random Match instead.</p>
+                <div class="empty-state" style="width:100%">
+                    <div class="empty-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    </div>
+                    <p class="empty-title">No hosts online right now</p>
+                    <p class="empty-subtitle">Check back soon or try a Random Match instead.</p>
                 </div>
 
             </div>
 
         </section>
 
-        <!-- Popular Hosts -->
-        <section class="host-section" aria-label="Popular hosts">
+        <!-- POPULAR HOSTS -->
+        <section class="animate-in" style="animation-delay:0.22s" aria-label="Popular hosts">
 
-            <div class="host-section-header">
-                <h2 class="host-section-title">Popular Hosts</h2>
-                <button type="button" class="see-all-btn" data-target="popularHosts">See All</button>
+            <div class="section-header-row">
+                <h2 class="section-title">🔥 Popular Hosts</h2>
+                <button type="button" class="see-all" data-target="popularHosts">See All</button>
             </div>
 
-            <div id="popularHosts" class="host-row">
-
-                <!-- Host cards injected here via JS using #hostCardTemplate -->
-
+            <div id="popularHosts" class="host-rail">
+                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
             </div>
 
         </section>
 
-        <!-- Your Favorites -->
-        <section class="host-section" aria-label="Your favorite hosts">
+        <!-- FAVORITES -->
+        <section class="animate-in" style="animation-delay:0.24s" aria-label="Your favorite hosts">
 
-            <div class="host-section-header">
-                <h2 class="host-section-title">Your Favorites</h2>
-                <button type="button" class="see-all-btn" data-target="favoriteHosts">See All</button>
+            <div class="section-header-row">
+                <h2 class="section-title">💜 Your Favorites</h2>
+                <button type="button" class="see-all" data-target="favoriteHosts">See All</button>
             </div>
 
-            <div id="favoriteHosts" class="host-row">
+            <div id="favoriteHosts" class="host-rail">
 
                 <!-- Empty state (default). Replaced by JS when user has favorites. -->
-                <div class="empty-state empty-state-hosts">
-                    <div class="empty-state-icon icon-empty-heart"></div>
-                    <p class="empty-state-title">No favorites yet</p>
-                    <p class="empty-state-subtitle">Tap the heart on a host to save them here.</p>
+                <div class="empty-state" style="width:100%">
+                    <div class="empty-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <p class="empty-title">No favorites yet</p>
+                    <p class="empty-subtitle">Tap the heart on a host to save them here.</p>
                 </div>
 
             </div>
 
         </section>
 
-        <!-- Browse All Hosts -->
-        <section class="host-section host-section-grid" aria-label="Browse all hosts">
+        <!-- BROWSE HOSTS -->
+        <section class="animate-in" style="animation-delay:0.26s" aria-label="Browse all hosts">
 
-            <div class="host-section-header">
-                <h2 class="host-section-title">Browse All Hosts</h2>
+            <div class="section-header-row">
+                <h2 class="section-title">🌍 Browse Hosts</h2>
             </div>
 
             <div id="allHosts" class="host-grid">
-
-                <!-- Host cards injected here via JS using #hostCardTemplate -->
-
+                <!-- Host cards injected via JS by cloning #hostCardTemplate -->
             </div>
 
         </section>
 
-        <!-- ==============================================
-             7. USER STATISTICS
-        ============================================== -->
-        <section class="stats-section glass-card" aria-label="Your statistics">
+        <!-- USER STATISTICS -->
+        <section class="stats-card glass-card animate-in" style="animation-delay:0.28s" aria-label="Your statistics">
 
             <h2 class="section-title">Your Stats</h2>
 
             <div class="stats-grid">
 
                 <div class="stat-item" data-stat="friends">
-                    <span class="stat-icon icon-friends"></span>
+                    <span class="stat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                     <span class="stat-value">0</span>
                     <span class="stat-label">Friends</span>
                 </div>
 
                 <div class="stat-item" data-stat="callsMade">
-                    <span class="stat-icon icon-call"></span>
+                    <span class="stat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                     <span class="stat-value">0</span>
                     <span class="stat-label">Calls Made</span>
                 </div>
 
                 <div class="stat-item" data-stat="messagesSent">
-                    <span class="stat-icon icon-chat"></span>
+                    <span class="stat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
                     <span class="stat-value">0</span>
                     <span class="stat-label">Messages</span>
                 </div>
 
                 <div class="stat-item" data-stat="favoriteHostsCount">
-                    <span class="stat-icon icon-heart"></span>
+                    <span class="stat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                     <span class="stat-value">0</span>
                     <span class="stat-label">Favorite Hosts</span>
                 </div>
 
                 <div class="stat-item" data-stat="coinsSpent">
-                    <span class="stat-icon icon-coin"></span>
+                    <span class="stat-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1.3 2-3 2.5-3 1.1-3 2.5 1.3 2.5 3 2.5 3-1.1 3-2.5"/></svg></span>
                     <span class="stat-value">0</span>
                     <span class="stat-label">Coins Spent</span>
                 </div>
@@ -331,153 +1856,187 @@
 
         </section>
 
-        <!-- ==============================================
-             11. DAILY REWARD CARD
-        ============================================== -->
-        <section class="daily-reward-card glass-card" aria-label="Daily reward">
+        <!-- DAILY REWARD -->
+        <section id="dailyRewardCard" class="reward-card animate-in" style="animation-delay:0.3s" aria-label="Daily reward">
 
-            <div class="daily-reward-info">
-                <span class="daily-reward-icon icon-gift"></span>
-                <div class="daily-reward-text">
-                    <h3 class="daily-reward-title">Daily Reward</h3>
-                    <p class="daily-reward-subtitle">Log in daily to earn free coins</p>
+            <span class="reward-sparkle"></span>
+            <span class="reward-sparkle"></span>
+            <span class="reward-sparkle"></span>
+            <span class="reward-sparkle"></span>
+            <span class="reward-sparkle"></span>
+
+            <span class="reward-coin">🪙</span>
+            <span class="reward-coin">🪙</span>
+            <span class="reward-coin">🪙</span>
+
+            <!-- Default (unclaimed) state -->
+            <div class="reward-default-state">
+
+                <div class="reward-header">
+                    <span class="reward-chest">🎁</span>
+                    <div>
+                        <div class="reward-heading">Daily Reward</div>
+                        <div class="reward-subheading">Log in daily to unlock bigger prizes</div>
+                    </div>
                 </div>
+
+                <div class="reward-today-amount">
+                    <span class="amount">+150</span>
+                    <span class="amount-label">Coins today</span>
+                </div>
+
+                <div class="reward-calendar">
+                    <div class="reward-day is-done"><span class="day-num">Day 1</span><span class="day-icon">✅</span></div>
+                    <div class="reward-day is-done"><span class="day-num">Day 2</span><span class="day-icon">✅</span></div>
+                    <div class="reward-day is-done"><span class="day-num">Day 3</span><span class="day-icon">✅</span></div>
+                    <div class="reward-day is-today"><span class="day-num">Day 4</span><span class="day-icon">🎁</span></div>
+                    <div class="reward-day"><span class="day-num">Day 5</span><span class="day-icon">🪙</span></div>
+                    <div class="reward-day"><span class="day-num">Day 6</span><span class="day-icon">🪙</span></div>
+                    <div class="reward-day is-mega"><span class="day-num">Day 7</span><span class="day-icon">👑</span></div>
+                </div>
+
+                <button id="claimRewardBtn" type="button" class="reward-claim-btn">Claim Reward</button>
+
+                <p class="reward-countdown">Day 7 unlocks <strong>500 Coins</strong> + a Special Badge — Mega Reward 👑</p>
+
             </div>
 
-            <button id="claimRewardBtn" type="button" class="btn btn-claim-reward">
-                Claim
-            </button>
+            <!-- Claimed state (JS adds .is-claimed to #dailyRewardCard to reveal this) -->
+            <div class="reward-claimed-state">
+                <span class="claimed-burst">🎉</span>
+                <p class="claimed-title">+150 Coins Claimed!</p>
+                <p class="claimed-subtitle">Come back tomorrow for Day 5 ✨</p>
+            </div>
 
         </section>
 
-        <!-- ==============================================
-             12. INVITE FRIENDS / REFERRAL CARD
-        ============================================== -->
-        <section class="invite-card glass-card" aria-label="Invite friends">
+        <!-- NOTIFICATIONS -->
+        <section class="animate-in" style="animation-delay:0.32s" aria-label="Notifications">
 
-            <div class="invite-info">
-                <span class="invite-icon icon-invite"></span>
-                <div class="invite-text">
-                    <h3 class="invite-title">Invite Friends</h3>
-                    <p class="invite-subtitle">Share your code and earn bonus coins together</p>
+            <div class="section-header-row">
+                <h2 class="section-title">Notifications</h2>
+                <button type="button" class="see-all" data-target="notificationsList">See All</button>
+            </div>
+
+            <div id="notificationsList" class="list-card">
+
+                <!-- Empty state (default). Replaced by JS when notifications exist. -->
+                <div class="empty-state">
+                    <div class="empty-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <p class="empty-title">You're all caught up</p>
+                    <p class="empty-subtitle">New notifications will show up here.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- RECENT CALLS -->
+        <section class="animate-in" style="animation-delay:0.34s" aria-label="Recent calls">
+
+            <div class="section-header-row">
+                <h2 class="section-title">Recent Calls</h2>
+                <button type="button" class="see-all" data-target="recentCalls">See All</button>
+            </div>
+
+            <div id="recentCalls" class="list-card">
+
+                <!-- Empty state (default). Replaced by JS when call history exists. -->
+                <div class="empty-state">
+                    <div class="empty-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <p class="empty-title">No recent calls</p>
+                    <p class="empty-subtitle">Start a Random Match to make your first call.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- RECENT MESSAGES -->
+        <section class="animate-in" style="animation-delay:0.36s" aria-label="Recent messages">
+
+            <div class="section-header-row">
+                <h2 class="section-title">Recent Messages</h2>
+                <button type="button" class="see-all" data-target="recentMessages">See All</button>
+            </div>
+
+            <div id="recentMessages" class="list-card">
+
+                <!-- Empty state (default). Replaced by JS when conversations exist. -->
+                <div class="empty-state">
+                    <div class="empty-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <p class="empty-title">No messages yet</p>
+                    <p class="empty-subtitle">Match with someone new to start chatting.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- REFERRAL -->
+        <section class="invite-card glass-card animate-in" style="animation-delay:0.38s" aria-label="Invite friends">
+
+            <div class="invite-top">
+                <span class="invite-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
+                <div>
+                    <div class="invite-title">Invite Friends</div>
+                    <div class="invite-subtitle">Share your code, earn bonus coins together</div>
                 </div>
             </div>
 
             <div class="invite-code-row">
-                <span id="referralCode" class="invite-code">--------</span>
-                <button id="inviteShareBtn" type="button" class="btn btn-invite-share">
-                    Share
-                </button>
-            </div>
-
-        </section>
-
-        <!-- ==============================================
-             8. NOTIFICATIONS
-        ============================================== -->
-        <section class="notifications-section" aria-label="Notifications">
-
-            <div class="section-header-row">
-                <h2 class="section-title">Notifications</h2>
-                <button type="button" class="see-all-btn" data-target="notificationsList">See All</button>
-            </div>
-
-            <div id="notificationsList" class="notifications-list">
-
-                <!-- Empty state (default). Replaced by JS when notifications exist. -->
-                <div class="empty-state empty-state-notifications">
-                    <div class="empty-state-icon icon-empty-bell"></div>
-                    <p class="empty-state-title">You're all caught up</p>
-                    <p class="empty-state-subtitle">New notifications will show up here.</p>
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==============================================
-             9. RECENT CALLS
-        ============================================== -->
-        <section class="recent-calls-section" aria-label="Recent calls">
-
-            <div class="section-header-row">
-                <h2 class="section-title">Recent Calls</h2>
-                <button type="button" class="see-all-btn" data-target="recentCalls">See All</button>
-            </div>
-
-            <div id="recentCalls" class="recent-calls-list">
-
-                <!-- Empty state (default). Replaced by JS when call history exists. -->
-                <div class="empty-state empty-state-calls">
-                    <div class="empty-state-icon icon-empty-call"></div>
-                    <p class="empty-state-title">No recent calls</p>
-                    <p class="empty-state-subtitle">Start a Random Match to make your first call.</p>
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- ==============================================
-             10. RECENT MESSAGES
-        ============================================== -->
-        <section class="recent-messages-section" aria-label="Recent messages">
-
-            <div class="section-header-row">
-                <h2 class="section-title">Recent Messages</h2>
-                <button type="button" class="see-all-btn" data-target="recentMessages">See All</button>
-            </div>
-
-            <div id="recentMessages" class="recent-messages-list">
-
-                <!-- Empty state (default). Replaced by JS when conversations exist. -->
-                <div class="empty-state empty-state-messages">
-                    <div class="empty-state-icon icon-empty-chat"></div>
-                    <p class="empty-state-title">No messages yet</p>
-                    <p class="empty-state-subtitle">Match with someone new to start chatting.</p>
-                </div>
-
+                <span id="referralCode">VIVY-8F2K</span>
+                <button id="copyReferralBtn" type="button" class="btn copy-btn">Copy</button>
             </div>
 
         </section>
 
     </main>
 
-    <!-- ==================================================
-         13. FLOATING RANDOM MATCH BUTTON
-    ================================================== -->
-    <button id="floatingRandomMatchBtn" type="button" class="fab-random-match" aria-label="Start random match">
-        <span class="icon-shuffle"></span>
+    <!-- FLOATING RANDOM MATCH BUTTON -->
+    <button id="floatingRandomMatchBtn" type="button" class="fab" aria-label="Start random match">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
     </button>
 
-    <!-- ==================================================
-         14. BOTTOM NAVIGATION
-    ================================================== -->
+    <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" aria-label="Primary navigation">
 
-        <a href="user-dashboard.html" class="bottom-nav-item bottom-nav-active">
-            <span class="bottom-nav-icon icon-home"></span>
-            <span class="bottom-nav-label">Home</span>
+        <a href="user-dashboard.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="nav-label">Home</span>
+            <span class="nav-indicator"></span>
         </a>
 
-        <a href="messages.html" class="bottom-nav-item">
-            <span class="bottom-nav-icon icon-chat"></span>
-            <span class="bottom-nav-label">Messages</span>
+        <a href="messages.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nav-label">Messages</span>
+            <span class="nav-indicator"></span>
         </a>
 
-        <a href="wallet.html" class="bottom-nav-item">
-            <span class="bottom-nav-icon icon-wallet"></span>
-            <span class="bottom-nav-label">Wallet</span>
+        <a href="wallet.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+            <span class="nav-label">Wallet</span>
+            <span class="nav-indicator"></span>
         </a>
 
-        <a href="profile.html" class="bottom-nav-item">
-            <span class="bottom-nav-icon icon-user"></span>
-            <span class="bottom-nav-label">Profile</span>
+        <a href="profile.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-label">Profile</span>
+            <span class="nav-indicator"></span>
         </a>
 
-        <a href="support.html" class="bottom-nav-item">
-            <span class="bottom-nav-icon icon-support"></span>
-            <span class="bottom-nav-label">Support</span>
+        <a href="support.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18h.01"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 2-3 5"/><circle cx="12" cy="12" r="10"/></svg>
+            <span class="nav-label">Support</span>
+            <span class="nav-indicator"></span>
         </a>
 
     </nav>
@@ -486,53 +2045,51 @@
 
 <!-- ======================================================
      HOST CARD TEMPLATE
-     Cloned by JS to populate newHosts / onlineHosts /
-     popularHosts / favoriteHosts / allHosts containers.
+     Cloned by JS into newHosts / onlineHosts / popularHosts /
+     favoriteHosts / allHosts. Container's .stories class
+     (on #onlineHosts) restyles this same card into a
+     story-bubble automatically — no second template needed.
 ====================================================== -->
 <template id="hostCardTemplate">
 
     <article class="host-card glass-card" data-host-uid="">
 
-        <button type="button" class="host-favorite-btn" aria-label="Add to favorites">
-            <span class="icon-heart"></span>
+        <button type="button" class="host-fav-btn" aria-label="Add to favorites">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
 
-        <div class="host-photo-wrap">
+        <div class="host-photo-frame">
             <img class="host-photo" src="" alt="Host photo">
-            <span class="host-online-indicator"></span>
+            <span class="host-online-dot"></span>
         </div>
 
-        <div class="host-card-info">
-
-            <div class="host-card-name-row">
-                <span class="host-username"></span>
-                <span class="host-verified-badge" title="Verified host">
-                    <span class="icon-verified"></span>
-                </span>
-            </div>
-
-            <p class="host-uid">UID: <span class="host-uid-value"></span></p>
-
-            <div class="host-meta-row">
-                <img class="host-country-flag" src="" alt="Country flag">
-                <span class="host-age"></span>
-                <span class="host-gender-icon"></span>
-            </div>
-
+        <div class="host-name-row">
+            <span class="host-username"></span>
+            <span class="verified-badge" title="Verified host">
+                <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
         </div>
 
-        <div class="host-card-actions">
+        <p class="host-uid-text">UID <span class="host-uid-value"></span></p>
 
-            <button type="button" class="host-action-btn host-message-btn" aria-label="Message host">
-                <span class="icon-chat"></span>
+        <div class="host-meta-row">
+            <img class="host-flag" src="" alt="Country flag">
+            <span class="host-age"></span>
+            <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="14" r="6"/><path d="M14.5 9.5L21 3M21 3h-5M21 3v5"/></svg>
+        </div>
+
+        <div class="host-actions-row">
+
+            <button type="button" class="host-mini-btn message-btn" aria-label="Message host">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
 
-            <button type="button" class="host-action-btn host-audio-btn" aria-label="Audio call host">
-                <span class="icon-phone"></span>
+            <button type="button" class="host-mini-btn audio-btn" aria-label="Audio call host">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </button>
 
-            <button type="button" class="host-action-btn host-video-btn" aria-label="Video call host">
-                <span class="icon-video"></span>
+            <button type="button" class="host-mini-btn video-btn" aria-label="Video call host">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
             </button>
 
         </div>
@@ -541,8 +2098,8 @@
 
 </template>
 
-<script type="module" src="auth-guard.js"></script>
-<script type="module" src="user-dashboard.js"></script>
+<script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/user-dashboard.js"></script>
 
 </body>
-          </html>
+     </html>

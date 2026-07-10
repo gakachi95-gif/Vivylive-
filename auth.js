@@ -284,6 +284,143 @@ export async function registerAccount(formData) {
             coins: 0,
 
             diamonds: 0,
+// ======================================================
+// Part 2 - Registration System
+// ======================================================
+
+export async function registerAccount(formData) {
+
+    console.log("Registration started");
+
+    try {
+
+        const {
+            username,
+            email,
+            country,
+            gender,
+            dob,
+            password,
+            confirmPassword,
+            agencyCode
+        } = formData;
+
+        // ------------------------------------------
+        // Validate Password
+        // ------------------------------------------
+
+        if (password !== confirmPassword) {
+
+            showMessage("Passwords do not match.");
+
+            return false;
+
+        }
+
+        // ------------------------------------------
+        // Default Account
+        // ------------------------------------------
+
+        let role = "user";
+        let status = "active";
+        let agencyId = "";
+
+        // ------------------------------------------
+        // Host Registration
+        // ------------------------------------------
+
+        if (agencyCode && agencyCode.trim() !== "") {
+
+            console.log("Checking Agency Code...");
+
+            const agencyQuery = query(
+                collection(db, AGENCIES_COLLECTION),
+                where("invitationCode", "==", agencyCode.trim())
+            );
+
+            const agencySnapshot =
+                await getDocs(agencyQuery);
+
+            if (agencySnapshot.empty) {
+
+                showMessage(
+                    "Invalid Agency Invitation Code."
+                );
+
+                return false;
+
+            }
+
+            role = "host";
+            status = "pending";
+            agencyId = agencySnapshot.docs[0].id;
+
+        }
+
+        // ------------------------------------------
+        // Create Firebase Authentication Account
+        // ------------------------------------------
+
+        console.log("Creating Authentication account...");
+
+        const credential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        console.log("Authentication account created.");
+
+        const firebaseUid =
+            credential.user.uid;
+
+        // ------------------------------------------
+        // Generate Permanent UID
+        // ------------------------------------------
+
+        console.log("Generating Permanent UID...");
+
+        const permanentUid =
+            await generateSequentialId(role);
+
+        console.log("Permanent UID:", permanentUid);
+
+        // ------------------------------------------
+        // User Profile
+        // ------------------------------------------
+
+        const profile = {
+
+            firebaseUid,
+
+            uid: permanentUid,
+
+            username,
+
+            email,
+
+            country,
+
+            gender,
+
+            dateOfBirth: dob,
+
+            role,
+
+            status,
+
+            agencyId,
+
+            agencyCode: agencyCode || "",
+
+            profilePhoto: "",
+
+            bio: "",
+
+            coins: 0,
+
+            diamonds: 0,
 
             walletBalance: 0,
 
@@ -321,6 +458,8 @@ export async function registerAccount(formData) {
         // Save Profile To Firestore
         // ------------------------------------------
 
+        console.log("Saving profile to Firestore...");
+
         await setDoc(
 
             doc(
@@ -332,6 +471,8 @@ export async function registerAccount(formData) {
             profile
 
         );
+
+        console.log("Firestore profile saved.");
 
         // ------------------------------------------
         // Host Registration
@@ -345,8 +486,7 @@ export async function registerAccount(formData) {
 
             await signOut(auth);
 
-            window.location.href =
-                "login.html";
+            window.location.href = "login.html";
 
             return true;
 
@@ -360,8 +500,9 @@ export async function registerAccount(formData) {
             "💜 Account created successfully!"
         );
 
-        window.location.href =
-            "user-dashboard.html";
+        console.log("Redirecting to user dashboard...");
+
+        window.location.href = "user-dashboard.html";
 
         return true;
 
@@ -369,7 +510,7 @@ export async function registerAccount(formData) {
 
     catch (error) {
 
-        console.error(error);
+        console.error("Registration Error:", error);
 
         showMessage(
             getErrorMessage(error)
@@ -379,6 +520,7 @@ export async function registerAccount(formData) {
 
     }
 
+}
 }// ======================================================
 // Part 3 - Login System
 // ======================================================

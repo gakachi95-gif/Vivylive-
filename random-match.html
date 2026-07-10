@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F0B1D">
+
+<title>Random Match | Vivy 💜</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* ==========================================================================
+   VIVY — Random Match
+   Design language matches user-dashboard.html. Self-contained styles.
+========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #7B2FF7;
+    --secondary: #A855F7;
+    --bg-top: #1A1035;
+    --bg-bottom: #0F0B1D;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-hover: rgba(255, 255, 255, 0.1);
+    --text: #F5F3FA;
+    --text-dim: #AFA5CC;
+    --text-faint: #6E6588;
+    --online: #4ADE80;
+    --verified: #38BDF8;
+    --danger: #FB7185;
+    --gold: #FBBF24;
+    --r-xl: 24px;
+    --r-lg: 20px;
+    --r-md: 16px;
+    --r-sm: 12px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+    height: 100%;
+    overscroll-behavior-y: none;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 55%);
+    min-height: 100vh;
+    overflow: hidden;
+    animation: page-fade-in 0.5s ease both;
+}
+
+@keyframes page-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+button, input {
+    font-family: inherit;
+    color: inherit;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(123, 47, 247, 0.4), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.3), transparent 35%),
+        radial-gradient(circle at 10% 90%, rgba(123, 47, 247, 0.2), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.glass-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-xl);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.animate-in {
+    animation: slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+    50% { box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+}
+
+/* ==========================================================================
+   APP SHELL
+========================================================================== */
+.app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 481px) {
+    body { background-color: #050308; }
+    .app {
+        box-shadow: 0 0 100px rgba(123, 47, 247, 0.3);
+        border-left: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+    }
+}
+
+/* ==========================================================================
+   HEADER
+========================================================================== */
+.match-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: calc(14px + var(--safe-top)) 16px 10px;
+    flex-shrink: 0;
+}
+
+.icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.icon-btn:active {
+    transform: scale(0.88);
+    background: var(--glass-hover);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text);
+}
+
+.match-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.header-coin-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(123, 47, 247, 0.35), rgba(168, 85, 247, 0.2));
+    border: 1px solid var(--glass-border);
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.coin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FFE9A8, var(--gold) 65%);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.7);
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   MODE TOGGLE
+========================================================================== */
+.mode-toggle {
+    position: relative;
+    display: flex;
+    margin: 4px 16px 0;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+
+.mode-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 14px rgba(123, 47, 247, 0.45);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 0;
+}
+
+.mode-toggle[data-mode="video"] .mode-slider {
+    transform: translateX(100%);
+}
+
+.mode-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 0;
+    border: none;
+    background: none;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+.mode-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    transition: stroke 0.25s ease;
+}
+
+.mode-btn.active {
+    color: #fff;
+}
+
+.mode-toggle.is-locked .mode-btn {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* ==========================================================================
+   STAGE
+========================================================================== */
+.match-stage {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    min-height: 0;
+}
+
+.phase {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+}
+
+.phase[hidden] { display: none; }
+
+/* ---- Searching phase ---- */
+.radar {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+.radar-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
+    animation: radar-expand 2.4s cubic-bezier(0.2, 0.7, 0.4, 1) infinite;
+}
+
+.radar-ring.r1 { width: 100%; height: 100%; animation-delay: 0s; }
+.radar-ring.r2 { width: 100%; height: 100%; animation-delay: 0.8s; }
+.radar-ring.r3 { width: 100%; height: 100%; animation-delay: 1.6s; }
+
+@keyframes radar-expand {
+    0% { transform: scale(0.35); opacity: 0; border-color: rgba(168, 85, 247, 0.55); }
+    15% { opacity: 1; }
+    100% { transform: scale(1); opacity: 0; border-color: rgba(168, 85, 247, 0); }
+}
+
+.radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(168, 85, 247, 0.55), transparent 28%);
+    animation: spin 2.2s linear infinite;
+    -webkit-mask: radial-gradient(circle, transparent 58%, #000 59%);
+    mask: radial-gradient(circle, transparent 58%, #000 59%);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.radar-avatar-wrap {
+    position: relative;
+    z-index: 2;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 0 30px rgba(123, 47, 247, 0.55);
+    animation: avatar-breathe 2s ease-in-out infinite;
+}
+
+@keyframes avatar-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.radar-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-bottom);
+    border: 2px solid var(--bg-bottom);
+}
+
+.candidate-orbit {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.candidate-thumb {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    opacity: 0;
+    animation: candidate-cycle 3.6s ease-in-out infinite;
+}
+
+.candidate-thumb.c1 { top: 4%; left: 8%; animation-delay: 0s; }
+.candidate-thumb.c2 { top: 10%; right: 2%; animation-delay: 1.2s; }
+.candidate-thumb.c3 { bottom: 4%; left: 42%; animation-delay: 2.4s; }
+
+@keyframes candidate-cycle {
+    0% { opacity: 0; transform: scale(0.5); }
+    12% { opacity: 1; transform: scale(1); }
+    32% { opacity: 1; transform: scale(1); }
+    45% { opacity: 0; transform: scale(0.6); }
+    100% { opacity: 0; }
+}
+
+.searching-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.dots span {
+    animation: dot-fade 1.4s ease-in-out infinite;
+    opacity: 0.2;
+}
+
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-fade {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+}
+
+.searching-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.searching-tip {
+    margin-top: 26px;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    max-width: 260px;
+    padding: 10px 14px;
+    border-radius: var(--r-lg);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    animation: tip-fade 0.4s ease both;
+}
+
+@keyframes tip-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Found phase ---- */
+.phase-found {
+    animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.found-burst {
+    font-size: 1.8rem;
+    animation: burst-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes burst-pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+.found-photo-frame {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    margin: 6px 0 16px;
+}
+
+.found-photo-frame::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--primary), var(--secondary), var(--gold), var(--primary));
+    animation: spin 3s linear infinite;
+}
+
+.found-photo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--bg-bottom);
+    z-index: 1;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.found-online-dot {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 3px solid var(--bg-bottom);
+    z-index: 2;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.found-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.found-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+}
+
+.found-flag {
+    width: 20px;
+    height: 15px;
+    border-radius: 3px;
+    object-fit: cover;
+}
+
+.verified-badge-inline {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--verified);
+    font-weight: 600;
+    font-size: 0.7rem;
+}
+
+.found-status {
+    margin-top: 18px;
+    font-size: 0.82rem;
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+/* ---- Empty / Low balance phases ---- */
+.state-icon-circle {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.state-icon-circle svg {
+    width: 30px;
+    height: 30px;
+    stroke: var(--secondary);
+}
+
+.phase-low-balance .state-icon-circle {
+    background: rgba(251, 191, 36, 0.15);
+}
+
+.phase-low-balance .state-icon-circle svg {
+    stroke: var(--gold);
+}
+
+.state-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.state-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    max-width: 260px;
+    margin-bottom: 22px;
+    line-height: 1.5;
+}
+
+.btn {
+    border: none;
+    border-radius: var(--r-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.2s ease;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-primary-solid {
+    padding: 13px 30px;
+    font-size: 0.85rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(123, 47, 247, 0.45);
+}
+
+.btn-primary-outline {
+    padding: 13px 30px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+}
+
+/* ==========================================================================
+   FOOTER
+========================================================================== */
+.match-footer {
+    flex-shrink: 0;
+    padding: 10px 24px calc(22px + var(--safe-bottom));
+    display: flex;
+    justify-content: center;
+}
+
+.cancel-btn {
+    width: 100%;
+    max-width: 260px;
+    padding: 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 113, 133, 0.4);
+    background: rgba(251, 113, 133, 0.1);
+    color: var(--danger);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.14s ease, background 0.2s ease;
+}
+
+.cancel-btn:active {
+    transform: scale(0.96);
+    background: rgba(251, 113, 133, 0.2);
+}
+
+.match-footer[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="match-header">
+
+        <button id="backBtn" type="button" class="icon-btn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+
+        <h1 class="match-title">Random Match</h1>
+
+        <div class="header-coin-pill">
+            <span class="coin-dot"></span>
+            <span id="headerCoinDisplay">0</span>
+        </div>
+
+    </header>
+
+    <!-- MODE TOGGLE -->
+    <div id="modeToggle" class="mode-toggle" data-mode="audio">
+        <span class="mode-slider"></span>
+        <button type="button" class="mode-btn active" data-mode="audio">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Audio
+        </button>
+        <button type="button" class="mode-btn" data-mode="video">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Video
+        </button>
+    </div>
+
+    <!-- STAGE -->
+    <main class="match-stage">
+
+        <!-- SEARCHING -->
+        <section id="searchingPhase" class="phase phase-searching">
+
+            <div class="radar">
+                <span class="radar-ring r1"></span>
+                <span class="radar-ring r2"></span>
+                <span class="radar-ring r3"></span>
+                <span class="radar-sweep"></span>
+
+                <div class="candidate-orbit">
+                    <img class="candidate-thumb c1" id="candidate1" src="" alt="">
+                    <img class="candidate-thumb c2" id="candidate2" src="" alt="">
+                    <img class="candidate-thumb c3" id="candidate3" src="" alt="">
+                </div>
+
+                <div class="radar-avatar-wrap">
+                    <img id="selfAvatar" class="radar-avatar" src="" alt="You">
+                </div>
+            </div>
+
+            <h2 class="searching-title">
+                <span id="searchingHeadline">Finding your match</span>
+                <span class="dots"><span>.</span><span>.</span><span>.</span></span>
+            </h2>
+
+            <p class="searching-subtitle" id="searchingSubtitle">Looking for online hosts for you</p>
+
+            <p class="searching-tip" id="searchingTip">💡 Be kind and respectful — great connections start with good vibes.</p>
+
+        </section>
+
+        <!-- FOUND -->
+        <section id="foundPhase" class="phase phase-found" hidden>
+
+            <span class="found-burst">✨</span>
+
+            <div class="found-photo-frame">
+                <img id="matchedPhoto" class="found-photo" src="" alt="Matched host">
+                <span class="found-online-dot"></span>
+            </div>
+
+            <h2 id="matchedName" class="found-name">—</h2>
+
+            <div class="found-meta-row">
+                <img id="matchedFlag" class="found-flag" src="" alt="" hidden>
+                <span id="matchedAge"></span>
+                <span id="matchedVerified" class="verified-badge-inline" hidden>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Verified
+                </span>
+            </div>
+
+            <p class="found-status">Connecting<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+
+        </section>
+
+        <!-- EMPTY -->
+        <section id="emptyPhase" class="phase phase-empty" hidden>
+
+            <div class="state-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+
+            <h2 class="state-title">No hosts online right now</h2>
+            <p class="state-subtitle">Everyone's offline at the moment. Try again in a bit, or switch modes.</p>
+
+            <button id="retryBtn" type="button" class="btn btn-primary-solid">Try Again</button>
+
+        </section>
+
+        <!-- LOW BALANCE -->
+        <section id="lowBalancePhase" class="phase phase-low-balance" hidden>
+
+            <div class="state-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1.3 2-3 2.5-3 1.1-3 2.5 1.3 2.5 3 2.5 3-1.1 3-2.5"/></svg>
+            </div>
+
+            <h2 class="state-title">Not enough coins</h2>
+            <p class="state-subtitle">You need at least <strong>100 coins</strong> to start a call. Recharge to keep the conversation going.</p>
+
+            <button id="rechargeFromMatchBtn" type="button" class="btn btn-primary-solid">Recharge Now</button>
+            <button id="backFromLowBalanceBtn" type="button" class="btn btn-primary-outline">Go Back</button>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="matchFooter" class="match-footer">
+        <button id="cancelMatchBtn" type="button" class="cancel-btn">Cancel</button>
+    </footer>
+
+</div>
+
+<script type="module" src="random-match.js"></script>
+
+</body>
+  </html>

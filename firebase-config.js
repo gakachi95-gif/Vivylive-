@@ -4,12 +4,12 @@
 // ======================================================
 
 // Firebase Core
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 
 // Firebase Services
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 
 // Optional Analytics (Enable later if needed)
 // import { getAnalytics } from "firebase/analytics";

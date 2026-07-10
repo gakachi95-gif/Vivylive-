@@ -1,4 +1,5 @@
-// ======================================================
+console.log("AUTH.JS VERSION 2026-07-10");
+alert("AUTH.JS LOADED");// ======================================================
 // Vivy 💜 Authentication System
 // Part 1 - Imports, Constants & Helper Functions
 // ======================================================

@@ -15,7 +15,7 @@ import { authReady } from "./auth-guard.js";
 
 import { getCurrentProfile } from "./auth-service.js";
 
-import { db } from "./firebase-config.js";
+import { db, storage } from "./firebase-config.js";
 
 import {
     collection,
@@ -31,15 +31,24 @@ import {
     arrayRemove
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+import {
+    ref,
+    uploadBytesResumable,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
+
 // ======================================================
 // Element References
 // ======================================================
 
-const loadingScreen = document.getElementById("loadingScreen");
-
 const userPhotoEl = document.getElementById("userPhoto");
 const usernameEl = document.getElementById("username");
 const userUidEl = document.getElementById("userUid");
+
+const profilePhotoWrapEl = document.getElementById("profilePhotoWrap");
+const profilePhotoInputEl = document.getElementById("profilePhotoInput");
+const photoUploadProgressEl = document.getElementById("photoUploadProgress");
+const photoProgressRingEl = document.getElementById("photoProgressRing");
 
 const coinBalanceEl = document.getElementById("coinBalance");
 const walletBalanceEl = document.getElementById("walletBalance");
@@ -76,19 +85,26 @@ async function init() {
 
     }
 
-    await loadProfile();
+    // Wire up every interactive control immediately — the person
+    // shouldn't have to wait for data to be able to tap around.
+    bindStaticControls();
+    setupProfilePhotoUpload();
 
-    await Promise.all([
+    // Everything data-driven loads in the background, in parallel.
+    // The shell (header, wallet card, skeleton host rails) is already
+    // painted the instant the HTML/CSS loaded, so this never blocks
+    // the UI — it just fills skeletons in with real content.
+    Promise.all([
+        loadProfile().then(() => renderFavorites()),
         renderHostSection("newHosts", newHostsQuery()),
         renderHostSection("onlineHosts", onlineHostsQuery()),
         renderHostSection("popularHosts", popularHostsQuery()),
-        renderHostSection("allHosts", allHostsQuery()),
-        renderFavorites()
-    ]);
+        renderHostSection("allHosts", allHostsQuery())
+    ]).catch((error) => {
 
-    bindStaticControls();
+        console.error("Dashboard background load error:", error);
 
-    hideLoadingScreen();
+    });
 
 }
 
@@ -113,6 +129,8 @@ async function loadProfile() {
             userPhotoEl.src =
                 profile.profilePhoto || "assets/default-avatar.png";
 
+            userPhotoEl.classList.remove("skeleton");
+
         }
 
         if (usernameEl) {
@@ -120,11 +138,15 @@ async function loadProfile() {
             usernameEl.textContent =
                 profile.username || "Vivy User";
 
+            usernameEl.classList.remove("skeleton");
+
         }
 
         if (userUidEl) {
 
             userUidEl.textContent = currentUser.uid;
+
+            userUidEl.classList.remove("skeleton");
 
         }
 
@@ -133,12 +155,24 @@ async function loadProfile() {
             coinBalanceEl.textContent =
                 formatNumber(profile.coins ?? 0);
 
+            coinBalanceEl.classList.remove("skeleton");
+
+        }
+
+        const headerCoinDisplayEl = document.getElementById("headerCoinDisplay");
+
+        if (headerCoinDisplayEl) {
+
+            headerCoinDisplayEl.textContent = formatNumber(profile.coins ?? 0);
+
         }
 
         if (walletBalanceEl) {
 
             walletBalanceEl.textContent =
                 Number(profile.walletBalance ?? 0).toFixed(2);
+
+            walletBalanceEl.classList.remove("skeleton");
 
         }
 
@@ -166,6 +200,249 @@ async function loadProfile() {
         console.error("Failed to load profile:", error);
 
     }
+
+}
+
+// ======================================================
+// Profile Photo Upload
+// ======================================================
+
+function setupProfilePhotoUpload() {
+
+    if (!profilePhotoWrapEl || !profilePhotoInputEl) {
+
+        return;
+
+    }
+
+    profilePhotoWrapEl.addEventListener("click", () => {
+
+        profilePhotoInputEl.click();
+
+    });
+
+    profilePhotoInputEl.addEventListener("change", async (event) => {
+
+        const file = event.target.files?.[0];
+
+        // Always reset the input so choosing the same file twice
+        // in a row still fires a "change" event next time.
+        event.target.value = "";
+
+        if (!file) {
+
+            return;
+
+        }
+
+        if (!file.type.startsWith("image/")) {
+
+            alert("Please choose an image file.");
+            return;
+
+        }
+
+        await uploadProfilePhoto(file);
+
+    });
+
+}
+
+async function uploadProfilePhoto(file) {
+
+    if (!currentUser) {
+
+        return;
+
+    }
+
+    // Keep a reference to whatever photo is already showing, so we can
+    // restore it if the upload fails partway through.
+    const previousSrc = userPhotoEl?.src || "";
+
+    try {
+
+        const compressedBlob = await compressImage(file, 800, 800, 0.82);
+
+        showPhotoUploadProgress(0);
+
+        const filePath =
+            `profile-photos/${currentUser.uid}/${Date.now()}.jpg`;
+
+        const storageRef = ref(storage, filePath);
+
+        const uploadTask = uploadBytesResumable(storageRef, compressedBlob, {
+            contentType: "image/jpeg"
+        });
+
+        // Optimistic local preview while the upload is in flight,
+        // so the person sees their photo change immediately.
+        const localPreviewUrl = URL.createObjectURL(compressedBlob);
+
+        if (userPhotoEl) {
+
+            userPhotoEl.src = localPreviewUrl;
+            userPhotoEl.classList.remove("skeleton");
+
+        }
+
+        await new Promise((resolve, reject) => {
+
+            uploadTask.on(
+                "state_changed",
+                (snapshot) => {
+
+                    const progress =
+                        snapshot.bytesTransferred / snapshot.totalBytes;
+
+                    showPhotoUploadProgress(progress);
+
+                },
+                (error) => reject(error),
+                () => resolve()
+            );
+
+        });
+
+        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
+        await updateDoc(
+            doc(db, "accounts", currentUser.uid),
+            { profilePhoto: downloadUrl }
+        );
+
+        // Swap the optimistic blob preview for the real hosted URL.
+        if (userPhotoEl) {
+
+            userPhotoEl.src = downloadUrl;
+
+        }
+
+        URL.revokeObjectURL(localPreviewUrl);
+
+    }
+
+    catch (error) {
+
+        console.error("Profile photo upload failed:", error);
+
+        // Upload failed — keep the previous photo in place.
+        if (userPhotoEl && previousSrc) {
+
+            userPhotoEl.src = previousSrc;
+
+        }
+
+        alert("Couldn't upload your photo. Please try again.");
+
+    }
+
+    finally {
+
+        hidePhotoUploadProgress();
+
+    }
+
+}
+
+function showPhotoUploadProgress(fraction) {
+
+    if (!photoUploadProgressEl) {
+
+        return;
+
+    }
+
+    photoUploadProgressEl.hidden = false;
+
+    if (photoProgressRingEl) {
+
+        const circumference = 106.8;
+
+        const offset = circumference - (circumference * fraction);
+
+        photoProgressRingEl.style.strokeDashoffset = String(offset);
+
+    }
+
+}
+
+function hidePhotoUploadProgress() {
+
+    if (photoUploadProgressEl) {
+
+        photoUploadProgressEl.hidden = true;
+
+    }
+
+}
+
+// Downscale + re-encode an image client-side before upload, so large
+// camera photos don't chew through storage/bandwidth.
+function compressImage(file, maxWidth, maxHeight, quality) {
+
+    return new Promise((resolve, reject) => {
+
+        const img = new Image();
+
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = () => {
+
+            let { width, height } = img;
+
+            if (width > maxWidth || height > maxHeight) {
+
+                const scale = Math.min(maxWidth / width, maxHeight / height);
+
+                width = Math.round(width * scale);
+                height = Math.round(height * scale);
+
+            }
+
+            const canvas = document.createElement("canvas");
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+                (blob) => {
+
+                    URL.revokeObjectURL(objectUrl);
+
+                    if (blob) {
+
+                        resolve(blob);
+
+                    }
+
+                    else {
+
+                        reject(new Error("Image compression failed"));
+
+                    }
+
+                },
+                "image/jpeg",
+                quality
+            );
+
+        };
+
+        img.onerror = (error) => {
+
+            URL.revokeObjectURL(objectUrl);
+            reject(error);
+
+        };
+
+        img.src = objectUrl;
+
+    });
 
 }
 
@@ -251,7 +528,17 @@ async function renderHostSection(containerId, hostQuery) {
 
         if (snapshot.empty) {
 
-            // Leave the existing empty state (if any) in place.
+            // If this container only ever held skeleton placeholders,
+            // clear them and show a lightweight empty message instead
+            // of leaving stale shimmer bars on screen forever.
+            if (container.querySelector(".skeleton-card")) {
+
+                container.innerHTML =
+                    '<div class="empty-state" style="width:100%">' +
+                    '<p>No hosts to show right now</p></div>';
+
+            }
+
             return;
 
         }
@@ -271,6 +558,14 @@ async function renderHostSection(containerId, hostQuery) {
     catch (error) {
 
         console.error(`Failed to load ${containerId}:`, error);
+
+        if (container.querySelector(".skeleton-card")) {
+
+            container.innerHTML =
+                '<div class="empty-state" style="width:100%">' +
+                '<p>Couldn\u2019t load hosts. Pull down to retry.</p></div>';
+
+        }
 
     }
 
@@ -341,11 +636,12 @@ function buildHostCard(host) {
 
     }
 
-    const onlineIndicator = card.querySelector(".host-online-indicator");
+    // Online indicator dot (template class is .host-online-dot)
+    const onlineIndicator = card.querySelector(".host-online-dot");
 
     if (onlineIndicator) {
 
-        onlineIndicator.classList.toggle("is-online", Boolean(host.isOnline));
+        onlineIndicator.style.display = host.isOnline ? "" : "none";
 
     }
 
@@ -357,7 +653,8 @@ function buildHostCard(host) {
 
     }
 
-    const verifiedBadge = card.querySelector(".host-verified-badge");
+    // Verified badge (template class is .verified-badge)
+    const verifiedBadge = card.querySelector(".verified-badge");
 
     if (verifiedBadge) {
 
@@ -373,7 +670,8 @@ function buildHostCard(host) {
 
     }
 
-    const flagEl = card.querySelector(".host-country-flag");
+    // Country flag (template class is .host-flag)
+    const flagEl = card.querySelector(".host-flag");
 
     if (flagEl && host.countryCode) {
 
@@ -381,6 +679,12 @@ function buildHostCard(host) {
             `https://flagcdn.com/24x18/${host.countryCode.toLowerCase()}.png`;
 
         flagEl.alt = host.country || host.countryCode;
+
+    }
+
+    else if (flagEl) {
+
+        flagEl.style.display = "none";
 
     }
 
@@ -392,7 +696,8 @@ function buildHostCard(host) {
 
     }
 
-    const genderEl = card.querySelector(".host-gender-icon");
+    // Gender icon (template class is .gender-icon)
+    const genderEl = card.querySelector(".gender-icon");
 
     if (genderEl) {
 
@@ -402,7 +707,8 @@ function buildHostCard(host) {
 
     }
 
-    const favoriteBtn = card.querySelector(".host-favorite-btn");
+    // Favorite button (template class is .host-fav-btn)
+    const favoriteBtn = card.querySelector(".host-fav-btn");
 
     if (favoriteBtn) {
 
@@ -481,9 +787,7 @@ function bindStaticControls() {
     document.getElementById("favoritesBtn")
         ?.addEventListener("click", () => {
 
-            const el = hostContainers.favoriteHosts;
-
-            el?.scrollIntoView({ behavior: "smooth" });
+            window.location.href = "favorites.html";
 
         });
 
@@ -494,8 +798,63 @@ function bindStaticControls() {
 
         });
 
-    document.getElementById("inviteShareBtn")
+    document.getElementById("copyReferralBtn")
         ?.addEventListener("click", shareReferralCode);
+
+    // Profile photo → tap opens the image picker (see setupProfilePhotoUpload)
+    // Username / UID block → profile.html
+    document.getElementById("headerIdBlock")
+        ?.addEventListener("click", () => {
+
+            window.location.href = "profile.html";
+
+        });
+
+    // Wallet card → wallet.html, unless the tap landed on the coin
+    // sub-item (→ buy-coins.html) or the wallet sub-item (→ wallet.html)
+    document.getElementById("walletCard")
+        ?.addEventListener("click", (event) => {
+
+            if (event.target.closest("#coinCardItem")) {
+
+                window.location.href = "buy-coins.html";
+                return;
+
+            }
+
+            if (event.target.closest("#walletCardItem")) {
+
+                window.location.href = "wallet.html";
+                return;
+
+            }
+
+            if (event.target.closest("#rechargeBtn") ||
+                event.target.closest("#buyCoinsBtn")) {
+
+                // Let their own listeners (bound above) handle it.
+                return;
+
+            }
+
+            window.location.href = "wallet.html";
+
+        });
+
+    // Invite card → invite.html, unless the tap is the copy-code button
+    document.getElementById("inviteCard")
+        ?.addEventListener("click", (event) => {
+
+            if (event.target.closest("#copyReferralBtn") ||
+                event.target.closest("#inviteShareBtn")) {
+
+                return;
+
+            }
+
+            window.location.href = "invite.html";
+
+        });
 
     searchHostEl?.addEventListener("input", handleSearch);
 
@@ -574,7 +933,7 @@ function handleSearch() {
             card.querySelector(".host-uid-value")?.textContent.toLowerCase() || "";
 
         const country =
-            card.querySelector(".host-country-flag")?.alt.toLowerCase() || "";
+            card.querySelector(".host-flag")?.alt.toLowerCase() || "";
 
         const matches =
             !term ||
@@ -673,27 +1032,29 @@ function handleHostCardClick(event) {
 
     const hostUid = card.dataset.hostUid;
 
-    if (event.target.closest(".host-message-btn")) {
+    if (event.target.closest(".message-btn")) {
 
         window.location.href = `chat.html?hostUid=${hostUid}`;
 
     }
 
-    else if (event.target.closest(".host-audio-btn")) {
+    else if (event.target.closest(".audio-btn")) {
 
-        window.location.href = `random-match.html?mode=audio&hostUid=${hostUid}`;
-
-    }
-
-    else if (event.target.closest(".host-video-btn")) {
-
-        window.location.href = `random-match.html?mode=video&hostUid=${hostUid}`;
+        window.location.href =
+            `call.html?mode=audio&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=audio`;
 
     }
 
-    else if (event.target.closest(".host-favorite-btn")) {
+    else if (event.target.closest(".video-btn")) {
 
-        toggleFavorite(hostUid, event.target.closest(".host-favorite-btn"));
+        window.location.href =
+            `call.html?mode=video&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=video`;
+
+    }
+
+    else if (event.target.closest(".host-fav-btn")) {
+
+        toggleFavorite(hostUid, event.target.closest(".host-fav-btn"));
 
     }
 
@@ -746,16 +1107,5 @@ async function toggleFavorite(hostUid, buttonEl) {
 
 }
 
-// ======================================================
-// Loading Screen
-// ======================================================
-
-function hideLoadingScreen() {
-
-    if (loadingScreen) {
-
-        loadingScreen.classList.add("loading-screen-hidden");
-
-    }
-
-}
+// (no full-screen loading overlay anymore — the shell paints instantly
+// and skeletons handle the in-between state)

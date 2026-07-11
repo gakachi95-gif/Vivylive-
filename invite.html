@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Invite Friends · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.invite-hero {
+    padding: 30px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.invite-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 26px rgba(123, 47, 247, 0.5);
+}
+
+.invite-icon svg { width: 34px; height: 34px; stroke: #fff; }
+
+.invite-hero h2 { font-size: 1.1rem; font-weight: 700; }
+.invite-hero p { font-size: 0.8rem; color: var(--text-dim); max-width: 280px; }
+
+.referral-code-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    gap: 12px;
+}
+
+.referral-code-box .code {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.reward-steps { display: flex; flex-direction: column; }
+
+.reward-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.reward-step + .reward-step { border-top: 1px solid var(--glass-border); }
+
+.step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.76rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Invite Friends</h1>
+    </header>
+
+    <section class="glass-card animate-in invite-hero" style="margin:16px">
+        <div class="invite-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+        </div>
+        <h2>Give 200, Get 200</h2>
+        <p>Share your code — your friend gets 200 bonus coins, and so do you when they join.</p>
+    </section>
+
+    <div class="page-content" style="padding-top:0">
+
+        <section class="glass-card animate-in referral-code-box" style="animation-delay:0.05s">
+            <span class="code" id="referralCodeDisplay">Loading…</span>
+            <button type="button" class="btn btn-primary-outline" id="copyCodeBtn" style="width:auto;padding:10px 16px">Copy</button>
+        </section>
+
+        <button type="button" class="btn btn-primary-solid" id="shareBtn">Share Invite Link</button>
+
+        <section class="glass-card animate-in" style="animation-delay:0.1s">
+            <div class="reward-steps">
+                <div class="reward-step">
+                    <span class="step-num">1</span>
+                    <div class="list-text"><div class="list-title">Share your code</div><div class="list-subtitle">Send it to friends via any app</div></div>
+                </div>
+                <div class="reward-step">
+                    <span class="step-num">2</span>
+                    <div class="list-text"><div class="list-title">They sign up</div><div class="list-subtitle">Using your referral code</div></div>
+                </div>
+                <div class="reward-step">
+                    <span class="step-num">3</span>
+                    <div class="list-text"><div class="list-title">You both earn coins</div><div class="list-subtitle">200 coins credited instantly</div></div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { getCurrentProfile } from "./auth-service.js";
+import { showToast, goBack } from "./ui-helpers.js";
+
+let referralCode = "";
+let currentUser = null;
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
+
+init();
+
+async function init() {
+
+    currentUser = await authReady;
+    if (!currentUser) return;
+
+    try {
+
+        const profile = await getCurrentProfile(currentUser.uid);
+
+        referralCode =
+            profile?.referralCode || currentUser.uid.slice(0, 8).toUpperCase();
+
+        document.getElementById("referralCodeDisplay").textContent = referralCode;
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load referral code:", error);
+        referralCode = currentUser.uid.slice(0, 8).toUpperCase();
+        document.getElementById("referralCodeDisplay").textContent = referralCode;
+
+    }
+
+    document.getElementById("copyCodeBtn").addEventListener("click", async () => {
+
+        try {
+
+            await navigator.clipboard.writeText(referralCode);
+            showToast("Code copied to clipboard");
+
+        }
+
+        catch (error) {
+
+            showToast("Couldn't copy code");
+
+        }
+
+    });
+
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+
+        const shareText = `Join me on Vivy 💜 — use my code ${referralCode} and we both get 200 bonus coins!`;
+
+        if (navigator.share) {
+
+            try {
+
+                await navigator.share({ title: "Join me on Vivy 💜", text: shareText });
+
+            }
+
+            catch (error) {
+
+                // share cancelled — no-op
+
+            }
+
+        }
+
+        else {
+
+            await navigator.clipboard.writeText(shareText);
+            showToast("Invite message copied to clipboard");
+
+        }
+
+    });
+
+}
+</script>
+
+</body>
+</html>

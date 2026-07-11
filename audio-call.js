@@ -255,13 +255,142 @@ function toggleSpeaker(){
 }
 
 // ======================================================
-// End Call
+// Vivy 💜 Audio Call
+// Part 3 - Live Call Engine
 // ======================================================
 
-function endCall(){
+import {
+    doc,
+    updateDoc,
+    increment,
+    onSnapshot,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+let billingTimer = null;
+let callStarted = false;
+
+// ===========================================
+// Start Live Call
+// ===========================================
+
+function beginLiveCall() {
+
+    if (callStarted) return;
+
+    callStarted = true;
+
+    callStatus.textContent = "Connected 💜";
+
+    startBilling();
+
+    watchBalance();
+
+}
+
+// ===========================================
+// Billing Every 30 Seconds
+// ===========================================
+
+function startBilling() {
+
+    billingTimer = setInterval(async () => {
+
+        try {
+
+            const userRef = doc(db, "accounts", currentUser.uid);
+
+            const hostRef = doc(db, "hosts", host.hostUid);
+
+            const callRef = doc(db, "calls", callId);
+
+            await updateDoc(userRef, {
+                coins: increment(-100),
+                coinsSpent: increment(100)
+            });
+
+            await updateDoc(hostRef, {
+                coins: increment(100),
+                totalEarned: increment(100)
+            });
+
+            await updateDoc(callRef, {
+                coinsSpent: increment(100),
+                hostEarned: increment(100),
+                lastBilling: serverTimestamp()
+            });
+
+        } catch (e) {
+
+            console.error(e);
+
+        }
+
+    }, 30000);
+
+}
+
+// ===========================================
+// Watch Coin Balance
+// ===========================================
+
+function watchBalance() {
+
+    onSnapshot(doc(db, "accounts", currentUser.uid), (snap) => {
+
+        if (!snap.exists()) return;
+
+        const data = snap.data();
+
+        coinBalance.textContent =
+            Number(data.coins || 0).toLocaleString();
+
+        if ((data.coins || 0) <= 0) {
+
+            alert("Not enough coins.");
+
+            endCall();
+
+        }
+
+    });
+
+}
+
+// ===========================================
+// End Call
+// ===========================================
+
+async function endCall() {
 
     clearInterval(timer);
 
-    location.href="user-dashboard.html";
+    clearInterval(billingTimer);
 
-                                        }
+    try {
+
+        await updateDoc(doc(db, "calls", callId), {
+
+            status: "ended",
+
+            endedAt: serverTimestamp(),
+
+            duration: seconds
+
+        });
+
+    } catch (e) {}
+
+    location.href = "user-dashboard.html";
+
+}
+
+// ===========================================
+// Connect After Animation
+// ===========================================
+
+setTimeout(() => {
+
+    beginLiveCall();
+
+}, 3000);

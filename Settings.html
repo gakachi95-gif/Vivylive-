@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Settings · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.settings-row + .settings-row { border-top: 1px solid var(--glass-border); }
+
+.settings-label { flex: 1; font-size: 0.86rem; font-weight: 600; }
+.settings-sub { font-size: 0.72rem; color: var(--text-faint); margin-top: 2px; }
+
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+}
+
+.toggle.on { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+.toggle.on::after { transform: translateX(18px); }
+
+.danger-text { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Settings</h1>
+    </header>
+
+    <div class="page-content">
+
+        <section class="glass-card animate-in">
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Push Notifications</div>
+                    <div class="settings-sub">Messages, calls &amp; rewards</div>
+                </div>
+                <button type="button" class="toggle on" id="toggleNotifications" role="switch" aria-checked="true"></button>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Online Status</div>
+                    <div class="settings-sub">Show hosts when you're online</div>
+                </div>
+                <button type="button" class="toggle on" id="toggleOnlineStatus" role="switch" aria-checked="true"></button>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Sound Effects</div>
+                    <div class="settings-sub">Play sounds for calls &amp; messages</div>
+                </div>
+                <button type="button" class="toggle on" id="toggleSounds" role="switch" aria-checked="true"></button>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="animation-delay:0.05s">
+            <a href="profile.html" class="list-card">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <div class="list-text"><div class="list-title">Account Info</div></div>
+            </a>
+            <a href="support.html" class="list-card">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18h.01"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 2-3 5"/><circle cx="12" cy="12" r="10"/></svg></span>
+                <div class="list-text"><div class="list-title">Help &amp; Support</div></div>
+            </a>
+            <div class="list-card" id="privacyPolicyRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                <div class="list-text"><div class="list-title">Privacy Policy</div></div>
+            </div>
+        </section>
+
+        <button type="button" class="btn btn-primary-outline danger-text" id="logoutBtn">Log Out</button>
+
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { logoutUser } from "./auth-service.js";
+import { goBack, showToast } from "./ui-helpers.js";
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("profile.html"));
+
+authReady.then((user) => {
+
+    if (!user) return;
+
+});
+
+document.querySelectorAll(".toggle").forEach((toggle) => {
+
+    toggle.addEventListener("click", () => {
+
+        const isOn = toggle.classList.toggle("on");
+        toggle.setAttribute("aria-checked", String(isOn));
+
+    });
+
+});
+
+document.getElementById("privacyPolicyRow").addEventListener("click", () => {
+
+    showToast("Privacy policy coming soon");
+
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+    if (confirm("Log out of Vivy?")) {
+
+        await logoutUser();
+        window.location.href = "login.html";
+
+    }
+
+});
+</script>
+
+</body>
+</html>

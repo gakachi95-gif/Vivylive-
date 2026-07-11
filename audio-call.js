@@ -394,3 +394,294 @@ setTimeout(() => {
     beginLiveCall();
 
 }, 3000);
+// ======================================================
+// Vivy 💜 Audio Call
+// Part 4 - Gifts, Mute, Speaker, Chat & Call Summary
+// ======================================================
+
+// ----------------------------
+// Gift Button
+// ----------------------------
+giftBtn.addEventListener("click", () => {
+
+    if (!host) return;
+
+    location.href = `gift.html?hostUid=${host.hostUid}`;
+
+});
+
+// ----------------------------
+// Message Button
+// ----------------------------
+messageBtn.addEventListener("click", () => {
+
+    if (!host) return;
+
+    location.href = `messages.html?hostUid=${host.hostUid}`;
+
+});
+
+// ----------------------------
+// Toggle Mute
+// ----------------------------
+muteBtn.addEventListener("click", () => {
+
+    muted = !muted;
+
+    muteBtn.classList.toggle("active", muted);
+
+    muteBtn.innerHTML = muted ? "🔇" : "🎤";
+
+    // TODO:
+    // Replace with ZEGOCLOUD muteMicrophone()
+    console.log("Microphone:", muted ? "Muted" : "Unmuted");
+
+});
+
+// ----------------------------
+// Toggle Speaker
+// ----------------------------
+speakerBtn.addEventListener("click", () => {
+
+    speaker = !speaker;
+
+    speakerBtn.classList.toggle("active", speaker);
+
+    speakerBtn.innerHTML = speaker ? "🔊" : "🔈";
+
+    // TODO:
+    // Replace with ZEGOCLOUD enableSpeaker()
+    console.log("Speaker:", speaker ? "On" : "Off");
+
+});
+
+// ----------------------------
+// Call Summary
+// ----------------------------
+async function saveCallSummary() {
+
+    try {
+
+        await updateDoc(
+            doc(db, "calls", callId),
+            {
+
+                duration: seconds,
+
+                endedAt: serverTimestamp(),
+
+                coinsSpent: Math.floor(seconds / 30) * 100,
+
+                hostEarned: Math.floor(seconds / 30) * 100,
+
+                status: "completed"
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+// ----------------------------
+// Override End Call
+// ----------------------------
+async function finishCall() {
+
+    clearInterval(timer);
+
+    clearInterval(billingTimer);
+
+    await saveCallSummary();
+
+    location.href = "call-summary.html?callId=" + callId;
+
+}
+
+// Replace old event
+endCallBtn.onclick = finishCall;
+
+// Back button
+backBtn.onclick = finishCall;
+
+// ----------------------------
+// Auto End if Host Disconnects
+// ----------------------------
+onSnapshot(doc(db, "calls", callId), (snap) => {
+
+    if (!snap.exists()) return;
+
+    const call = snap.data();
+
+    if (call.status === "ended") {
+
+        finishCall();
+
+    }
+
+});
+
+// ----------------------------
+// Keep Screen Awake (Supported Browsers)
+// ----------------------------
+let wakeLock = null;
+
+async function keepScreenAwake() {
+
+    try {
+
+        if ("wakeLock" in navigator) {
+
+            wakeLock = await navigator.wakeLock.request("screen");
+
+        }
+
+    } catch (e) {
+
+        console.log(e);
+
+    }
+
+}
+
+keepScreenAwake();// ======================================================
+// Vivy 💜 Audio Call
+// Part 5 - ZEGOCLOUD Call Engine
+// Replace YOUR_APP_ID and YOUR_SERVER_SECRET
+// ======================================================
+
+import {
+    ZegoUIKitPrebuilt
+} from "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.esm.js";
+
+// ======================================================
+// ZEGO Config
+// ======================================================
+
+const APP_ID = YOUR_APP_ID;
+
+const SERVER_SECRET = "YOUR_SERVER_SECRET";
+
+const ROOM_ID = callId;
+
+const USER_ID = currentUser.uid;
+
+const USER_NAME = profile.username || "Vivy User";
+
+// ======================================================
+// Generate Token
+// ======================================================
+
+const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+
+    APP_ID,
+
+    SERVER_SECRET,
+
+    ROOM_ID,
+
+    USER_ID,
+
+    USER_NAME
+
+);
+
+// ======================================================
+// Join Audio Room
+// ======================================================
+
+const zp = ZegoUIKitPrebuilt.create(kitToken);
+
+zp.joinRoom({
+
+    container: document.body,
+
+    scenario: {
+
+        mode: ZegoUIKitPrebuilt.OneONoneCall
+
+    },
+
+    turnOnMicrophoneWhenJoining: true,
+
+    turnOnCameraWhenJoining: false,
+
+    showMyCameraToggleButton: false,
+
+    showScreenSharingButton: false,
+
+    showTextChat: false,
+
+    showUserList: false,
+
+    showLeavingView: false,
+
+    maxUsers: 2,
+
+    onJoinRoom: () => {
+
+        console.log("Joined Audio Room");
+
+    },
+
+    onLeaveRoom: async () => {
+
+        await finishCall();
+
+    }
+
+});
+
+// ======================================================
+// Update Call Status
+// ======================================================
+
+await updateDoc(
+
+    doc(db, "calls", callId),
+
+    {
+
+        status: "connected",
+
+        connectedAt: serverTimestamp()
+
+    }
+
+);
+
+// ======================================================
+// Before User Closes App
+// ======================================================
+
+window.addEventListener("beforeunload", async () => {
+
+    try {
+
+        await updateDoc(
+
+            doc(db, "calls", callId),
+
+            {
+
+                status: "ended",
+
+                endedAt: serverTimestamp()
+
+            }
+
+        );
+
+    } catch (e) {}
+
+});
+
+// ======================================================
+// Call Finished
+// ======================================================
+
+console.log("✅ Vivy Audio Call Ready");

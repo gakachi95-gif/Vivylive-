@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+<title>Video Call | Vivy 💜</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="video-call.css">
+
+</head>
+
+<body>
+
+<div class="video-call-page">
+
+    <!-- Header -->
+
+    <header class="call-header">
+
+        <button id="backBtn" class="icon-btn">
+            ←
+        </button>
+
+        <div class="header-center">
+
+            <h3 id="hostName">
+                Connecting...
+            </h3>
+
+            <span id="callStatus">
+                Connecting...
+            </span>
+
+        </div>
+
+        <div class="coin-box">
+
+            🪙 <span id="coinBalance">0</span>
+
+        </div>
+
+    </header>
+
+    <!-- Remote Video -->
+
+    <main class="video-stage">
+
+        <div id="remoteVideo" class="remote-video">
+
+            <div class="loading">
+
+                Connecting Video...
+
+            </div>
+
+        </div>
+
+        <!-- Local Camera -->
+
+        <div class="local-video-box">
+
+            <div id="localVideo" class="local-video"></div>
+
+        </div>
+
+        <!-- Timer -->
+
+        <div class="call-timer">
+
+            ⏱
+
+            <span id="callTimer">
+
+                00:00
+
+            </span>
+
+        </div>
+
+    </main>
+
+    <!-- Bottom Controls -->
+
+    <footer class="controls">
+
+        <button id="giftBtn">
+            🎁
+        </button>
+
+        <button id="muteBtn">
+            🎤
+        </button>
+
+        <button id="cameraBtn">
+            📷
+        </button>
+
+        <button id="switchCameraBtn">
+            🔄
+        </button>
+
+        <button id="speakerBtn">
+            🔊
+        </button>
+
+        <button id="messageBtn">
+            💬
+        </button>
+
+        <button id="endCallBtn" class="end">
+
+            📞
+
+        </button>
+
+    </footer>
+
+</div>
+
+<script type="module" src="video-call.js"></script>
+
+</body>
+          </html>

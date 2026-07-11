@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Favorites · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.fav-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.fav-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.fav-mini-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+}
+
+.fav-mini-btn svg { width: 16px; height: 16px; stroke: #fff; }
+
+.fav-mini-btn.remove svg { stroke: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Favorites</h1>
+    </header>
+
+    <div class="page-content">
+        <section class="glass-card animate-in" id="favoritesCard">
+            <div id="favoritesList">
+                <div class="empty-state"><p>Loading favorites…</p></div>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { db } from "./firebase-config.js";
+import { doc, getDoc, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { goBack, showToast } from "./ui-helpers.js";
+
+let currentUser = null;
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
+
+init();
+
+async function init() {
+
+    currentUser = await authReady;
+    if (!currentUser) return;
+
+    const listEl = document.getElementById("favoritesList");
+
+    try {
+
+        const accountSnap = await getDoc(doc(db, "accounts", currentUser.uid));
+        const favorites = accountSnap.exists() ? (accountSnap.data().favorites || []) : [];
+
+        if (favorites.length === 0) {
+
+            renderEmpty(listEl);
+            return;
+
+        }
+
+        const hostDocs = await Promise.all(
+            favorites.map((uid) => getDoc(doc(db, "hosts", uid)))
+        );
+
+        const hosts = hostDocs
+            .filter((snap) => snap.exists())
+            .map((snap) => ({ id: snap.id, ...snap.data() }));
+
+        if (hosts.length === 0) {
+
+            renderEmpty(listEl);
+            return;
+
+        }
+
+        listEl.innerHTML = "";
+
+        hosts.forEach((host) => {
+
+            const row = document.createElement("div");
+            row.className = "list-card";
+            row.innerHTML = `
+                <img class="fav-photo" src="${host.profilePhoto || 'assets/default-avatar.png'}" alt="">
+                <div class="list-text">
+                    <div class="list-title">${host.username || "Vivy Host"}</div>
+                    <div class="list-subtitle">${host.isOnline ? "Online now" : "Offline"}</div>
+                </div>
+                <div class="fav-actions">
+                    <button type="button" class="fav-mini-btn message-btn" aria-label="Message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </button>
+                    <button type="button" class="fav-mini-btn video-btn" aria-label="Video call">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                    </button>
+                    <button type="button" class="fav-mini-btn remove" aria-label="Remove favorite">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    </button>
+                </div>
+            `;
+
+            row.querySelector(".message-btn").addEventListener("click", () => {
+
+                window.location.href = `chat.html?hostUid=${host.id}`;
+
+            });
+
+            row.querySelector(".video-btn").addEventListener("click", () => {
+
+                window.location.href =
+                    `call.html?mode=video&hostUid=${host.id}&callerUid=${currentUser.uid}&callType=video`;
+
+            });
+
+            row.querySelector(".remove").addEventListener("click", async () => {
+
+                try {
+
+                    await updateDoc(doc(db, "accounts", currentUser.uid), {
+                        favorites: arrayRemove(host.id)
+                    });
+
+                    row.remove();
+                    showToast("Removed from favorites");
+
+                    if (!listEl.querySelector(".list-card")) {
+
+                        renderEmpty(listEl);
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.error("Failed to remove favorite:", error);
+                    showToast("Couldn't remove favorite");
+
+                }
+
+            });
+
+            listEl.appendChild(row);
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load favorites:", error);
+
+        listEl.innerHTML = `<div class="empty-state"><p>Couldn't load favorites right now.</p></div>`;
+
+    }
+
+}
+
+function renderEmpty(listEl) {
+
+    listEl.innerHTML = `
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+            <p>No favorites yet</p>
+            <p style="font-size:0.7rem">Tap the heart on any host to save them here</p>
+        </div>
+    `;
+
+}
+</script>
+
+</body>
+</html>

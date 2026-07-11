@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Messages | Vivy 💜</title>
+
+<link rel="stylesheet" href="messages.css">
+
+</head>
+
+<body>
+
+<div class="messages-page">
+
+<header class="messages-header">
+
+<button id="backBtn">←</button>
+
+<h2>Messages</h2>
+
+<button id="searchBtn">🔍</button>
+
+</header>
+
+<div class="search-box">
+
+<input
+id="searchInput"
+type="text"
+placeholder="Search host..."
+>
+
+</div>
+
+<div
+id="conversationList"
+class="conversation-list">
+
+<!-- Firebase Conversations -->
+
+</div>
+
+<div
+id="emptyState"
+class="empty-state">
+
+💜
+
+<h3>No Messages Yet</h3>
+
+<p>
+
+Start chatting with a host after matching.
+
+</p>
+
+<button
+id="findHostBtn">
+
+Find Host
+
+</button>
+
+</div>
+
+</div>
+
+<template id="conversationTemplate">
+
+<div class="conversation-card">
+
+<img
+class="avatar"
+src="assets/default-avatar.png">
+
+<div class="conversation-info">
+
+<h4 class="username"></h4>
+
+<p class="lastMessage"></p>
+
+</div>
+
+<div class="conversation-right">
+
+<span class="time"></span>
+
+<span class="badge"></span>
+
+</div>
+
+</div>
+
+</template>
+
+<script
+type="module"
+src="messages.js">
+
+</script>
+
+</body>
+
+  </html>

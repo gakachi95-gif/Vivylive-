@@ -1,0 +1,449 @@
+/* ==========================================================================
+   Vivy 💜 Shared App Shell
+   Design tokens + shell components reused across every non-dashboard page
+   (profile, wallet, buy-coins, recharge, messages, chat, call, etc.)
+   Mirrors user-dashboard.html's inline styles exactly — same purple glass
+   theme, same spacing scale, same animation curves.
+========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #7B2FF7;
+    --secondary: #A855F7;
+    --bg-top: #1A1035;
+    --bg-bottom: #0F0B1D;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-hover: rgba(255, 255, 255, 0.1);
+    --text: #F5F3FA;
+    --text-dim: #AFA5CC;
+    --text-faint: #6E6588;
+    --online: #4ADE80;
+    --verified: #38BDF8;
+    --danger: #FB7185;
+    --gold: #FBBF24;
+    --r-xl: 24px;
+    --r-lg: 20px;
+    --r-md: 16px;
+    --r-sm: 12px;
+    --nav-h: 66px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+    height: 100%;
+    overscroll-behavior-y: none;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 55%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    animation: page-fade-in 0.4s ease both;
+}
+
+@keyframes page-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+button, input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+}
+
+img { display: block; max-width: 100%; }
+
+a { text-decoration: none; color: inherit; }
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(123, 47, 247, 0.4), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.3), transparent 35%),
+        radial-gradient(circle at 10% 90%, rgba(123, 47, 247, 0.2), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.glass-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-xl);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.animate-in {
+    animation: slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   SKELETON PLACEHOLDERS
+========================================================================== */
+@keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(100deg, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--r-sm);
+    color: transparent !important;
+}
+
+/* ==========================================================================
+   APP SHELL
+========================================================================== */
+.app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: calc(var(--nav-h) + 24px + var(--safe-bottom));
+}
+
+@media (min-width: 481px) {
+    body { background-color: #050308; }
+    .app {
+        box-shadow: 0 0 100px rgba(123, 47, 247, 0.3);
+        border-left: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+    }
+}
+
+/* ==========================================================================
+   SUBPAGE HEADER (back-button style, used on every non-dashboard screen)
+========================================================================== */
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: calc(14px + var(--safe-top)) 16px 12px;
+    background: rgba(15, 11, 29, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.app-header .page-title {
+    font-size: 1.02rem;
+    font-weight: 700;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.icon-btn:active {
+    transform: scale(0.88);
+    background: var(--glass-hover);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text);
+}
+
+/* ==========================================================================
+   PAGE CONTENT
+========================================================================== */
+.page-content {
+    padding: 18px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.section-subtitle {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+}
+
+/* ==========================================================================
+   BUTTONS
+========================================================================== */
+.btn {
+    border: none;
+    border-radius: var(--r-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.2s ease;
+}
+
+.btn:active { transform: scale(0.95); }
+
+.btn-primary-solid {
+    padding: 14px;
+    font-size: 0.86rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    width: 100%;
+}
+
+.btn-primary-outline {
+    padding: 14px;
+    font-size: 0.86rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+    width: 100%;
+}
+
+.btn-block { display: block; width: 100%; text-align: center; }
+
+/* ==========================================================================
+   LIST / ROW CARD (used on wallet, notifications, favorites, messages, etc.)
+========================================================================== */
+.list-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.list-card:active { background: var(--glass-hover); }
+
+.list-card + .list-card {
+    border-top: 1px solid var(--glass-border);
+}
+
+.list-icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(123, 47, 247, 0.35), rgba(168, 85, 247, 0.2));
+}
+
+.list-icon-circle svg { width: 20px; height: 20px; stroke: #fff; }
+
+.list-text { flex: 1; min-width: 0; }
+
+.list-title {
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-subtitle {
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-meta {
+    font-size: 0.68rem;
+    color: var(--text-faint);
+    flex-shrink: 0;
+    text-align: right;
+}
+
+/* ==========================================================================
+   EMPTY STATE
+========================================================================== */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 0.8rem;
+}
+
+.empty-state svg { width: 40px; height: 40px; stroke: var(--text-faint); opacity: 0.6; }
+
+/* ==========================================================================
+   FORM CONTROLS
+========================================================================== */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+
+.field-label {
+    font-size: 0.74rem;
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.field-input {
+    padding: 13px 14px;
+    border-radius: var(--r-sm);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--glass-border);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.field-input:focus { border-color: var(--secondary); }
+
+/* ==========================================================================
+   BOTTOM NAVIGATION
+========================================================================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: calc(var(--nav-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(15, 11, 29, 0.85);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--glass-border);
+    z-index: 55;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+    padding: 6px 0;
+    color: var(--text-faint);
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.nav-item:active { transform: scale(0.9); }
+
+.nav-item svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.nav-item.active { color: var(--secondary); }
+
+.nav-item.active svg {
+    stroke: url(#navGradient);
+    transform: translateY(-2px);
+}
+
+.nav-label { font-size: 0.6rem; font-weight: 500; }
+
+.nav-indicator {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--secondary);
+    opacity: 0;
+}
+
+.nav-item.active .nav-indicator { opacity: 1; }
+
+/* ==========================================================================
+   TOAST
+========================================================================== */
+.vivy-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nav-h) + 24px + var(--safe-bottom));
+    transform: translate(-50%, 12px);
+    background: rgba(20, 14, 38, 0.95);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: var(--r-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    max-width: calc(100% - 48px);
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.vivy-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* ==========================================================================
+   SPINNER
+========================================================================== */
+.spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.18);
+    border-top-color: var(--secondary);
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   REDUCED MOTION
+========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

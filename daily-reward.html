@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daily Reward · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.reward-hero {
+    padding: 30px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.reward-gift-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 26px rgba(123, 47, 247, 0.5);
+}
+
+.reward-gift-icon svg { width: 36px; height: 36px; stroke: #fff; }
+
+.reward-hero h2 { font-size: 1.1rem; font-weight: 700; }
+.reward-hero p { font-size: 0.8rem; color: var(--text-dim); }
+
+.streak-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 14px;
+}
+
+.streak-day {
+    aspect-ratio: 1;
+    border-radius: var(--r-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+}
+
+.streak-day .coin { font-size: 0.72rem; font-weight: 700; color: var(--text); }
+
+.streak-day.done {
+    background: linear-gradient(135deg, rgba(123,47,247,0.4), rgba(168,85,247,0.25));
+    border-color: var(--secondary);
+}
+
+.streak-day.today {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(251,191,36,0.3);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Daily Reward</h1>
+    </header>
+
+    <section class="glass-card animate-in reward-hero" style="margin:16px">
+
+        <div class="reward-gift-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+        </div>
+
+        <h2 id="rewardHeadline" class="skeleton">Checking your reward…</h2>
+        <p id="streakSubtitle" class="skeleton">Day 0 streak</p>
+
+        <button type="button" class="btn btn-primary-solid" id="claimBtn" style="margin-top:8px" disabled>
+            Loading…
+        </button>
+
+    </section>
+
+    <div class="page-content" style="padding-top:0">
+        <section class="glass-card animate-in" style="animation-delay:0.05s">
+            <div class="streak-row" id="streakRow"></div>
+        </section>
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { db } from "./firebase-config.js";
+import { doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { showToast, goBack } from "./ui-helpers.js";
+
+const REWARDS = [50, 60, 75, 90, 110, 130, 200]; // day 1..7 coin amounts
+
+let currentUser = null;
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
+
+init();
+
+function todayKey() {
+
+    return new Date().toISOString().slice(0, 10);
+
+}
+
+async function init() {
+
+    currentUser = await authReady;
+    if (!currentUser) return;
+
+    try {
+
+        const snap = await getDoc(doc(db, "accounts", currentUser.uid));
+        const profile = snap.exists() ? snap.data() : {};
+
+        const lastClaim = profile.lastRewardClaim || null;
+        let streak = profile.rewardStreak || 0;
+
+        const claimedToday = lastClaim === todayKey();
+
+        if (!claimedToday && lastClaim) {
+
+            const lastDate = new Date(lastClaim);
+            const diffDays = Math.round((new Date(todayKey()) - lastDate) / 86400000);
+
+            if (diffDays > 1) {
+
+                streak = 0; // streak broken
+
+            }
+
+        }
+
+        renderStreak(streak, claimedToday);
+
+        const headlineEl = document.getElementById("rewardHeadline");
+        const subtitleEl = document.getElementById("streakSubtitle");
+        const claimBtn = document.getElementById("claimBtn");
+
+        const nextDayIndex = streak % 7;
+        const rewardAmount = REWARDS[nextDayIndex];
+
+        headlineEl.classList.remove("skeleton");
+        subtitleEl.classList.remove("skeleton");
+        claimBtn.classList.remove("skeleton");
+
+        if (claimedToday) {
+
+            headlineEl.textContent = "Come back tomorrow!";
+            subtitleEl.textContent = `Day ${streak} streak · +${rewardAmount} coins claimed today`;
+            claimBtn.textContent = "Already Claimed";
+            claimBtn.disabled = true;
+            claimBtn.style.opacity = "0.5";
+
+        }
+
+        else {
+
+            headlineEl.textContent = `Claim +${rewardAmount} coins`;
+            subtitleEl.textContent = `Day ${streak + 1} streak reward`;
+            claimBtn.textContent = `Claim ${rewardAmount} Coins`;
+            claimBtn.disabled = false;
+
+            claimBtn.addEventListener("click", () => claimReward(rewardAmount, streak));
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load daily reward:", error);
+
+    }
+
+}
+
+function renderStreak(streak, claimedToday) {
+
+    const row = document.getElementById("streakRow");
+    row.innerHTML = "";
+
+    const completedDays = claimedToday ? streak : streak;
+
+    REWARDS.forEach((coins, index) => {
+
+        const dayNum = index + 1;
+        const el = document.createElement("div");
+
+        let cls = "streak-day";
+        if (dayNum <= completedDays) cls += " done";
+        if (dayNum === (streak % 7) + 1 && !claimedToday) cls += " today";
+
+        el.className = cls;
+        el.innerHTML = `<span>Day ${dayNum}</span><span class="coin">+${coins}</span>`;
+        row.appendChild(el);
+
+    });
+
+}
+
+async function claimReward(amount, previousStreak) {
+
+    const btn = document.getElementById("claimBtn");
+    btn.disabled = true;
+    btn.textContent = "Claiming…";
+
+    try {
+
+        await updateDoc(doc(db, "accounts", currentUser.uid), {
+            coins: increment(amount),
+            lastRewardClaim: todayKey(),
+            rewardStreak: previousStreak + 1
+        });
+
+        showToast(`+${amount} coins claimed!`);
+
+        btn.textContent = "Already Claimed";
+        document.getElementById("rewardHeadline").textContent = "Come back tomorrow!";
+        document.getElementById("streakSubtitle").textContent =
+            `Day ${previousStreak + 1} streak · +${amount} coins claimed today`;
+
+        renderStreak(previousStreak + 1, true);
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to claim reward:", error);
+        showToast("Couldn't claim reward. Try again.");
+        btn.disabled = false;
+        btn.textContent = `Claim ${amount} Coins`;
+
+    }
+
+}
+</script>
+
+</body>
+</html>

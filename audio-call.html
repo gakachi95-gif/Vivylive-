@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F0B1D">
+
+<title>Audio Call | Vivy 💜</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
+}
+
+:root{
+
+--primary:#7B2FF7;
+--secondary:#A855F7;
+
+--bg1:#170F31;
+--bg2:#0F0B1D;
+
+--glass:rgba(255,255,255,.08);
+--glassBorder:rgba(255,255,255,.12);
+
+--text:#fff;
+--textDim:#BFB6DD;
+
+--danger:#FF4D6D;
+--success:#31D67B;
+--gold:#FDBA2D;
+
+--radius:24px;
+
+--safeTop:env(safe-area-inset-top);
+--safeBottom:env(safe-area-inset-bottom);
+
+}
+
+body{
+
+font-family:Poppins,sans-serif;
+background:linear-gradient(180deg,var(--bg1),var(--bg2));
+height:100vh;
+overflow:hidden;
+color:white;
+
+}
+
+body::before{
+
+content:"";
+position:fixed;
+inset:0;
+
+background:
+
+radial-gradient(circle at 20% 0%,rgba(123,47,247,.45),transparent 45%),
+radial-gradient(circle at 90% 10%,rgba(168,85,247,.35),transparent 35%),
+radial-gradient(circle at 50% 100%,rgba(123,47,247,.25),transparent 45%);
+
+pointer-events:none;
+
+}
+
+.call-page{
+
+position:relative;
+z-index:2;
+
+display:flex;
+flex-direction:column;
+
+height:100vh;
+
+max-width:480px;
+margin:auto;
+
+}
+
+.top-bar{
+
+padding:18px 20px calc(8px + var(--safeTop));
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+}
+
+.back-btn{
+
+width:42px;
+height:42px;
+
+border:none;
+outline:none;
+
+border-radius:50%;
+
+background:var(--glass);
+
+backdrop-filter:blur(20px);
+
+color:white;
+
+font-size:20px;
+
+}
+
+.call-status{
+
+font-size:14px;
+font-weight:600;
+color:#d7cff2;
+
+}
+
+.coin-box{
+
+padding:8px 14px;
+
+border-radius:999px;
+
+background:var(--glass);
+
+display:flex;
+align-items:center;
+gap:8px;
+
+backdrop-filter:blur(20px);
+
+}
+
+.coin{
+
+width:14px;
+height:14px;
+border-radius:50%;
+
+background:var(--gold);
+
+box-shadow:0 0 12px gold;
+
+}
+
+.host-section{
+
+flex:1;
+
+display:flex;
+flex-direction:column;
+
+justify-content:center;
+align-items:center;
+
+padding:20px;
+
+}
+
+.avatar-ring{
+
+width:210px;
+height:210px;
+
+padding:5px;
+
+border-radius:50%;
+
+background:linear-gradient(135deg,#7B2FF7,#B245FF);
+
+animation:ring 3s linear infinite;
+
+}
+
+@keyframes ring{
+
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+
+}
+
+.avatar{
+
+width:100%;
+height:100%;
+
+border-radius:50%;
+
+overflow:hidden;
+
+background:#24163F;
+
+}
+
+.avatar img{
+
+width:100%;
+height:100%;
+
+object-fit:cover;
+
+}
+
+.online{
+
+margin-top:18px;
+
+display:flex;
+align-items:center;
+gap:8px;
+
+font-size:14px;
+
+color:#8CF0B0;
+
+}
+
+.online span{
+
+width:10px;
+height:10px;
+
+border-radius:50%;
+
+background:#31D67B;
+
+box-shadow:0 0 12px #31D67B;
+
+animation:pulse 1.5s infinite;
+
+}
+
+@keyframes pulse{
+
+0%,100%{
+
+transform:scale(1);
+
+}
+
+50%{
+
+transform:scale(1.4);
+
+}
+
+}
+
+.host-name{
+
+margin-top:14px;
+
+font-size:28px;
+font-weight:700;
+
+}
+
+.host-country{
+
+margin-top:6px;
+
+display:flex;
+align-items:center;
+gap:8px;
+
+color:#D7D0F3;
+
+font-size:14px;
+
+}
+
+.host-country img{
+
+width:22px;
+
+border-radius:3px;
+
+}
+
+.call-time{
+
+margin-top:22px;
+
+font-size:38px;
+
+font-weight:700;
+
+letter-spacing:2px;
+
+}
+
+.call-cost{
+
+margin-top:8px;
+
+color:#FDBA2D;
+
+font-size:14px;
+
+font-weight:600;
+
+}
+
+.wave{
+
+margin-top:30px;
+
+display:flex;
+gap:8px;
+
+height:36px;
+align-items:flex-end;
+
+}
+
+.wave span{
+
+width:8px;
+
+background:#A855F7;
+
+border-radius:20px;
+
+animation:voice 1s infinite;
+
+}
+
+.wave span:nth-child(2){animation-delay:.1s;}
+.wave span:nth-child(3){animation-delay:.2s;}
+.wave span:nth-child(4){animation-delay:.3s;}
+.wave span:nth-child(5){animation-delay:.4s;}
+.wave span:nth-child(6){animation-delay:.5s;}
+
+@keyframes voice{
+
+0%,100%{
+
+height:10px;
+
+}
+
+50%{
+
+height:36px;
+
+}
+
+}
+
+.bottom-controls{
+
+padding:20px 24px calc(30px + var(--safeBottom));
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+}
+
+.control{
+
+width:62px;
+height:62px;
+
+border-radius:50%;
+
+border:none;
+
+background:var(--glass);
+
+backdrop-filter:blur(18px);
+
+color:white;
+
+font-size:22px;
+
+}
+
+.end{
+
+width:78px;
+height:78px;
+
+background:#FF4D6D;
+
+font-size:28px;
+
+box-shadow:0 0 30px rgba(255,77,109,.45);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="call-page">
+
+<div class="top-bar">
+
+<button id="backBtn" class="back-btn">←</button>
+
+<div class="call-status" id="callStatus">
+
+Connecting...
+
+</div>
+
+<div class="coin-box">
+
+<div class="coin"></div>
+
+<span id="coinBalance">0</span>
+
+</div>
+
+</div>
+
+<div class="host-section">
+
+<div class="avatar-ring">
+
+<div class="avatar">
+
+<img id="hostPhoto" src="assets/default-avatar.png">
+
+</div>
+
+</div>
+
+<div class="online">
+
+<span></span>
+
+Online
+
+</div>
+
+<div class="host-name" id="hostName">
+
+Loading...
+
+</div>
+
+<div class="host-country">
+
+<img id="hostFlag">
+
+<span id="hostCountry">
+
+Loading...
+
+</span>
+
+</div>
+
+<div class="call-time" id="callTimer">
+
+00:00
+
+</div>
+
+<div class="call-cost">
+
+100 Coins Every 30 Seconds
+
+</div>
+
+<div class="wave">
+
+<span></span>
+
+<span></span>
+
+<span></span>
+
+<span></span>
+
+<span></span>
+
+<span></span>
+
+</div>
+
+</div>
+
+<div class="bottom-controls">
+
+<button id="giftBtn" class="control">🎁</button>
+
+<button id="muteBtn" class="control">🎤</button>
+
+<button id="endCallBtn" class="control end">📞</button>
+
+<button id="speakerBtn" class="control">🔊</button>
+
+<button id="messageBtn" class="control">💬</button>
+
+</div>
+
+<script type="module" src="audio-call.js"></script>
+
+</body>
+  </html>

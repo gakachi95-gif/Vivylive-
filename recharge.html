@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Recharge · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.balance-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+}
+
+.balance-strip .lbl { font-size: 0.76rem; color: var(--text-dim); }
+.balance-strip .amt { font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, #fff, var(--secondary)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+.amount-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.amount-option {
+    padding: 18px 12px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 1.05rem;
+    font-weight: 700;
+    transition: transform 0.14s ease, border-color 0.2s ease;
+}
+
+.amount-option:active { transform: scale(0.96); }
+.amount-option.selected { border-color: var(--secondary); background: rgba(168,85,247,0.15); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Recharge Wallet</h1>
+    </header>
+
+    <section class="glass-card animate-in balance-strip" style="margin:16px 16px 0">
+        <span class="lbl">Current Wallet Balance</span>
+        <span class="amt">$<span id="walletBalanceAmt" class="skeleton">0.00</span></span>
+    </section>
+
+    <div class="page-content">
+
+        <div class="amount-grid" id="amountGrid"></div>
+
+        <button type="button" class="btn btn-primary-solid" id="confirmRechargeBtn" disabled style="opacity:0.5">
+            Select an amount
+        </button>
+
+        <p style="font-size:0.7rem;color:var(--text-faint);text-align:center;padding:0 8px">
+            Payments are simulated in this build. Real payment processing plugs in here later.
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { getCurrentProfile } from "./auth-service.js";
+import { db } from "./firebase-config.js";
+import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { showToast, goBack } from "./ui-helpers.js";
+
+const AMOUNTS = [5, 10, 25, 50, 100, 250];
+
+let currentUser = null;
+let selectedAmount = null;
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("wallet.html"));
+
+renderAmounts();
+init();
+
+function renderAmounts() {
+
+    const grid = document.getElementById("amountGrid");
+
+    AMOUNTS.forEach((amount) => {
+
+        const el = document.createElement("div");
+        el.className = "glass-card amount-option";
+        el.textContent = `$${amount}`;
+        el.addEventListener("click", () => selectAmount(amount, el));
+        grid.appendChild(el);
+
+    });
+
+}
+
+function selectAmount(amount, el) {
+
+    document.querySelectorAll(".amount-option").forEach((n) => n.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedAmount = amount;
+
+    const btn = document.getElementById("confirmRechargeBtn");
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.textContent = `Recharge $${amount}.00`;
+
+}
+
+async function init() {
+
+    currentUser = await authReady;
+    if (!currentUser) return;
+
+    try {
+
+        const profile = await getCurrentProfile(currentUser.uid);
+        const el = document.getElementById("walletBalanceAmt");
+        el.textContent = Number(profile?.walletBalance ?? 0).toFixed(2);
+        el.classList.remove("skeleton");
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load wallet balance:", error);
+
+    }
+
+    document.getElementById("confirmRechargeBtn").addEventListener("click", handleRecharge);
+
+}
+
+async function handleRecharge() {
+
+    if (!currentUser || !selectedAmount) return;
+
+    const btn = document.getElementById("confirmRechargeBtn");
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = "Processing…";
+
+    try {
+
+        await updateDoc(doc(db, "accounts", currentUser.uid), {
+            walletBalance: increment(selectedAmount)
+        });
+
+        const el = document.getElementById("walletBalanceAmt");
+        const current = Number(el.textContent) || 0;
+        el.textContent = (current + selectedAmount).toFixed(2);
+
+        showToast(`$${selectedAmount}.00 added to your wallet`);
+
+    }
+
+    catch (error) {
+
+        console.error("Recharge failed:", error);
+        showToast("Recharge failed. Please try again.");
+
+    }
+
+    finally {
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+
+    }
+
+}
+</script>
+
+</body>
+</html>

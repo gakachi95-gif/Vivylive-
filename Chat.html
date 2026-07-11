@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Chat · Vivy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.app { padding-bottom: 0; display: flex; flex-direction: column; height: 100vh; }
+
+.chat-header-photo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.chat-header-info { flex: 1; min-width: 0; }
+.chat-header-info .name { font-size: 0.88rem; font-weight: 700; }
+.chat-header-info .status { font-size: 0.68rem; color: var(--online); }
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: var(--r-md);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.msg-bubble.mine {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.msg-bubble.theirs {
+    align-self: flex-start;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px calc(14px + var(--safe-bottom));
+    background: rgba(15, 11, 29, 0.85);
+    border-top: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+}
+
+.chat-input-bar input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    font-size: 0.86rem;
+    outline: none;
+}
+
+.chat-send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.chat-send-btn svg { width: 18px; height: 18px; stroke: #fff; }
+
+.chat-call-btn {
+    width: 36px;
+    height: 36px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <img id="hostPhoto" class="chat-header-photo skeleton" src="" alt="">
+        <div class="chat-header-info">
+            <div class="name" id="hostName">Loading…</div>
+            <div class="status" id="hostStatus"></div>
+        </div>
+        <button type="button" class="icon-btn chat-call-btn" id="audioCallShortcut" aria-label="Audio call">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
+        <button type="button" class="icon-btn chat-call-btn" id="videoCallShortcut" aria-label="Video call">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        </button>
+    </header>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p>Say hello 👋</p>
+        </div>
+    </div>
+
+    <div class="chat-input-bar">
+        <input type="text" id="messageInput" placeholder="Type a message…" maxlength="500">
+        <button type="button" class="chat-send-btn" id="sendBtn" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+    </div>
+
+</div>
+
+<script type="module">
+import { authReady } from "./auth-guard.js";
+import { db } from "./firebase-config.js";
+import {
+    doc, getDoc, setDoc, collection, addDoc,
+    query, orderBy, onSnapshot, serverTimestamp, updateDoc
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getUrlParam, goBack, showToast } from "./ui-helpers.js";
+
+const hostUid = getUrlParam("hostUid");
+let currentUser = null;
+let chatId = null;
+
+document.getElementById("backBtn").addEventListener("click", () => goBack("messages.html"));
+
+init();
+
+async function init() {
+
+    currentUser = await authReady;
+    if (!currentUser) return;
+
+    if (!hostUid) {
+
+        showToast("No host specified");
+        return;
+
+    }
+
+    chatId = [currentUser.uid, hostUid].sort().join("_");
+
+    document.getElementById("audioCallShortcut").addEventListener("click", () => {
+
+        window.location.href =
+            `call.html?mode=audio&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=audio`;
+
+    });
+
+    document.getElementById("videoCallShortcut").addEventListener("click", () => {
+
+        window.location.href =
+            `call.html?mode=video&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=video`;
+
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("messageInput").addEventListener("keydown", (e) => {
+
+        if (e.key === "Enter") sendMessage();
+
+    });
+
+    loadHostInfo();
+    listenForMessages();
+
+}
+
+async function loadHostInfo() {
+
+    try {
+
+        const snap = await getDoc(doc(db, "hosts", hostUid));
+
+        const photoEl = document.getElementById("hostPhoto");
+        const nameEl = document.getElementById("hostName");
+        const statusEl = document.getElementById("hostStatus");
+
+        if (snap.exists()) {
+
+            const host = snap.data();
+            photoEl.src = host.profilePhoto || "assets/default-avatar.png";
+            nameEl.textContent = host.username || "Vivy Host";
+            statusEl.textContent = host.isOnline ? "Online" : "Offline";
+
+        }
+
+        else {
+
+            nameEl.textContent = "Vivy Host";
+
+        }
+
+        photoEl.classList.remove("skeleton");
+        nameEl.classList.remove("skeleton");
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load host info:", error);
+
+    }
+
+}
+
+function listenForMessages() {
+
+    const messagesRef = collection(db, "conversations", chatId, "messages");
+
+    onSnapshot(query(messagesRef, orderBy("createdAt", "asc")), (snapshot) => {
+
+        const container = document.getElementById("chatMessages");
+
+        if (snapshot.empty) {
+
+            return; // keep the "say hello" empty state
+
+        }
+
+        container.innerHTML = "";
+
+        snapshot.forEach((docSnap) => {
+
+            const msg = docSnap.data();
+            const bubble = document.createElement("div");
+            bubble.className = "msg-bubble " + (msg.senderUid === currentUser.uid ? "mine" : "theirs");
+            bubble.textContent = msg.text || "";
+            container.appendChild(bubble);
+
+        });
+
+        container.scrollTop = container.scrollHeight;
+
+    }, (error) => {
+
+        console.error("Failed to listen for messages:", error);
+
+    });
+
+}
+
+async function sendMessage() {
+
+    const input = document.getElementById("messageInput");
+    const text = input.value.trim();
+
+    if (!text || !currentUser) return;
+
+    input.value = "";
+
+    try {
+
+        await setDoc(
+            doc(db, "conversations", chatId),
+            {
+                participants: [currentUser.uid, hostUid],
+                lastMessage: text,
+                lastMessageAt: serverTimestamp()
+            },
+            { merge: true }
+        );
+
+        await addDoc(
+            collection(db, "conversations", chatId, "messages"),
+            {
+                senderUid: currentUser.uid,
+                text,
+                createdAt: serverTimestamp()
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to send message:", error);
+        showToast("Message failed to send");
+        input.value = text;
+
+    }
+
+}
+</script>
+
+</body>
+</html>

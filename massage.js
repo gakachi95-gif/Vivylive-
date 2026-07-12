@@ -1,661 +1,223 @@
 // ======================================================
 // Vivy 💜 Messages
-// Part 2 - messages.js
+// Realtime conversation list: search, unread badges,
+// online status, last-message preview + timestamp.
 // ======================================================
 
 import { authReady } from "./auth-guard.js";
-import { getCurrentProfile } from "./auth-service.js";
 import { db } from "./firebase-config.js";
-
 import {
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot
+    collection, query, where, orderBy, onSnapshot, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { goBack } from "./ui-helpers.js";
 
-// ======================================================
-// Elements
-// ======================================================
+let currentUser = null;
+let allConversations = [];   // [{ id, convo, hostUid, hostProfile }]
+let searchTerm = "";
 
-const conversationList =
-document.getElementById("conversationList");
+const listEl = document.getElementById("conversationsList");
+const searchBarWrap = document.getElementById("searchBarWrap");
+const searchInput = document.getElementById("searchInput");
 
-const conversationTemplate =
-document.getElementById("conversationTemplate");
+document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
 
-const emptyState =
-document.getElementById("emptyState");
+document.getElementById("searchBtn").addEventListener("click", () => {
 
-const searchInput =
-document.getElementById("searchInput");
+    searchBarWrap.classList.toggle("show");
 
-const backBtn =
-document.getElementById("backBtn");
+    if (searchBarWrap.classList.contains("show")) {
 
-const searchBtn =
-document.getElementById("searchBtn");
+        searchInput.focus();
 
-const findHostBtn =
-document.getElementById("findHostBtn");
+    }
 
-// ======================================================
+    else {
 
-let currentUser;
+        searchInput.value = "";
+        searchTerm = "";
+        renderList();
 
-// ======================================================
+    }
+
+});
+
+searchInput.addEventListener("input", () => {
+
+    searchTerm = searchInput.value.trim().toLowerCase();
+    renderList();
+
+});
 
 init();
 
-async function init(){
+async function init() {
 
     currentUser = await authReady;
+    if (!currentUser) return;
 
-    if(!currentUser) return;
-
-    listenForChats();
-
-    bindEvents();
+    listenForConversations();
 
 }
 
-// ======================================================
-// Events
-// ======================================================
+function listenForConversations() {
 
-function bindEvents(){
-
-    backBtn.onclick=()=>{
-
-        location.href="user-dashboard.html";
-
-    };
-
-    findHostBtn.onclick=()=>{
-
-        location.href="random-match.html";
-
-    };
-
-    searchInput.oninput=filterChats;
-
-}
-
-// ======================================================
-// Load Chats
-// ======================================================
-
-function listenForChats(){
-
-    const q=query(
-
-        collection(db,"conversations"),
-
-        where("members","array-contains",currentUser.uid),
-
-        orderBy("updatedAt","desc")
-
+    const q = query(
+        collection(db, "conversations"),
+        where("participants", "array-contains", currentUser.uid),
+        orderBy("lastMessageAt", "desc")
     );
 
-    onSnapshot(q,(snapshot)=>{
+    onSnapshot(q, async (snapshot) => {
 
-        conversationList.innerHTML="";
+        try {
 
-        if(snapshot.empty){
+            const rows = await Promise.all(snapshot.docs.map(async (docSnap) => {
 
-            emptyState.style.display="block";
+                const convo = docSnap.data();
+                const hostUid = (convo.participants || []).find((uid) => uid !== currentUser.uid);
 
-            return;
+                let hostProfile = {};
 
-        }
+                try {
 
-        emptyState.style.display="none";
-
-        snapshot.forEach((doc)=>{
-
-            renderConversation(doc.data());
-
-        });
-
-    });
-
-}
-
-// ======================================================
-// Render Card
-// ======================================================
-
-function renderConversation(chat){
-
-    const card=
-    conversationTemplate.content.cloneNode(true);
-
-    card.querySelector(".avatar").src=
-        chat.photo ||
-        "assets/default-avatar.png";
-
-    card.querySelector(".username").textContent=
-        chat.username;
-
-    card.querySelector(".lastMessage").textContent=
-        chat.lastMessage || "";
-
-    card.querySelector(".time").textContent=
-        formatTime(chat.updatedAt);
-
-    if(chat.unread>0){
-
-        card.querySelector(".badge").textContent=
-            chat.unread;
-
-    }
-
-    card.querySelector(".conversation-card")
-        .onclick=()=>{
-
-        location.href=
-        `chat.html?id=${chat.id}`;
-
-    };
-
-    conversationList.appendChild(card);
-
-}
-
-// ======================================================
-// Search
-// ======================================================
-
-function filterChats(){
-
-    const value=
-    searchInput.value.toLowerCase();
-
-    document.querySelectorAll(".conversation-card")
-    .forEach((card)=>{
-
-        const name=
-        card.querySelector(".username")
-        .textContent
-        .toLowerCase();
-
-        card.style.display=
-        name.includes(value)
-        ? ""
-        : "none";
-
-    });
-
-}
-
-// ======================================================
-
-function formatTime(timestamp){
-
-    if(!timestamp) return "";
-
-    const date=
-    timestamp.toDate();
-
-    return date.toLocaleTimeString([],{
-
-        hour:"2-digit",
-
-        minute:"2-digit"
-
-    });
-
-}// ======================================================
-// Vivy 💜 Messages
-// Part 3 - Chat Screen Navigation & Real-time Updates
-// ======================================================
-
-import {
-    doc,
-    updateDoc,
-    serverTimestamp,
-    increment
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-// ======================================================
-// Open Conversation
-// ======================================================
-
-function openConversation(chatId) {
-
-    location.href = `chat.html?chatId=${chatId}`;
-
-}
-
-// ======================================================
-// Mark Messages Read
-// ======================================================
-
-async function markConversationRead(chatId) {
-
-    try {
-
-        await updateDoc(
-            doc(db, "conversations", chatId),
-            {
-                unread: 0,
-                lastRead: serverTimestamp()
-            }
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-// ======================================================
-// Update Last Seen
-// ======================================================
-
-async function updateLastSeen() {
-
-    try {
-
-        await updateDoc(
-            doc(db, "accounts", currentUser.uid),
-            {
-                lastSeen: serverTimestamp()
-            }
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-setInterval(updateLastSeen, 60000);
-
-// ======================================================
-// New Message Notification
-// ======================================================
-
-function playNotification() {
-
-    const audio = new Audio("assets/message.mp3");
-
-    audio.play().catch(() => {});
-
-}
-
-// ======================================================
-// Conversation Click
-// ======================================================
-
-document.addEventListener("click", async (event) => {
-
-    const card = event.target.closest(".conversation-card");
-
-    if (!card) return;
-
-    const chatId = card.dataset.chatid;
-
-    await markConversationRead(chatId);
-
-    openConversation(chatId);
-
-});
-
-// ======================================================
-// Refresh Badge Count
-// ======================================================
-
-function updateUnreadBadge(totalUnread) {
-
-    const badge = document.getElementById("messageBadge");
-
-    if (!badge) return;
-
-    badge.textContent = totalUnread;
-
-    badge.style.display = totalUnread > 0 ? "flex" : "none";
-
-}
-
-// ======================================================
-// Ready
-// ======================================================
-
-console.log("✅ Messages Part 3 Ready");// ======================================================
-// Vivy 💜 Messages
-// Part 4 - Delete, Pin, Mute & Online Status
-// ======================================================
-
-import {
-    deleteDoc,
-    updateDoc,
-    doc,
-    serverTimestamp,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-// ======================================================
-// Delete Conversation
-// ======================================================
-
-async function deleteConversation(chatId){
-
-    const confirmed = confirm(
-        "Delete this conversation?"
-    );
-
-    if(!confirmed) return;
-
-    try{
-
-        await deleteDoc(
-            doc(db,"conversations",chatId)
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-// ======================================================
-// Pin Conversation
-// ======================================================
-
-async function pinConversation(chatId,pinned){
-
-    try{
-
-        await updateDoc(
-            doc(db,"conversations",chatId),
-            {
-
-                pinned:!pinned,
-
-                updatedAt:serverTimestamp()
-
-            }
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-// ======================================================
-// Mute Conversation
-// ======================================================
-
-async function muteConversation(chatId,muted){
-
-    try{
-
-        await updateDoc(
-            doc(db,"conversations",chatId),
-            {
-
-                muted:!muted
-
-            }
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-}
-
-// ======================================================
-// Listen Host Online Status
-// ======================================================
-
-function watchHostStatus(hostUid,statusElement){
-
-    onSnapshot(
-
-        doc(db,"hosts",hostUid),
-
-        (snap)=>{
-
-            if(!snap.exists()) return;
-
-            const host=snap.data();
-
-            statusElement.textContent=
-                host.isOnline
-                ? "🟢 Online"
-                : "⚪ Offline";
-
-        }
-
-    );
-
-}
-
-// ======================================================
-// Long Press Menu
-// ======================================================
-
-document.addEventListener("contextmenu",(e)=>{
-
-    const card=e.target.closest(".conversation-card");
-
-    if(!card) return;
-
-    e.preventDefault();
-
-    const chatId=card.dataset.chatid;
-
-    const pinned=
-        card.dataset.pinned==="true";
-
-    const muted=
-        card.dataset.muted==="true";
-
-    const option=prompt(
-
-`Choose Action
-
-1 = Pin / Unpin
-
-2 = Mute / Unmute
-
-3 = Delete`
-
-    );
-
-    switch(option){
-
-        case "1":
-
-            pinConversation(chatId,pinned);
-
-            break;
-
-        case "2":
-
-            muteConversation(chatId,muted);
-
-            break;
-
-        case "3":
-
-            deleteConversation(chatId);
-
-            break;
-
-    }
-
-});
-
-// ======================================================
-
-console.log("✅ Messages Part 4 Ready");// ======================================================
-// Vivy 💜 Messages
-// Part 5 - Firebase Presence, Typing & Notifications
-// ======================================================
-
-import {
-    addDoc,
-    collection,
-    doc,
-    updateDoc,
-    onSnapshot,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-// ======================================================
-// User Presence
-// ======================================================
-
-async function setOnline() {
-
-    try {
-
-        await updateDoc(
-            doc(db, "accounts", currentUser.uid),
-            {
-                isOnline: true,
-                lastSeen: serverTimestamp()
-            }
-        );
-
-    } catch (e) {}
-
-}
-
-async function setOffline() {
-
-    try {
-
-        await updateDoc(
-            doc(db, "accounts", currentUser.uid),
-            {
-                isOnline: false,
-                lastSeen: serverTimestamp()
-            }
-        );
-
-    } catch (e) {}
-
-}
-
-window.addEventListener("beforeunload", setOffline);
-
-setOnline();
-
-// ======================================================
-// Typing Indicator
-// ======================================================
-
-async function updateTyping(chatId, typing) {
-
-    try {
-
-        await updateDoc(
-            doc(db, "conversations", chatId),
-            {
-                typing
-            }
-        );
-
-    } catch (e) {}
-
-}
-
-// ======================================================
-// Push Notification
-// ======================================================
-
-async function createNotification(hostUid, message) {
-
-    try {
-
-        await addDoc(
-            collection(db, "notifications"),
-            {
-
-                receiver: hostUid,
-
-                sender: currentUser.uid,
-
-                title: "New Message",
-
-                body: message,
-
-                read: false,
-
-                createdAt: serverTimestamp()
-
-            }
-        );
-
-    } catch (e) {}
-
-}
-
-// ======================================================
-// Listen Notification Count
-// ======================================================
-
-function listenNotifications() {
-
-    onSnapshot(
-
-        collection(db, "notifications"),
-
-        (snapshot) => {
-
-            let total = 0;
-
-            snapshot.forEach((doc) => {
-
-                const data = doc.data();
-
-                if (
-                    data.receiver === currentUser.uid &&
-                    !data.read
-                ) {
-
-                    total++;
+                    const hostSnap = await getDoc(doc(db, "hosts", hostUid));
+                    if (hostSnap.exists()) hostProfile = hostSnap.data();
 
                 }
 
-            });
+                catch (e) { /* fallback text used below */ }
 
-            const badge =
-                document.getElementById("notificationBadge");
+                return { id: docSnap.id, convo, hostUid, hostProfile };
 
-            if (!badge) return;
+            }));
 
-            badge.textContent = total;
-
-            badge.style.display =
-                total > 0 ? "flex" : "none";
+            allConversations = rows;
+            renderList();
 
         }
 
-    );
+        catch (error) {
+
+            console.error("Failed to process conversations:", error);
+            renderError();
+
+        }
+
+    }, (error) => {
+
+        console.error("Failed to listen for conversations:", error);
+        renderError();
+
+    });
 
 }
 
-listenNotifications();
+function renderList() {
 
-// ======================================================
-// Ready
-// ======================================================
+    if (allConversations.length === 0) {
 
-console.log("✅ messages.js Complete");
+        renderEmpty("No conversations yet", "Match with a host to start chatting");
+        return;
+
+    }
+
+    const filtered = searchTerm
+        ? allConversations.filter((row) => {
+
+            const name = (row.hostProfile.username || "").toLowerCase();
+            const lastMsg = (row.convo.lastMessage || "").toLowerCase();
+            return name.includes(searchTerm) || lastMsg.includes(searchTerm);
+
+        })
+        : allConversations;
+
+    if (filtered.length === 0) {
+
+        renderEmpty("No matches found", "Try a different search term");
+        return;
+
+    }
+
+    listEl.innerHTML = "";
+
+    filtered.forEach((row) => {
+
+        const { convo, hostUid, hostProfile } = row;
+
+        const unread = convo.unreadCount?.[currentUser.uid] || 0;
+        const isOnline = !!hostProfile.isOnline;
+
+        const item = document.createElement("a");
+        item.className = "list-card";
+        item.href = `chat.html?hostUid=${hostUid}`;
+        item.innerHTML = `
+            <div class="convo-photo-wrap">
+                <img class="convo-photo" src="${hostProfile.profilePhoto || 'assets/default-avatar.png'}" alt="">
+                <span class="convo-online-dot ${isOnline ? "online" : ""}"></span>
+            </div>
+            <div class="list-text">
+                <div class="list-title-row">
+                    <div class="list-title">${escapeHtml(hostProfile.username || "Vivy Host")}</div>
+                </div>
+                <div class="list-subtitle">${escapeHtml(convo.lastMessage || "Say hello 👋")}</div>
+            </div>
+            <div class="list-meta">
+                <span>${formatTimestamp(convo.lastMessageAt)}</span>
+                ${unread > 0 ? `<span class="unread-badge">${unread > 99 ? "99+" : unread}</span>` : ""}
+            </div>
+        `;
+        listEl.appendChild(item);
+
+    });
+
+}
+
+function renderEmpty(title, subtitle) {
+
+    listEl.innerHTML = `
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p>${escapeHtml(title)}</p>
+            <p style="font-size:0.7rem">${escapeHtml(subtitle)}</p>
+        </div>
+    `;
+
+}
+
+function renderError() {
+
+    listEl.innerHTML = `
+        <div class="empty-state">
+            <p>Couldn't load your messages right now.</p>
+        </div>
+    `;
+
+}
+
+function formatTimestamp(timestamp) {
+
+    if (!timestamp?.toDate) return "";
+
+    const date = timestamp.toDate();
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return "Now";
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+}
+
+function escapeHtml(str) {
+
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+
+}

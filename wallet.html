@@ -35,6 +35,13 @@
     margin-top: 6px;
 }
 
+.wallet-hero .diamonds-amt {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #7DD3FC;
+    margin-top: 2px;
+}
+
 .wallet-actions-row { display: flex; gap: 10px; padding: 0 4px; }
 
 .tx-icon.in { background: linear-gradient(135deg, rgba(74,222,128,0.35), rgba(74,222,128,0.15)); }
@@ -43,6 +50,77 @@
 .tx-amount { font-weight: 700; font-size: 0.86rem; }
 .tx-amount.positive { color: var(--online); }
 .tx-amount.negative { color: var(--danger); }
+
+/* Host economy card */
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 4px;
+}
+
+.stat-box {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-box .stat-lbl { font-size: 0.68rem; color: var(--text-dim); }
+.stat-box .stat-val { font-size: 1.05rem; font-weight: 700; }
+.stat-box .stat-sub { font-size: 0.66rem; color: var(--text-faint); }
+
+.progress-track {
+    width: 100%;
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transition: width 0.4s ease;
+    width: 0%;
+}
+
+.progress-caption {
+    font-size: 0.68rem;
+    color: var(--text-faint);
+    margin-top: 6px;
+}
+
+.tab-row {
+    display: flex;
+    gap: 6px;
+    padding: 4px 4px 0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+}
+
+.host-only { display: none; }
+.host-only.show { display: block; }
 </style>
 </head>
 <body>
@@ -61,24 +139,63 @@
     </header>
 
     <section class="glass-card animate-in wallet-hero" style="margin:16px 16px 0">
-        <span class="lbl">Wallet Balance</span>
-        <span class="amt">$<span id="walletBalanceAmt" class="skeleton">0.00</span></span>
-        <span class="coins-amt">💜 <span id="coinBalanceAmt" class="skeleton">0</span> coins</span>
+        <span class="lbl">Coin Balance</span>
+        <span class="amt"><span id="coinBalanceAmt" class="skeleton">0</span></span>
+        <span class="coins-amt" id="bonusCoinsLine" style="display:none">🎁 <span id="bonusCoinsAmt">0</span> lifetime bonus coins</span>
+        <span class="diamonds-amt host-only" id="diamondBalanceLine">💎 <span id="diamondBalanceAmt" class="skeleton">0</span> diamonds</span>
     </section>
 
     <div class="page-content">
 
         <div class="wallet-actions-row">
             <button type="button" class="btn btn-primary-solid" id="rechargeBtn">Recharge</button>
-            <button type="button" class="btn btn-primary-outline" id="buyCoinsBtn">Buy Coins</button>
+            <button type="button" class="btn btn-primary-outline" id="historyBtn">View History</button>
         </div>
 
-        <section class="glass-card animate-in" style="animation-delay:0.05s">
-            <div style="padding:14px 14px 4px;font-weight:700;font-size:0.86rem">Recent Activity</div>
-            <div id="transactionsList">
+        <!-- Host payroll / earnings card -->
+        <section class="glass-card animate-in host-only" id="hostEconomyCard" style="animation-delay:0.04s">
+            <div style="padding:14px 14px 0;font-weight:700;font-size:0.86rem">Payroll &amp; Earnings</div>
+            <div class="stat-grid">
+                <div class="glass-card stat-box">
+                    <span class="stat-lbl">Pending Payroll</span>
+                    <span class="stat-val" id="pendingPayrollAmt">$0.00</span>
+                    <span class="stat-sub" id="pendingPayrollSub">Not yet eligible</span>
+                </div>
+                <div class="glass-card stat-box">
+                    <span class="stat-lbl">Next Payroll Date</span>
+                    <span class="stat-val" id="nextPayrollDate" style="font-size:0.86rem">—</span>
+                    <span class="stat-sub">Generated every Monday</span>
+                </div>
+                <div class="glass-card stat-box">
+                    <span class="stat-lbl">Weekly Earnings</span>
+                    <span class="stat-val" id="weeklyDiamondsAmt">0 💎</span>
+                    <span class="stat-sub" id="weeklyUsdEquivalent">≈ $0.00</span>
+                </div>
+                <div class="glass-card stat-box">
+                    <span class="stat-lbl">Recharge Bonus (lifetime)</span>
+                    <span class="stat-val" id="hostBonusAmt">0</span>
+                    <span class="stat-sub">Bonus coins earned</span>
+                </div>
+            </div>
+            <div style="padding:4px 14px 14px">
+                <span class="stat-lbl">Progress to minimum withdrawal (50,000 💎)</span>
+                <div class="progress-track">
+                    <div class="progress-fill" id="withdrawalProgressFill"></div>
+                </div>
+                <div class="progress-caption" id="withdrawalProgressCaption">0 / 50,000 diamonds</div>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="animation-delay:0.08s">
+            <div class="tab-row">
+                <div class="tab-btn active" data-tab="activity">Activity</div>
+                <div class="tab-btn" data-tab="recharge">Recharges</div>
+                <div class="tab-btn host-only" data-tab="withdrawal" id="withdrawalTabBtn">Withdrawals</div>
+            </div>
+            <div id="transactionsList" style="padding-top:6px">
                 <div class="empty-state">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-                    <p>No transactions yet</p>
+                    <p>Loading…</p>
                 </div>
             </div>
         </section>
@@ -110,91 +227,7 @@
 
 </div>
 
-<script type="module">
-import { authReady } from "./auth-guard.js";
-import { getCurrentProfile } from "./auth-service.js";
-import { db } from "./firebase-config.js";
-import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { goBack, formatNumber } from "./ui-helpers.js";
-
-document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
-document.getElementById("rechargeBtn").addEventListener("click", () => window.location.href = "recharge.html");
-document.getElementById("buyCoinsBtn").addEventListener("click", () => window.location.href = "buy-coins.html");
-
-init();
-
-async function init() {
-
-    const user = await authReady;
-    if (!user) return;
-
-    try {
-
-        const profile = await getCurrentProfile(user.uid);
-
-        if (profile) {
-
-            const walletEl = document.getElementById("walletBalanceAmt");
-            walletEl.textContent = Number(profile.walletBalance ?? 0).toFixed(2);
-            walletEl.classList.remove("skeleton");
-
-            const coinsEl = document.getElementById("coinBalanceAmt");
-            coinsEl.textContent = formatNumber(profile.coins ?? 0);
-            coinsEl.classList.remove("skeleton");
-
-        }
-
-        // Completed calls double as the wallet's transaction history —
-        // coin spend/earn events are recorded there (see call.html).
-        const snapshot = await getDocs(
-            query(
-                collection(db, "calls"),
-                where("callerUid", "==", user.uid),
-                orderBy("startTime", "desc"),
-                limit(20)
-            )
-        );
-
-        if (!snapshot.empty) {
-
-            const listEl = document.getElementById("transactionsList");
-            listEl.innerHTML = "";
-
-            snapshot.forEach((docSnap) => {
-
-                const call = docSnap.data();
-                const row = document.createElement("div");
-                row.className = "list-card";
-                row.innerHTML = `
-                    <span class="list-icon-circle tx-icon out">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            ${call.callType === "video"
-                                ? '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>'
-                                : '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>'}
-                        </svg>
-                    </span>
-                    <div class="list-text">
-                        <div class="list-title">${call.callType === "video" ? "Video" : "Audio"} call</div>
-                        <div class="list-subtitle">${call.duration ? Math.round(call.duration) + "s" : ""}</div>
-                    </div>
-                    <div class="tx-amount negative">-${formatNumber(call.coinsSpent ?? 0)}</div>
-                `;
-                listEl.appendChild(row);
-
-            });
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error("Failed to load wallet:", error);
-
-    }
-
-}
-</script>
+<script type="module" src="wallet.js"></script>
 
 </body>
-  </html>
+</html>

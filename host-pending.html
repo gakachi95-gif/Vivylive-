@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Application Status | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.status-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 20px calc(24px + var(--safe-bottom));
+    position: relative;
+    z-index: 1;
+}
+
+.status-card { padding: 32px 24px; text-align: center; }
+
+.status-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(251,191,36,0.35), rgba(251,191,36,0.15));
+}
+
+.status-icon svg { width: 34px; height: 34px; stroke: var(--gold); }
+
+.status-icon.rejected { background: linear-gradient(135deg, rgba(251,113,133,0.35), rgba(251,113,133,0.15)); }
+.status-icon.rejected svg { stroke: var(--danger); }
+
+.status-card h1 { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; }
+.status-card p { font-size: 0.86rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 4px; }
+
+.status-agency {
+    margin: 16px 0;
+    padding: 12px;
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.05);
+}
+
+.status-agency .lbl { font-size: 0.7rem; color: var(--text-faint); }
+.status-agency .name { font-size: 0.94rem; font-weight: 700; margin-top: 2px; }
+
+.status-badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    background: rgba(251,191,36,0.18);
+    color: var(--gold);
+}
+
+.status-badge.rejected { background: rgba(251,113,133,0.18); color: var(--danger); }
+.status-badge.suspended { background: rgba(251,113,133,0.18); color: var(--danger); }
+
+.status-actions { margin-top: 26px; display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+
+<div class="status-wrap">
+
+    <section class="glass-card animate-in status-card">
+
+        <div class="status-icon" id="statusIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+        </div>
+
+        <h1 id="statusTitle" class="skeleton">Awaiting Verification</h1>
+
+        <p id="statusMessage" class="skeleton">Your account is awaiting Vivy Admin verification.</p>
+
+        <div class="status-agency">
+            <div class="lbl">Agency</div>
+            <div class="name" id="agencyName">—</div>
+        </div>
+
+        <span class="status-badge" id="statusBadge">Pending Verification</span>
+
+        <div class="status-actions">
+            <button type="button" class="btn btn-primary-outline" id="supportBtn">Contact Support</button>
+            <button type="button" class="btn btn-primary-outline" id="logoutBtn">Log Out</button>
+        </div>
+
+    </section>
+
+</div>
+
+<script type="module" src="host-pending.js"></script>
+
+</body>
+                                                                                                                                          </html>

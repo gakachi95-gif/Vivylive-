@@ -1,6 +1,25 @@
 // ======================================================
 // Vivy 💜 Video Call
-// Part 2 - video-call.js
+// video-call.js
+//
+// Economy rules (do not change):
+//   • 150 coins deducted from the caller every 30s of an
+//     active (connected) video call (audio calls are 100).
+//   • Every 100 coins spent credits the host 50 Diamonds
+//     (never raw coins — hosts are paid out via payroll).
+//   • Billing starts only once the call is connected and
+//     stops immediately when the call ends.
+//   • If the caller's balance can't cover the next 30s
+//     interval, billing pauses and a low-balance popup
+//     offers Recharge or End Call — never a silent alert.
+//
+// ZEGOCLOUD: this file simulates the connect handshake with
+// a timeout so the whole call/billing/logging flow works
+// today. Swap `startConnecting()`'s timeout for a real
+// "both peers joined" callback later (and feed the remote/
+// local media streams into #remoteVideo / #localVideo), and
+// call `endCall()` from ZEGOCLOUD's onLeaveRoom — nothing
+// else here needs to change.
 // ======================================================
 
 import { authReady } from "./auth-guard.js";
@@ -10,22 +29,32 @@ import { db } from "./firebase-config.js";
 import {
     doc,
     getDoc,
-    addDoc,
     updateDoc,
     increment,
-    serverTimestamp,
-    onSnapshot
+    addDoc,
+    collection,
+    onSnapshot,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+// ======================================================
+// Config
+// ======================================================
+
+const COINS_PER_INTERVAL = 150;
+const DIAMONDS_PER_INTERVAL = 75; // 150 coins spent → 50 diamonds per 100 = 75
+const INTERVAL_MS = 30000;
+const CONNECT_DELAY_MS = 3000;
 
 // ======================================================
 // Elements
 // ======================================================
 
-const hostName = document.getElementById("hostName");
+const hostNameEl = document.getElementById("hostName");
 const callStatus = document.getElementById("callStatus");
 const callTimer = document.getElementById("callTimer");
 
-const coinBalance = document.getElementById("coinBalance");
+const coinBalanceEl = document.getElementById("coinBalance");
 
 const remoteVideo = document.getElementById("remoteVideo");
 const localVideo = document.getElementById("localVideo");
@@ -39,528 +68,529 @@ const messageBtn = document.getElementById("messageBtn");
 const endCallBtn = document.getElementById("endCallBtn");
 const backBtn = document.getElementById("backBtn");
 
+const lowBalanceModal = document.getElementById("lowBalanceModal");
+const lowBalanceRechargeBtn = document.getElementById("lowBalanceRechargeBtn");
+const lowBalanceEndBtn = document.getElementById("lowBalanceEndBtn");
+
+// ======================================================
+// State
 // ======================================================
 
-let currentUser;
-let profile;
-let host;
+let currentUser = null;
+let profile = null;
 
-let callId;
+let hostUid = null;
+let host = null;
+
+let callId = null;
+let callActive = false;
+let callEnded = false;
 
 let seconds = 0;
+let timer = null;
+let billingTimer = null;
 
-let timer;
-let billingTimer;
+let currentCoins = 0;
+let coinsSpentThisCall = 0;
+let diamondsEarnedThisCall = 0;
 
 let muted = false;
 let cameraEnabled = true;
 let speakerEnabled = true;
 
+let wakeLock = null;
+let balanceUnsubscribe = null;
+
+// ======================================================
+// Init
 // ======================================================
 
 init();
 
-async function init(){
+async function init() {
 
     currentUser = await authReady;
 
-    if(!currentUser) return;
+    if (!currentUser) {
 
-    profile = await getCurrentProfile(currentUser.uid);
-
-    coinBalance.textContent =
-        Number(profile.coins || 0).toLocaleString();
-
-    const params = new URLSearchParams(location.search);
-
-    const hostUid = params.get("hostUid");
-
-    if(!hostUid){
-
-        location.href="user-dashboard.html";
         return;
 
     }
 
-    const snap = await getDoc(doc(db,"hosts",hostUid));
+    profile = await getCurrentProfile(currentUser.uid);
 
-    if(!snap.exists()){
+    currentCoins = Number(profile?.coins || 0);
+    coinBalanceEl.textContent = currentCoins.toLocaleString();
 
-        location.href="user-dashboard.html";
+    const params = new URLSearchParams(location.search);
+
+    hostUid = params.get("hostUid");
+
+    if (!hostUid) {
+
+        location.href = "user-dashboard.html";
+        return;
+
+    }
+
+    const snap = await getDoc(doc(db, "hosts", hostUid));
+
+    if (!snap.exists()) {
+
+        location.href = "user-dashboard.html";
         return;
 
     }
 
     host = snap.data();
+    hostNameEl.textContent = host.username || "Host";
 
-    hostName.textContent = host.username;
+    const callRef = await addDoc(collection(db, "calls"), {
 
-    const callDoc = await addDoc(doc(db,"calls").parent,{
+        callerUid: currentUser.uid,
+        hostUid: hostUid,
 
-        callerUid:currentUser.uid,
+        callType: "video",
+        status: "connecting",
 
-        hostUid,
+        startTime: serverTimestamp(),
+        duration: 0,
 
-        type:"video",
-
-        status:"connecting",
-
-        startedAt:serverTimestamp(),
-
-        coinsSpent:0,
-
-        hostEarned:0
+        coinsSpent: 0,
+        hostEarnings: 0,
+        diamondsEarned: 0
 
     });
 
-    callId = callDoc.id;
+    callId = callRef.id;
+
+    bindEvents();
+    keepScreenAwake();
+    watchBalance();
 
     connectAnimation();
 
-    bindEvents();
+}
+
+// ======================================================
+// Connecting → Live Call
+// ======================================================
+
+function connectAnimation() {
+
+    callStatus.textContent = "Connecting...";
+
+    setTimeout(beginLiveCall, CONNECT_DELAY_MS);
+
+}
+
+async function beginLiveCall() {
+
+    if (callEnded) {
+
+        return;
+
+    }
+
+    callActive = true;
+
+    callStatus.textContent = "Connected 💜";
+
+    try {
+
+        await updateDoc(doc(db, "calls", callId), {
+            status: "connected",
+            connectedAt: serverTimestamp()
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to mark call connected:", error);
+
+    }
+
+    startTimer();
+    startBilling();
 
 }
 
 // ======================================================
-
-function connectAnimation(){
-
-    callStatus.textContent="Connecting...";
-
-    setTimeout(()=>{
-
-        callStatus.textContent="Connected 💜";
-
-        startTimer();
-
-        startBilling();
-
-        watchCoins();
-
-    },3000);
-
-}
-
+// Timer
 // ======================================================
 
-function startTimer(){
+function startTimer() {
 
-    timer=setInterval(()=>{
+    timer = setInterval(() => {
 
         seconds++;
 
-        const m=Math.floor(seconds/60).toString().padStart(2,"0");
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const s = (seconds % 60).toString().padStart(2, "0");
 
-        const s=(seconds%60).toString().padStart(2,"0");
+        callTimer.textContent = `${m}:${s}`;
 
-        callTimer.textContent=`${m}:${s}`;
-
-    },1000);
-
-}
-
-// ======================================================
-
-function startBilling(){
-
-    billingTimer=setInterval(async()=>{
-
-        await updateDoc(doc(db,"accounts",currentUser.uid),{
-
-            coins:increment(-100)
-
-        });
-
-        await updateDoc(doc(db,"hosts",host.hostUid),{
-
-            coins:increment(100)
-
-        });
-
-        await updateDoc(doc(db,"calls",callId),{
-
-            coinsSpent:increment(100),
-
-            hostEarned:increment(100)
-
-        });
-
-    },30000);
+    }, 1000);
 
 }
 
 // ======================================================
+// Billing — every 30 seconds of active call time
+// ======================================================
 
-function watchCoins(){
+function startBilling() {
 
-    onSnapshot(doc(db,"accounts",currentUser.uid),(snap)=>{
+    billingTimer = setInterval(() => {
 
-        if(!snap.exists()) return;
+        if (!callActive) {
 
-        const data=snap.data();
-
-        coinBalance.textContent=data.coins;
-
-        if(data.coins<=0){
-
-            finishCall();
+            return;
 
         }
 
-    });
+        if (currentCoins < COINS_PER_INTERVAL) {
 
-  }// ======================================================
-// Vivy 💜 Video Call
-// Part 3 - Controls & Call Actions
+            showLowBalanceModal();
+            return;
+
+        }
+
+        chargeInterval();
+
+    }, INTERVAL_MS);
+
+}
+
+async function chargeInterval() {
+
+    coinsSpentThisCall += COINS_PER_INTERVAL;
+    diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
+
+    try {
+
+        await Promise.all([
+
+            updateDoc(doc(db, "accounts", currentUser.uid), {
+                coins: increment(-COINS_PER_INTERVAL)
+            }),
+
+            // Hosts are paid in Diamonds, never raw coins — Diamonds
+            // convert to money through the weekly agency payroll.
+            updateDoc(doc(db, "hosts", hostUid), {
+                diamonds: increment(DIAMONDS_PER_INTERVAL),
+                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL)
+            }),
+
+            updateDoc(doc(db, "calls", callId), {
+                coinsSpent: increment(COINS_PER_INTERVAL),
+                hostEarnings: increment(COINS_PER_INTERVAL),
+                diamondsEarned: increment(DIAMONDS_PER_INTERVAL),
+                lastBilling: serverTimestamp()
+            })
+
+        ]);
+
+    }
+
+    catch (error) {
+
+        console.error("Billing failed:", error);
+
+    }
+
+}
+
+// ======================================================
+// Watch Live Coin Balance
+// ======================================================
+
+function watchBalance() {
+
+    balanceUnsubscribe = onSnapshot(
+        doc(db, "accounts", currentUser.uid),
+        (snap) => {
+
+            if (!snap.exists()) {
+
+                return;
+
+            }
+
+            currentCoins = Number(snap.data().coins || 0);
+            coinBalanceEl.textContent = currentCoins.toLocaleString();
+
+            if (callActive && !callEnded && currentCoins < COINS_PER_INTERVAL) {
+
+                showLowBalanceModal();
+
+            }
+
+        }
+    );
+
+}
+
+// ======================================================
+// Low Balance Modal
+// ======================================================
+
+function showLowBalanceModal() {
+
+    if (lowBalanceModal.classList.contains("show")) {
+
+        return;
+
+    }
+
+    if (billingTimer) {
+
+        clearInterval(billingTimer);
+        billingTimer = null;
+
+    }
+
+    lowBalanceModal.classList.add("show");
+
+}
+
+function hideLowBalanceModal() {
+
+    lowBalanceModal.classList.remove("show");
+
+}
+
+// ======================================================
+// Events
 // ======================================================
 
 function bindEvents() {
 
-    backBtn.addEventListener("click", finishCall);
-
-    endCallBtn.addEventListener("click", finishCall);
+    backBtn.addEventListener("click", () => endCall("manual"));
+    endCallBtn.addEventListener("click", () => endCall("manual"));
 
     giftBtn.addEventListener("click", () => {
 
-        location.href = `gift.html?hostUid=${host.hostUid}`;
+        showToast("Gifts are coming soon 🎁");
 
     });
 
     messageBtn.addEventListener("click", () => {
 
-        location.href = `messages.html?hostUid=${host.hostUid}`;
+        if (!hostUid) return;
+
+        location.href = `chat.html?hostUid=${hostUid}`;
 
     });
 
     muteBtn.addEventListener("click", toggleMute);
-
     cameraBtn.addEventListener("click", toggleCamera);
-
     speakerBtn.addEventListener("click", toggleSpeaker);
-
     switchCameraBtn.addEventListener("click", switchCamera);
 
-}
+    lowBalanceRechargeBtn.addEventListener("click", () => {
 
-// ======================================================
-// Mute
-// ======================================================
+        hideLowBalanceModal();
+        endCall("low_balance");
+
+    });
+
+    lowBalanceEndBtn.addEventListener("click", () => {
+
+        hideLowBalanceModal();
+        endCall("manual");
+
+    });
+
+}
 
 function toggleMute() {
 
     muted = !muted;
 
     muteBtn.classList.toggle("active", muted);
-
     muteBtn.textContent = muted ? "🔇" : "🎤";
 
-    // ZEGO:
-    // zg.muteMicrophone(muted);
+    // ZEGOCLOUD: zg.muteMicrophone(muted);
 
 }
-
-// ======================================================
-// Camera
-// ======================================================
 
 function toggleCamera() {
 
     cameraEnabled = !cameraEnabled;
 
     cameraBtn.classList.toggle("active", !cameraEnabled);
-
     cameraBtn.textContent = cameraEnabled ? "📷" : "🚫";
 
-    // ZEGO:
-    // zg.enableCamera(cameraEnabled);
+    // ZEGOCLOUD: zg.enableCamera(cameraEnabled);
 
 }
-
-// ======================================================
-// Speaker
-// ======================================================
 
 function toggleSpeaker() {
 
     speakerEnabled = !speakerEnabled;
 
     speakerBtn.classList.toggle("active", !speakerEnabled);
-
     speakerBtn.textContent = speakerEnabled ? "🔊" : "🔈";
 
-    // ZEGO:
-    // zg.enableSpeaker(speakerEnabled);
+    // ZEGOCLOUD: zg.enableSpeaker(speakerEnabled);
 
 }
-
-// ======================================================
-// Switch Camera
-// ======================================================
 
 function switchCamera() {
 
-    // ZEGO:
-    // zg.useFrontCamera(false);
-
-    console.log("Camera Switched");
+    // ZEGOCLOUD: zg.useFrontCamera(false);
+    console.log("Camera switched");
 
 }
 
 // ======================================================
-// Picture Preview
+// Media stream hooks — call these once ZEGOCLOUD (or any
+// WebRTC layer) is wired in.
 // ======================================================
 
-function showLocalPreview(stream) {
+export function showLocalPreview(streamEl) {
 
     localVideo.innerHTML = "";
-
-    localVideo.appendChild(stream);
+    localVideo.appendChild(streamEl);
 
 }
 
-function showRemoteVideo(stream) {
+export function showRemoteVideo(streamEl) {
 
     remoteVideo.innerHTML = "";
+    remoteVideo.appendChild(streamEl);
 
-    remoteVideo.appendChild(stream);
+}
 
-              }// ======================================================
-// Vivy 💜 Video Call
-// Part 4 - Finish Call & Firebase Updates
+// ======================================================
+// End Call
 // ======================================================
 
-// ===========================================
-// Finish Call
-// ===========================================
+async function endCall(reason) {
 
-async function finishCall() {
+    if (callEnded) {
 
-    clearInterval(timer);
+        return;
 
-    clearInterval(billingTimer);
+    }
+
+    callEnded = true;
+    callActive = false;
+
+    if (timer) clearInterval(timer);
+    if (billingTimer) clearInterval(billingTimer);
+    if (balanceUnsubscribe) balanceUnsubscribe();
+
+    if (wakeLock) {
+
+        try { await wakeLock.release(); } catch (e) {}
+
+    }
 
     try {
 
-        await updateDoc(
-            doc(db, "calls", callId),
-            {
-                status: "ended",
+        await updateDoc(doc(db, "calls", callId), {
 
-                endedAt: serverTimestamp(),
+            status: "ended",
+            endReason: reason,
+            endTime: serverTimestamp(),
+            duration: seconds,
+            coinsSpent: coinsSpentThisCall,
+            hostEarnings: coinsSpentThisCall,
+            diamondsEarned: diamondsEarnedThisCall
 
-                duration: seconds,
-
-                coinsSpent: Math.floor(seconds / 30) * 100,
-
-                hostEarned: Math.floor(seconds / 30) * 100
-            }
-        );
-
-    } catch (e) {
-
-        console.error(e);
+        });
 
     }
 
-    location.href =
-        `call-summary.html?callId=${callId}`;
+    catch (error) {
+
+        console.error("Failed to save call record:", error);
+
+    }
+
+    location.href = reason === "low_balance" ? "recharge.html" : "user-dashboard.html";
 
 }
 
-// ===========================================
-// Watch Call Status
-// ===========================================
-
-onSnapshot(doc(db, "calls", callId), (snap) => {
-
-    if (!snap.exists()) return;
-
-    const data = snap.data();
-
-    if (data.status === "ended") {
-
-        finishCall();
-
-    }
-
-});
-
-// ===========================================
+// ======================================================
 // Keep Screen Awake
-// ===========================================
+// ======================================================
 
-let wakeLock = null;
-
-async function keepAwake() {
+async function keepScreenAwake() {
 
     try {
 
         if ("wakeLock" in navigator) {
 
-            wakeLock =
-                await navigator.wakeLock.request("screen");
+            wakeLock = await navigator.wakeLock.request("screen");
 
         }
 
-    } catch (e) {
+    }
 
-        console.log(e);
+    catch (error) {
+
+        console.log(error);
 
     }
 
 }
 
-keepAwake();
+// ======================================================
+// Mini Toast
+// ======================================================
 
-// ===========================================
-// Before Closing Browser
-// ===========================================
+let toastTimer = null;
 
-window.addEventListener("beforeunload", async () => {
+function showToast(message) {
 
-    try {
+    let toastEl = document.querySelector(".mini-toast");
 
-        await updateDoc(
-            doc(db, "calls", callId),
-            {
-                status: "ended",
+    if (!toastEl) {
 
-                endedAt: serverTimestamp()
-            }
-        );
+        toastEl = document.createElement("div");
+        toastEl.className = "mini-toast";
+        document.body.appendChild(toastEl);
 
-    } catch (e) {}
+    }
 
-});
+    toastEl.textContent = message;
 
-// ===========================================
-// Call Summary
-// ===========================================
+    void toastEl.offsetWidth;
 
-async function saveSummary() {
+    toastEl.classList.add("show");
 
-    return {
+    if (toastTimer) clearTimeout(toastTimer);
 
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+
+}
+
+// ======================================================
+// If the caller closes/reloads mid-call, best-effort mark
+// the call ended so it doesn't sit "connected" forever.
+// ======================================================
+
+window.addEventListener("beforeunload", () => {
+
+    if (callEnded || !callId) {
+
+        return;
+
+    }
+
+    updateDoc(doc(db, "calls", callId), {
+
+        status: "ended",
+        endReason: "closed",
+        endTime: serverTimestamp(),
         duration: seconds,
+        coinsSpent: coinsSpentThisCall,
+        hostEarnings: coinsSpentThisCall,
+        diamondsEarned: diamondsEarnedThisCall
 
-        minutes: Math.floor(seconds / 60),
-
-        coinsSpent: Math.floor(seconds / 30) * 100,
-
-        hostEarned: Math.floor(seconds / 30) * 100
-
-    };
-
-}
-
-console.log("✅ Video Call Part 4 Ready");// ======================================================
-// Vivy 💜 Video Call
-// Part 5 - ZEGOCLOUD Integration
-// ======================================================
-
-import {
-    ZegoUIKitPrebuilt
-} from "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.esm.js";
-
-// ======================================================
-// Replace with your ZEGOCLOUD credentials later
-// ======================================================
-
-const APP_ID = YOUR_APP_ID;
-const SERVER_SECRET = "YOUR_SERVER_SECRET";
-
-// ======================================================
-
-const ROOM_ID = callId;
-
-const USER_ID = currentUser.uid;
-
-const USER_NAME = profile.username || "Vivy User";
-
-// ======================================================
-// Generate Token
-// ======================================================
-
-const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-
-    APP_ID,
-
-    SERVER_SECRET,
-
-    ROOM_ID,
-
-    USER_ID,
-
-    USER_NAME
-
-);
-
-// ======================================================
-// Create Room
-// ======================================================
-
-const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-zp.joinRoom({
-
-    container: remoteVideo,
-
-    scenario: {
-
-        mode: ZegoUIKitPrebuilt.OneONoneCall
-
-    },
-
-    turnOnCameraWhenJoining: true,
-
-    turnOnMicrophoneWhenJoining: true,
-
-    showScreenSharingButton: false,
-
-    showTextChat: false,
-
-    showUserList: false,
-
-    showLeavingView: false,
-
-    maxUsers: 2,
-
-    onJoinRoom() {
-
-        callStatus.textContent = "Connected 💜";
-
-        console.log("Joined Video Call");
-
-    },
-
-    onLeaveRoom() {
-
-        finishCall();
-
-    }
+    }).catch(() => {});
 
 });
-
-// ======================================================
-// Update Firebase
-// ======================================================
-
-await updateDoc(
-
-    doc(db, "calls", callId),
-
-    {
-
-        status: "connected",
-
-        connectedAt: serverTimestamp()
-
-    }
-
-);
-
-// ======================================================
-// Ready
-// ======================================================
-
-console.log("✅ Vivy Video Call Ready");

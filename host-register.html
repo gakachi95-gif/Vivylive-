@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Become a Host | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.auth-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: calc(28px + var(--safe-top)) 20px calc(40px + var(--safe-bottom));
+    position: relative;
+    z-index: 1;
+}
+
+.auth-brand {
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+.auth-brand .heart { font-size: 2.4rem; }
+
+.auth-brand h1 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-top: 6px;
+}
+
+.auth-brand p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.agency-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.agency-banner.show { display: flex; }
+
+.agency-banner .icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(74,222,128,0.35), rgba(74,222,128,0.15));
+}
+
+.agency-banner .icon-circle svg { width: 20px; height: 20px; stroke: #4ADE80; }
+
+.agency-banner .lbl { font-size: 0.72rem; color: var(--text-dim); }
+.agency-banner .name { font-size: 0.92rem; font-weight: 700; }
+
+.notice-card {
+    display: none;
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+}
+
+.notice-card.show { display: block; }
+
+.code-entry-row { display: flex; gap: 10px; padding: 14px; }
+.code-entry-row.hide { display: none; }
+.code-entry-row .field-input { flex: 1; text-transform: uppercase; letter-spacing: 1px; }
+
+.error-text {
+    display: none;
+    color: var(--danger);
+    font-size: 0.76rem;
+    padding: 0 14px 14px;
+}
+
+.error-text.show { display: block; }
+
+#hostForm { display: none; flex-direction: column; gap: 14px; margin-top: 16px; }
+#hostForm.show { display: flex; }
+
+.form-row { display: flex; gap: 10px; }
+.form-row .field-group { flex: 1; }
+
+.locked-field .field-input { opacity: 0.6; cursor: not-allowed; }
+
+.terms-line {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-align: center;
+    padding: 0 6px;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.auth-switch a { color: var(--secondary); font-weight: 600; }
+
+.back-row { margin-bottom: 14px; }
+
+/* ---- Success screen ---- */
+#successScreen {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+}
+
+#successScreen.show { display: block; }
+
+#successScreen .check-circle {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(74,222,128,0.35), rgba(74,222,128,0.15));
+}
+
+#successScreen .check-circle svg { width: 32px; height: 32px; stroke: #4ADE80; }
+
+#successScreen h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; }
+#successScreen p { font-size: 0.84rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 6px; }
+#successScreen .agency-name-line { color: var(--text); font-weight: 700; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<div class="auth-wrap">
+
+    <div class="back-row">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+    </div>
+
+    <!-- Registration form -->
+    <div id="registerScreen">
+
+        <div class="auth-brand">
+            <div class="heart">🎤💜</div>
+            <h1>Become a Vivy Host</h1>
+            <p>Every Host account is created through an Agency Invitation.</p>
+        </div>
+
+        <!-- Detected/verified agency -->
+        <section class="glass-card animate-in agency-banner" id="agencyBanner">
+            <span class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
+            <div>
+                <div class="lbl">You are joining</div>
+                <div class="name" id="agencyNameLabel">—</div>
+            </div>
+        </section>
+
+        <!-- No invitation detected -->
+        <section class="glass-card animate-in notice-card" id="noInviteNotice">
+            This page requires an Agency Invitation.
+        </section>
+
+        <!-- Manual code entry -->
+        <section class="glass-card animate-in" id="manualEntryCard">
+            <div class="code-entry-row" id="codeEntryRow">
+                <input type="text" class="field-input" id="agencyCodeInput" placeholder="Enter Agency Invitation Code" maxlength="20">
+                <button type="button" class="btn btn-primary-solid" id="verifyCodeBtn" style="width:auto;padding:13px 18px;">Verify</button>
+            </div>
+            <div class="error-text" id="codeError">Invalid Agency Invitation Code.</div>
+        </section>
+
+        <!-- Host details form — revealed once the invitation is verified -->
+        <form id="hostForm">
+
+            <div class="field-group locked-field">
+                <label class="field-label">Agency Invitation Code</label>
+                <input type="text" class="field-input" id="lockedAgencyCode" readonly>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Full Name</label>
+                <input type="text" class="field-input" id="fullName" placeholder="Your full name" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Username</label>
+                <input type="text" class="field-input" id="username" placeholder="Choose a username" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Email Address</label>
+                <input type="email" class="field-input" id="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Password</label>
+                <input type="password" class="field-input" id="password" placeholder="Minimum 6 characters" minlength="6" required>
+            </div>
+
+            <div class="form-row">
+                <div class="field-group">
+                    <label class="field-label">Country</label>
+                    <select class="field-input" id="country" required>
+                        <option value="">Select</option>
+                        <option>Nigeria</option>
+                        <option>Ghana</option>
+                        <option>Kenya</option>
+                        <option>South Africa</option>
+                        <option>United States</option>
+                        <option>Canada</option>
+                        <option>United Kingdom</option>
+                        <option>India</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Gender</label>
+                    <select class="field-input" id="gender" required>
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Date of Birth</label>
+                <input type="date" class="field-input" id="dob" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary-solid" id="submitBtn">Submit Host Application</button>
+
+            <p class="terms-line">By continuing you agree to Vivy's Terms &amp; Host Agreement.</p>
+
+        </form>
+
+        <p class="auth-switch">Already have a Host account? <a href="login.html">Login</a></p>
+
+    </div>
+
+    <!-- Success screen -->
+    <section class="glass-card animate-in" id="successScreen">
+        <div class="check-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h2>Your Host application has been submitted successfully.</h2>
+        <p>Agency</p>
+        <p class="agency-name-line" id="successAgencyName">—</p>
+        <p>Your account is awaiting Vivy Admin verification.</p>
+        <p>You will be notified once approved.</p>
+        <button type="button" class="btn btn-primary-solid" id="continueBtn" style="margin-top:18px;">Continue</button>
+    </section>
+
+</div>
+
+<script type="module" src="host-register.js"></script>
+
+</body>
+  </html>

@@ -137,7 +137,7 @@ import { authReady } from "./auth-guard.js";
 import { db } from "./firebase-config.js";
 import {
     doc, getDoc, setDoc, collection, addDoc,
-    query, orderBy, onSnapshot, serverTimestamp, updateDoc
+    query, orderBy, onSnapshot, serverTimestamp, updateDoc, increment
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getUrlParam, goBack, showToast } from "./ui-helpers.js";
 
@@ -166,14 +166,14 @@ async function init() {
     document.getElementById("audioCallShortcut").addEventListener("click", () => {
 
         window.location.href =
-            `call.html?mode=audio&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=audio`;
+            `audio-call.html?hostUid=${hostUid}`;
 
     });
 
     document.getElementById("videoCallShortcut").addEventListener("click", () => {
 
         window.location.href =
-            `call.html?mode=video&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=video`;
+            `video-call.html?hostUid=${hostUid}`;
 
     });
 
@@ -186,6 +186,27 @@ async function init() {
 
     loadHostInfo();
     listenForMessages();
+    markConversationRead();
+
+}
+
+async function markConversationRead() {
+
+    try {
+
+        await setDoc(
+            doc(db, "conversations", chatId),
+            { [`unreadCount.${currentUser.uid}`]: 0 },
+            { merge: true }
+        );
+
+    }
+
+    catch (error) {
+
+        // Conversation doc may not exist yet (no messages sent) — fine.
+
+    }
 
 }
 
@@ -279,7 +300,9 @@ async function sendMessage() {
             {
                 participants: [currentUser.uid, hostUid],
                 lastMessage: text,
-                lastMessageAt: serverTimestamp()
+                lastMessageAt: serverTimestamp(),
+                [`unreadCount.${hostUid}`]: increment(1),
+                [`unreadCount.${currentUser.uid}`]: 0
             },
             { merge: true }
         );

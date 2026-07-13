@@ -279,7 +279,9 @@ async function chargeInterval() {
             // convert to money through the weekly agency payroll.
             updateDoc(doc(db, "hosts", hostUid), {
                 diamonds: increment(DIAMONDS_PER_INTERVAL),
-                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL)
+                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL),
+                todayEarnings: increment(DIAMONDS_PER_INTERVAL),
+                totalDiamondsEarned: increment(DIAMONDS_PER_INTERVAL)
             }),
 
             updateDoc(doc(db, "calls", callId), {

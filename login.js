@@ -3,7 +3,7 @@
 // Handles Login Page Only
 // ======================================================
 
-import { loginUser } from "./auth-service.js";
+import { loginUser, getHostProfile } from "./auth-service.js";
 
 const form = document.getElementById("loginForm");
 
@@ -24,7 +24,23 @@ if (form) {
 
         try {
 
-            await loginUser(email, password);
+            const user = await loginUser(email, password);
+
+            // Every Host belongs to an Agency and lives in the "hosts"
+            // collection. If this uid has a Host document, route them
+            // there — Hosts are never sent to the User Dashboard.
+            const host = await getHostProfile(user.uid);
+
+            if (host) {
+
+                window.location.href =
+                    host.status === "approved"
+                        ? "host-dashboard.html"
+                        : "host-pending.html";
+
+                return;
+
+            }
 
             window.location.href =
                 "user-dashboard.html";

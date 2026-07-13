@@ -18,9 +18,9 @@
 
         <header class="auth-header">
 
-            <h1>Continue to Vivy 💜</h1>
+            <h1 id="authHeading">Continue to Vivy 💜</h1>
 
-            <p>
+            <p id="authSubheading">
                 Choose how you would like to continue.
             </p>
 
@@ -38,7 +38,7 @@
                 <span>OR</span>
             </div>
 
-            <a href="onboarding.html" class="btn btn-outline">
+            <a href="onboarding.html" class="btn btn-outline" id="createAccountBtn">
                 Create Account
             </a>
 
@@ -62,18 +62,56 @@
 
 import { auth } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getHostProfile } from "./auth-service.js";
 
-onAuthStateChanged(auth, (user) => {
+const params = new URLSearchParams(window.location.search);
+const isHostFlow = params.get("role") === "host";
 
-    if (user) {
+if (isHostFlow) {
 
-        window.location.href = "user-dashboard.html";
+    document.getElementById("authHeading").textContent = "Become a Vivy 💜 Host";
+    document.getElementById("authSubheading").textContent =
+        "Log in to your Host account, or register with your Agency Invitation.";
+
+    const createAccountBtn = document.getElementById("createAccountBtn");
+    createAccountBtn.textContent = "Register as Host";
+    createAccountBtn.href = "host-register.html";
+
+}
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+
+        return;
 
     }
+
+    if (isHostFlow) {
+
+        // Signed in already — if they have a Host account, route them
+        // straight to the right place. If not, let them stay here and
+        // register (a signed-in User isn't automatically a Host).
+        const host = await getHostProfile(user.uid);
+
+        if (host) {
+
+            window.location.href =
+                host.status === "approved"
+                    ? "host-dashboard.html"
+                    : "host-pending.html";
+
+        }
+
+        return;
+
+    }
+
+    window.location.href = "user-dashboard.html";
 
 });
 
 </script>
 
 </body>
-</html>
+    </html>

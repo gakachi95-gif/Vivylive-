@@ -1,7 +1,23 @@
 // ======================================================
 // Vivy 💜 Audio Call
 // audio-call.js
-// Part 2 - Firebase, Call Initialization & UI
+//
+// Economy rules (do not change):
+//   • 100 coins deducted from the caller every 30s of an
+//     active (connected) call.
+//   • Every 100 coins spent credits the host 50 Diamonds
+//     (never raw coins — hosts are paid out via payroll).
+//   • Billing starts only once the call is connected and
+//     stops immediately when the call ends.
+//   • If the caller's balance can't cover the next 30s
+//     interval, billing pauses and a low-balance popup
+//     offers Recharge or End Call — never a silent alert.
+//
+// ZEGOCLOUD: this file simulates the connect handshake with
+// a timeout so the whole call/billing/logging flow works
+// today. Swap `startConnecting()`'s timeout for a real
+// "both peers joined" callback later, and call `endCall()`
+// from ZEGOCLOUD's onLeaveRoom — nothing else here changes.
 // ======================================================
 
 import { authReady } from "./auth-guard.js";
@@ -11,10 +27,22 @@ import { db } from "./firebase-config.js";
 import {
     doc,
     getDoc,
+    updateDoc,
+    increment,
     addDoc,
     collection,
+    onSnapshot,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+// ======================================================
+// Config
+// ======================================================
+
+const COINS_PER_INTERVAL = 100;
+const DIAMONDS_PER_INTERVAL = 50; // 100 coins spent = 50 diamonds earned
+const INTERVAL_MS = 30000;
+const CONNECT_DELAY_MS = 3000;
 
 // ======================================================
 // Elements
@@ -25,7 +53,7 @@ const hostName = document.getElementById("hostName");
 const hostCountry = document.getElementById("hostCountry");
 const hostFlag = document.getElementById("hostFlag");
 
-const coinBalance = document.getElementById("coinBalance");
+const coinBalanceEl = document.getElementById("coinBalance");
 const callStatus = document.getElementById("callStatus");
 const callTimer = document.getElementById("callTimer");
 
@@ -37,21 +65,37 @@ const muteBtn = document.getElementById("muteBtn");
 const speakerBtn = document.getElementById("speakerBtn");
 const messageBtn = document.getElementById("messageBtn");
 
+const lowBalanceModal = document.getElementById("lowBalanceModal");
+const lowBalanceRechargeBtn = document.getElementById("lowBalanceRechargeBtn");
+const lowBalanceEndBtn = document.getElementById("lowBalanceEndBtn");
+
 // ======================================================
-// Variables
+// State
 // ======================================================
 
 let currentUser = null;
 let profile = null;
+
+let hostUid = null;
 let host = null;
 
 let seconds = 0;
 let timer = null;
+let billingTimer = null;
 
 let callId = null;
+let callActive = false;
+let callEnded = false;
+
+let currentCoins = 0;
+let coinsSpentThisCall = 0;
+let diamondsEarnedThisCall = 0;
 
 let muted = false;
 let speaker = true;
+
+let wakeLock = null;
+let balanceUnsubscribe = null;
 
 // ======================================================
 // Init
@@ -59,36 +103,47 @@ let speaker = true;
 
 init();
 
-async function init(){
+async function init() {
 
     currentUser = await authReady;
 
-    if(!currentUser) return;
-
-    profile = await getCurrentProfile(currentUser.uid);
-
-    coinBalance.textContent =
-        Number(profile.coins || 0).toLocaleString();
-
-    const params = new URLSearchParams(location.search);
-
-    const hostUid = params.get("hostUid");
-
-    if(!hostUid){
-
-        alert("No host selected.");
-
-        location.href="user-dashboard.html";
+    if (!currentUser) {
 
         return;
 
     }
 
-    await loadHost(hostUid);
+    profile = await getCurrentProfile(currentUser.uid);
+
+    currentCoins = Number(profile?.coins || 0);
+    coinBalanceEl.textContent = currentCoins.toLocaleString();
+
+    const params = new URLSearchParams(location.search);
+
+    hostUid = params.get("hostUid");
+
+    if (!hostUid) {
+
+        alert("No host selected.");
+        location.href = "user-dashboard.html";
+        return;
+
+    }
+
+    bindEvents();
+
+    const loaded = await loadHost();
+
+    if (!loaded) {
+
+        return;
+
+    }
 
     await createCall();
 
-    bindEvents();
+    keepScreenAwake();
+    watchBalance();
 
     startConnecting();
 
@@ -98,37 +153,31 @@ async function init(){
 // Load Host
 // ======================================================
 
-async function loadHost(hostUid){
+async function loadHost() {
 
-    const snap = await getDoc(doc(db,"hosts",hostUid));
+    const snap = await getDoc(doc(db, "hosts", hostUid));
 
-    if(!snap.exists()){
+    if (!snap.exists()) {
 
         alert("Host not found.");
-
-        location.href="user-dashboard.html";
-
-        return;
+        location.href = "user-dashboard.html";
+        return false;
 
     }
 
     host = snap.data();
 
-    hostPhoto.src =
-        host.profilePhoto || "assets/default-avatar.png";
+    hostPhoto.src = host.profilePhoto || "assets/default-avatar.png";
+    hostName.textContent = host.username || "Host";
+    hostCountry.textContent = host.country || "Unknown";
 
-    hostName.textContent =
-        host.username || "Host";
+    if (host.countryCode) {
 
-    hostCountry.textContent =
-        host.country || "Unknown";
-
-    if(host.countryCode){
-
-        hostFlag.src =
-        `https://flagcdn.com/24x18/${host.countryCode.toLowerCase()}.png`;
+        hostFlag.src = `https://flagcdn.com/24x18/${host.countryCode.toLowerCase()}.png`;
 
     }
+
+    return true;
 
 }
 
@@ -136,23 +185,22 @@ async function loadHost(hostUid){
 // Create Call Record
 // ======================================================
 
-async function createCall(){
+async function createCall() {
 
-    const ref = await addDoc(collection(db,"calls"),{
+    const ref = await addDoc(collection(db, "calls"), {
 
-        callerUid:currentUser.uid,
+        callerUid: currentUser.uid,
+        hostUid: hostUid,
 
-        hostUid:host.hostUid,
+        callType: "audio",
+        status: "connecting",
 
-        type:"audio",
+        startTime: serverTimestamp(),
+        duration: 0,
 
-        status:"connecting",
-
-        startedAt:serverTimestamp(),
-
-        coinsSpent:0,
-
-        hostEarned:0
+        coinsSpent: 0,
+        hostEarnings: 0,
+        diamondsEarned: 0
 
     });
 
@@ -161,20 +209,46 @@ async function createCall(){
 }
 
 // ======================================================
-// Connecting Animation
+// Connecting → Live Call
 // ======================================================
 
-function startConnecting(){
+function startConnecting() {
 
-    callStatus.textContent="Connecting...";
+    callStatus.textContent = "Connecting...";
 
-    setTimeout(()=>{
+    setTimeout(beginLiveCall, CONNECT_DELAY_MS);
 
-        callStatus.textContent="Connected";
+}
 
-        startTimer();
+async function beginLiveCall() {
 
-    },3000);
+    if (callEnded) {
+
+        return;
+
+    }
+
+    callActive = true;
+
+    callStatus.textContent = "Connected 💜";
+
+    try {
+
+        await updateDoc(doc(db, "calls", callId), {
+            status: "connected",
+            connectedAt: serverTimestamp()
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to mark call connected:", error);
+
+    }
+
+    startTimer();
+    startBilling();
 
 }
 
@@ -182,23 +256,145 @@ function startConnecting(){
 // Timer
 // ======================================================
 
-function startTimer(){
+function startTimer() {
 
-    timer=setInterval(()=>{
+    timer = setInterval(() => {
 
         seconds++;
 
-        const m=Math.floor(seconds/60)
-            .toString()
-            .padStart(2,"0");
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const s = (seconds % 60).toString().padStart(2, "0");
 
-        const s=(seconds%60)
-            .toString()
-            .padStart(2,"0");
+        callTimer.textContent = `${m}:${s}`;
 
-        callTimer.textContent=`${m}:${s}`;
+    }, 1000);
 
-    },1000);
+}
+
+// ======================================================
+// Billing — every 30 seconds of active call time
+// ======================================================
+
+function startBilling() {
+
+    billingTimer = setInterval(() => {
+
+        if (!callActive) {
+
+            return;
+
+        }
+
+        if (currentCoins < COINS_PER_INTERVAL) {
+
+            showLowBalanceModal();
+            return;
+
+        }
+
+        chargeInterval();
+
+    }, INTERVAL_MS);
+
+}
+
+async function chargeInterval() {
+
+    coinsSpentThisCall += COINS_PER_INTERVAL;
+    diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
+
+    try {
+
+        await Promise.all([
+
+            updateDoc(doc(db, "accounts", currentUser.uid), {
+                coins: increment(-COINS_PER_INTERVAL)
+            }),
+
+            // Hosts are paid in Diamonds, never raw coins — Diamonds
+            // convert to money through the weekly agency payroll.
+            updateDoc(doc(db, "hosts", hostUid), {
+                diamonds: increment(DIAMONDS_PER_INTERVAL),
+                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL)
+            }),
+
+            updateDoc(doc(db, "calls", callId), {
+                coinsSpent: increment(COINS_PER_INTERVAL),
+                hostEarnings: increment(COINS_PER_INTERVAL),
+                diamondsEarned: increment(DIAMONDS_PER_INTERVAL),
+                lastBilling: serverTimestamp()
+            })
+
+        ]);
+
+    }
+
+    catch (error) {
+
+        console.error("Billing failed:", error);
+
+    }
+
+}
+
+// ======================================================
+// Watch Live Coin Balance
+// ======================================================
+
+function watchBalance() {
+
+    balanceUnsubscribe = onSnapshot(
+        doc(db, "accounts", currentUser.uid),
+        (snap) => {
+
+            if (!snap.exists()) {
+
+                return;
+
+            }
+
+            currentCoins = Number(snap.data().coins || 0);
+            coinBalanceEl.textContent = currentCoins.toLocaleString();
+
+            if (callActive && !callEnded && currentCoins < COINS_PER_INTERVAL) {
+
+                showLowBalanceModal();
+
+            }
+
+        }
+    );
+
+}
+
+// ======================================================
+// Low Balance Modal
+// ======================================================
+
+function showLowBalanceModal() {
+
+    if (lowBalanceModal.classList.contains("show")) {
+
+        return;
+
+    }
+
+    // Pause billing while the person decides — never charge a partial
+    // interval they can't afford.
+    if (billingTimer) {
+
+        clearInterval(billingTimer);
+        billingTimer = null;
+
+    }
+
+    lowBalanceModal.classList.add("show");
+
+}
+
+function hideLowBalanceModal() {
+
+    lowBalanceModal.classList.remove("show");
 
 }
 
@@ -206,329 +402,122 @@ function startTimer(){
 // Events
 // ======================================================
 
-function bindEvents(){
+function bindEvents() {
 
-    backBtn.onclick=endCall;
+    backBtn.addEventListener("click", () => endCall("manual"));
+    endCallBtn.addEventListener("click", () => endCall("manual"));
 
-    endCallBtn.onclick=endCall;
+    muteBtn.addEventListener("click", toggleMute);
+    speakerBtn.addEventListener("click", toggleSpeaker);
 
-    muteBtn.onclick=toggleMute;
+    giftBtn.addEventListener("click", () => {
 
-    speakerBtn.onclick=toggleSpeaker;
+        // Gifts are a separate economy from call earnings (they convert
+        // to Diamonds directly) — placeholder hook for that future page.
+        showToast("Gifts are coming soon 🎁");
 
-    giftBtn.onclick=()=>{
+    });
 
-        location.href=
-        `gift.html?hostUid=${host.hostUid}`;
+    messageBtn.addEventListener("click", () => {
 
-    };
+        if (!hostUid) return;
 
-    messageBtn.onclick=()=>{
+        location.href = `chat.html?hostUid=${hostUid}`;
 
-        location.href=
-        `chat.html?hostUid=${host.hostUid}`;
+    });
 
-    };
+    lowBalanceRechargeBtn.addEventListener("click", () => {
 
-}
+        hideLowBalanceModal();
+        endCall("low_balance");
 
-// ======================================================
-// Controls
-// ======================================================
+    });
 
-function toggleMute(){
+    lowBalanceEndBtn.addEventListener("click", () => {
 
-    muted=!muted;
-
-    muteBtn.style.opacity=
-        muted?.5:1;
-
-}
-
-function toggleSpeaker(){
-
-    speaker=!speaker;
-
-    speakerBtn.style.opacity=
-        speaker?1:.5;
-
-}
-
-// ======================================================
-// Vivy 💜 Audio Call
-// Part 3 - Live Call Engine
-// ======================================================
-
-import {
-    doc,
-    updateDoc,
-    increment,
-    onSnapshot,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-
-let billingTimer = null;
-let callStarted = false;
-
-// ===========================================
-// Start Live Call
-// ===========================================
-
-function beginLiveCall() {
-
-    if (callStarted) return;
-
-    callStarted = true;
-
-    callStatus.textContent = "Connected 💜";
-
-    startBilling();
-
-    watchBalance();
-
-}
-
-// ===========================================
-// Billing Every 30 Seconds
-// ===========================================
-
-function startBilling() {
-
-    billingTimer = setInterval(async () => {
-
-        try {
-
-            const userRef = doc(db, "accounts", currentUser.uid);
-
-            const hostRef = doc(db, "hosts", host.hostUid);
-
-            const callRef = doc(db, "calls", callId);
-
-            await updateDoc(userRef, {
-                coins: increment(-100),
-                coinsSpent: increment(100)
-            });
-
-            await updateDoc(hostRef, {
-                coins: increment(100),
-                totalEarned: increment(100)
-            });
-
-            await updateDoc(callRef, {
-                coinsSpent: increment(100),
-                hostEarned: increment(100),
-                lastBilling: serverTimestamp()
-            });
-
-        } catch (e) {
-
-            console.error(e);
-
-        }
-
-    }, 30000);
-
-}
-
-// ===========================================
-// Watch Coin Balance
-// ===========================================
-
-function watchBalance() {
-
-    onSnapshot(doc(db, "accounts", currentUser.uid), (snap) => {
-
-        if (!snap.exists()) return;
-
-        const data = snap.data();
-
-        coinBalance.textContent =
-            Number(data.coins || 0).toLocaleString();
-
-        if ((data.coins || 0) <= 0) {
-
-            alert("Not enough coins.");
-
-            endCall();
-
-        }
+        hideLowBalanceModal();
+        endCall("manual");
 
     });
 
 }
 
-// ===========================================
+function toggleMute() {
+
+    muted = !muted;
+
+    muteBtn.style.opacity = muted ? .5 : 1;
+    muteBtn.textContent = muted ? "🔇" : "🎤";
+
+    // ZEGOCLOUD: zg.muteMicrophone(muted);
+
+}
+
+function toggleSpeaker() {
+
+    speaker = !speaker;
+
+    speakerBtn.style.opacity = speaker ? 1 : .5;
+    speakerBtn.textContent = speaker ? "🔊" : "🔈";
+
+    // ZEGOCLOUD: zg.enableSpeaker(speaker);
+
+}
+
+// ======================================================
 // End Call
-// ===========================================
+// ======================================================
 
-async function endCall() {
+async function endCall(reason) {
 
-    clearInterval(timer);
+    if (callEnded) {
 
-    clearInterval(billingTimer);
+        return;
+
+    }
+
+    callEnded = true;
+    callActive = false;
+
+    if (timer) clearInterval(timer);
+    if (billingTimer) clearInterval(billingTimer);
+    if (balanceUnsubscribe) balanceUnsubscribe();
+
+    if (wakeLock) {
+
+        try { await wakeLock.release(); } catch (e) {}
+
+    }
 
     try {
 
         await updateDoc(doc(db, "calls", callId), {
 
             status: "ended",
-
-            endedAt: serverTimestamp(),
-
-            duration: seconds
+            endReason: reason,
+            endTime: serverTimestamp(),
+            duration: seconds,
+            coinsSpent: coinsSpentThisCall,
+            hostEarnings: coinsSpentThisCall,
+            diamondsEarned: diamondsEarnedThisCall
 
         });
 
-    } catch (e) {}
+    }
 
-    location.href = "user-dashboard.html";
+    catch (error) {
 
-}
-
-// ===========================================
-// Connect After Animation
-// ===========================================
-
-setTimeout(() => {
-
-    beginLiveCall();
-
-}, 3000);
-// ======================================================
-// Vivy 💜 Audio Call
-// Part 4 - Gifts, Mute, Speaker, Chat & Call Summary
-// ======================================================
-
-// ----------------------------
-// Gift Button
-// ----------------------------
-giftBtn.addEventListener("click", () => {
-
-    if (!host) return;
-
-    location.href = `gift.html?hostUid=${host.hostUid}`;
-
-});
-
-// ----------------------------
-// Message Button
-// ----------------------------
-messageBtn.addEventListener("click", () => {
-
-    if (!host) return;
-
-    location.href = `messages.html?hostUid=${host.hostUid}`;
-
-});
-
-// ----------------------------
-// Toggle Mute
-// ----------------------------
-muteBtn.addEventListener("click", () => {
-
-    muted = !muted;
-
-    muteBtn.classList.toggle("active", muted);
-
-    muteBtn.innerHTML = muted ? "🔇" : "🎤";
-
-    // TODO:
-    // Replace with ZEGOCLOUD muteMicrophone()
-    console.log("Microphone:", muted ? "Muted" : "Unmuted");
-
-});
-
-// ----------------------------
-// Toggle Speaker
-// ----------------------------
-speakerBtn.addEventListener("click", () => {
-
-    speaker = !speaker;
-
-    speakerBtn.classList.toggle("active", speaker);
-
-    speakerBtn.innerHTML = speaker ? "🔊" : "🔈";
-
-    // TODO:
-    // Replace with ZEGOCLOUD enableSpeaker()
-    console.log("Speaker:", speaker ? "On" : "Off");
-
-});
-
-// ----------------------------
-// Call Summary
-// ----------------------------
-async function saveCallSummary() {
-
-    try {
-
-        await updateDoc(
-            doc(db, "calls", callId),
-            {
-
-                duration: seconds,
-
-                endedAt: serverTimestamp(),
-
-                coinsSpent: Math.floor(seconds / 30) * 100,
-
-                hostEarned: Math.floor(seconds / 30) * 100,
-
-                status: "completed"
-
-            }
-        );
-
-    } catch (error) {
-
-        console.error(error);
+        console.error("Failed to save call record:", error);
 
     }
 
-}
-
-// ----------------------------
-// Override End Call
-// ----------------------------
-async function finishCall() {
-
-    clearInterval(timer);
-
-    clearInterval(billingTimer);
-
-    await saveCallSummary();
-
-    location.href = "call-summary.html?callId=" + callId;
+    location.href = reason === "low_balance" ? "recharge.html" : "user-dashboard.html";
 
 }
 
-// Replace old event
-endCallBtn.onclick = finishCall;
-
-// Back button
-backBtn.onclick = finishCall;
-
-// ----------------------------
-// Auto End if Host Disconnects
-// ----------------------------
-onSnapshot(doc(db, "calls", callId), (snap) => {
-
-    if (!snap.exists()) return;
-
-    const call = snap.data();
-
-    if (call.status === "ended") {
-
-        finishCall();
-
-    }
-
-});
-
-// ----------------------------
-// Keep Screen Awake (Supported Browsers)
-// ----------------------------
-let wakeLock = null;
+// ======================================================
+// Keep Screen Awake
+// ======================================================
 
 async function keepScreenAwake() {
 
@@ -540,148 +529,69 @@ async function keepScreenAwake() {
 
         }
 
-    } catch (e) {
+    }
 
-        console.log(e);
+    catch (error) {
+
+        console.log(error);
 
     }
 
 }
 
-keepScreenAwake();// ======================================================
-// Vivy 💜 Audio Call
-// Part 5 - ZEGOCLOUD Call Engine
-// Replace YOUR_APP_ID and YOUR_SERVER_SECRET
+// ======================================================
+// Mini Toast
 // ======================================================
 
-import {
-    ZegoUIKitPrebuilt
-} from "https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.esm.js";
+let toastTimer = null;
 
-// ======================================================
-// ZEGO Config
-// ======================================================
+function showToast(message) {
 
-const APP_ID = YOUR_APP_ID;
+    let toastEl = document.querySelector(".mini-toast");
 
-const SERVER_SECRET = "YOUR_SERVER_SECRET";
+    if (!toastEl) {
 
-const ROOM_ID = callId;
-
-const USER_ID = currentUser.uid;
-
-const USER_NAME = profile.username || "Vivy User";
-
-// ======================================================
-// Generate Token
-// ======================================================
-
-const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-
-    APP_ID,
-
-    SERVER_SECRET,
-
-    ROOM_ID,
-
-    USER_ID,
-
-    USER_NAME
-
-);
-
-// ======================================================
-// Join Audio Room
-// ======================================================
-
-const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-zp.joinRoom({
-
-    container: document.body,
-
-    scenario: {
-
-        mode: ZegoUIKitPrebuilt.OneONoneCall
-
-    },
-
-    turnOnMicrophoneWhenJoining: true,
-
-    turnOnCameraWhenJoining: false,
-
-    showMyCameraToggleButton: false,
-
-    showScreenSharingButton: false,
-
-    showTextChat: false,
-
-    showUserList: false,
-
-    showLeavingView: false,
-
-    maxUsers: 2,
-
-    onJoinRoom: () => {
-
-        console.log("Joined Audio Room");
-
-    },
-
-    onLeaveRoom: async () => {
-
-        await finishCall();
+        toastEl = document.createElement("div");
+        toastEl.className = "mini-toast";
+        document.body.appendChild(toastEl);
 
     }
 
-});
+    toastEl.textContent = message;
+
+    void toastEl.offsetWidth;
+
+    toastEl.classList.add("show");
+
+    if (toastTimer) clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+
+}
 
 // ======================================================
-// Update Call Status
+// If the caller closes/reloads mid-call, best-effort mark
+// the call ended so it doesn't sit "connected" forever.
 // ======================================================
 
-await updateDoc(
+window.addEventListener("beforeunload", () => {
 
-    doc(db, "calls", callId),
+    if (callEnded || !callId) {
 
-    {
-
-        status: "connected",
-
-        connectedAt: serverTimestamp()
+        return;
 
     }
 
-);
+    updateDoc(doc(db, "calls", callId), {
 
-// ======================================================
-// Before User Closes App
-// ======================================================
+        status: "ended",
+        endReason: "closed",
+        endTime: serverTimestamp(),
+        duration: seconds,
+        coinsSpent: coinsSpentThisCall,
+        hostEarnings: coinsSpentThisCall,
+        diamondsEarned: diamondsEarnedThisCall
 
-window.addEventListener("beforeunload", async () => {
-
-    try {
-
-        await updateDoc(
-
-            doc(db, "calls", callId),
-
-            {
-
-                status: "ended",
-
-                endedAt: serverTimestamp()
-
-            }
-
-        );
-
-    } catch (e) {}
+    }).catch(() => {});
 
 });
-
-// ======================================================
-// Call Finished
-// ======================================================
-
-console.log("✅ Vivy Audio Call Ready");

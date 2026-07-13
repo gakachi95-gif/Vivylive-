@@ -1,7 +1,7 @@
 // ======================================================
 // Vivy 💜 Random Match
-// Finds an online host and redirects into call.html with
-// hostUid / callerUid / callType — ready for future
+// Finds an online host and redirects into audio-call.html
+// or video-call.html with hostUid — ready for future
 // ZEGOCLOUD signaling to slot in behind this same flow.
 // ======================================================
 
@@ -21,9 +21,10 @@ import {
 
 import { getUrlParam, goBack } from "./ui-helpers.js";
 
-const MIN_COINS_TO_MATCH = 100;
-
+// Audio costs 100 coins / 30s, video costs 150 coins / 30s — require at
+// least one interval's worth of coins before searching for either.
 const callType = getUrlParam("mode") === "audio" ? "audio" : "video";
+const MIN_COINS_TO_MATCH = callType === "audio" ? 100 : 150;
 
 const panels = {
     searching: document.getElementById("panelSearching"),
@@ -55,6 +56,9 @@ document.getElementById("rechargeMatchBtn")
 
 document.getElementById("searchingModeLabel").textContent =
     `Finding you a ${callType} match…`;
+
+document.getElementById("noCoinsSub").textContent =
+    `You need at least ${MIN_COINS_TO_MATCH} coins to start a ${callType} call`;
 
 init();
 
@@ -171,14 +175,9 @@ function revealMatch(host) {
 
     matchTimeoutId = setTimeout(() => {
 
-        const params = new URLSearchParams({
-            mode: callType,
-            hostUid: host.id,
-            callerUid: currentUser.uid,
-            callType
-        });
+        const destination = callType === "audio" ? "audio-call.html" : "video-call.html";
 
-        window.location.href = `call.html?${params.toString()}`;
+        window.location.href = `${destination}?hostUid=${host.id}`;
 
     }, 1100);
 

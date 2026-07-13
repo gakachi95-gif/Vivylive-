@@ -10,17 +10,19 @@
 <link rel="stylesheet" href="app-shared.css">
 <style>
 .wallet-hero {
-    padding: 22px 18px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    padding: 20px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
 }
 
-.wallet-hero .lbl { font-size: 0.76rem; color: var(--text-dim); }
+.wallet-hero-stat { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.wallet-hero-stat + .wallet-hero-stat { border-left: 1px solid var(--glass-border); }
 
-.wallet-hero .amt {
-    font-size: 2.1rem;
+.wallet-hero-stat .lbl { font-size: 0.72rem; color: var(--text-dim); }
+
+.wallet-hero-stat .amt {
+    font-size: 1.5rem;
     font-weight: 800;
     background: linear-gradient(135deg, #fff, var(--secondary));
     -webkit-background-clip: text;
@@ -28,99 +30,77 @@
     color: transparent;
 }
 
-.wallet-hero .coins-amt {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--gold);
-    margin-top: 6px;
-}
-
-.wallet-hero .diamonds-amt {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #7DD3FC;
-    margin-top: 2px;
+.wallet-hero-stat.diamond .amt {
+    background: linear-gradient(135deg, #fff, #38BDF8);
+    -webkit-background-clip: text;
+    background-clip: text;
 }
 
 .wallet-actions-row { display: flex; gap: 10px; padding: 0 4px; }
 
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px 4px;
+}
+
+.section-header .title { font-weight: 700; font-size: 0.86rem; }
+.section-header .see-all { font-size: 0.72rem; color: var(--secondary); cursor: pointer; background: none; border: none; }
+
 .tx-icon.in { background: linear-gradient(135deg, rgba(74,222,128,0.35), rgba(74,222,128,0.15)); }
 .tx-icon.out { background: linear-gradient(135deg, rgba(251,113,133,0.35), rgba(251,113,133,0.15)); }
+.tx-icon.bonus { background: linear-gradient(135deg, rgba(251,191,36,0.35), rgba(251,191,36,0.15)); }
 
 .tx-amount { font-weight: 700; font-size: 0.86rem; }
 .tx-amount.positive { color: var(--online); }
 .tx-amount.negative { color: var(--danger); }
 
-/* Host economy card */
-.stat-grid {
+/* ---- Host payroll section (only shown for host accounts) ---- */
+#hostPayrollSection { display: none; }
+#hostPayrollSection.show { display: block; }
+
+.payroll-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    padding: 4px;
-}
-
-.stat-box {
     padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
-.stat-box .stat-lbl { font-size: 0.68rem; color: var(--text-dim); }
-.stat-box .stat-val { font-size: 1.05rem; font-weight: 700; }
-.stat-box .stat-sub { font-size: 0.66rem; color: var(--text-faint); }
+.payroll-stat {
+    padding: 12px;
+    text-align: center;
+}
+
+.payroll-stat .num { font-size: 1rem; font-weight: 700; }
+.payroll-stat .lbl { font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; }
+
+.progress-block { padding: 4px 14px 16px; }
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
 
 .progress-track {
-    width: 100%;
-    height: 9px;
+    height: 8px;
     border-radius: 999px;
     background: rgba(255,255,255,0.08);
     overflow: hidden;
-    margin-top: 8px;
 }
 
 .progress-fill {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, var(--primary), var(--secondary));
-    transition: width 0.4s ease;
     width: 0%;
+    transition: width 0.4s ease;
 }
 
-.progress-caption {
-    font-size: 0.68rem;
-    color: var(--text-faint);
-    margin-top: 6px;
-}
-
-.tab-row {
-    display: flex;
-    gap: 6px;
-    padding: 4px 4px 0;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 10px 8px;
-    text-align: center;
-    font-size: 0.74rem;
-    font-weight: 600;
-    color: var(--text-faint);
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-
-.tab-btn.active {
-    color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    border-color: transparent;
-}
-
-.host-only { display: none; }
-.host-only.show { display: block; }
+.progress-note { font-size: 0.68rem; color: var(--text-faint); margin-top: 8px; text-align: center; }
 </style>
 </head>
 <body>
@@ -139,64 +119,83 @@
     </header>
 
     <section class="glass-card animate-in wallet-hero" style="margin:16px 16px 0">
-        <span class="lbl">Coin Balance</span>
-        <span class="amt"><span id="coinBalanceAmt" class="skeleton">0</span></span>
-        <span class="coins-amt" id="bonusCoinsLine" style="display:none">🎁 <span id="bonusCoinsAmt">0</span> lifetime bonus coins</span>
-        <span class="diamonds-amt host-only" id="diamondBalanceLine">💎 <span id="diamondBalanceAmt" class="skeleton">0</span> diamonds</span>
+        <div class="wallet-hero-stat">
+            <span class="lbl">Coin Balance</span>
+            <span class="amt">💜 <span id="coinBalanceAmt" class="skeleton">0</span></span>
+        </div>
+        <div class="wallet-hero-stat diamond">
+            <span class="lbl">Diamond Balance</span>
+            <span class="amt">💎 <span id="diamondBalanceAmt" class="skeleton">0</span></span>
+        </div>
     </section>
 
     <div class="page-content">
 
         <div class="wallet-actions-row">
-            <button type="button" class="btn btn-primary-solid" id="rechargeBtn">Recharge</button>
-            <button type="button" class="btn btn-primary-outline" id="historyBtn">View History</button>
+            <button type="button" class="btn btn-primary-solid" id="rechargeBtn">Recharge Coins</button>
         </div>
 
-        <!-- Host payroll / earnings card -->
-        <section class="glass-card animate-in host-only" id="hostEconomyCard" style="animation-delay:0.04s">
-            <div style="padding:14px 14px 0;font-weight:700;font-size:0.86rem">Payroll &amp; Earnings</div>
-            <div class="stat-grid">
-                <div class="glass-card stat-box">
-                    <span class="stat-lbl">Pending Payroll</span>
-                    <span class="stat-val" id="pendingPayrollAmt">$0.00</span>
-                    <span class="stat-sub" id="pendingPayrollSub">Not yet eligible</span>
+        <!-- Host-only payroll section — shown when the account has host earnings -->
+        <section class="glass-card animate-in" id="hostPayrollSection">
+            <div class="section-header">
+                <span class="title">Host Earnings</span>
+            </div>
+
+            <div class="payroll-stats">
+                <div class="payroll-stat">
+                    <div class="num" id="pendingPayrollAmt">$0.00</div>
+                    <div class="lbl">Pending Payroll</div>
                 </div>
-                <div class="glass-card stat-box">
-                    <span class="stat-lbl">Next Payroll Date</span>
-                    <span class="stat-val" id="nextPayrollDate" style="font-size:0.86rem">—</span>
-                    <span class="stat-sub">Generated every Monday</span>
+                <div class="payroll-stat">
+                    <div class="num" id="nextPayrollDate">—</div>
+                    <div class="lbl">Next Payroll Date</div>
                 </div>
-                <div class="glass-card stat-box">
-                    <span class="stat-lbl">Weekly Earnings</span>
-                    <span class="stat-val" id="weeklyDiamondsAmt">0 💎</span>
-                    <span class="stat-sub" id="weeklyUsdEquivalent">≈ $0.00</span>
+                <div class="payroll-stat">
+                    <div class="num" id="weeklyDiamondsAmt">0</div>
+                    <div class="lbl">Weekly Diamonds</div>
                 </div>
-                <div class="glass-card stat-box">
-                    <span class="stat-lbl">Recharge Bonus (lifetime)</span>
-                    <span class="stat-val" id="hostBonusAmt">0</span>
-                    <span class="stat-sub">Bonus coins earned</span>
+                <div class="payroll-stat">
+                    <div class="num" id="weeklyEarningsAmt">$0.00</div>
+                    <div class="lbl">Weekly Earnings</div>
                 </div>
             </div>
-            <div style="padding:4px 14px 14px">
-                <span class="stat-lbl">Progress to minimum withdrawal (50,000 💎)</span>
+
+            <div class="progress-block">
+                <div class="progress-labels">
+                    <span>Progress to withdrawal</span>
+                    <span id="progressPercentLabel">0%</span>
+                </div>
                 <div class="progress-track">
                     <div class="progress-fill" id="withdrawalProgressFill"></div>
                 </div>
-                <div class="progress-caption" id="withdrawalProgressCaption">0 / 50,000 diamonds</div>
+                <div class="progress-note" id="withdrawalProgressNote">0 / 50,000 Diamonds needed to withdraw</div>
             </div>
         </section>
 
-        <section class="glass-card animate-in" style="animation-delay:0.08s">
-            <div class="tab-row">
-                <div class="tab-btn active" data-tab="activity">Activity</div>
-                <div class="tab-btn" data-tab="recharge">Recharges</div>
-                <div class="tab-btn host-only" data-tab="withdrawal" id="withdrawalTabBtn">Withdrawals</div>
-            </div>
-            <div id="transactionsList" style="padding-top:6px">
+        <section class="glass-card animate-in">
+            <div class="section-header"><span class="title">Recent Calls</span></div>
+            <div id="transactionsList">
                 <div class="empty-state">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-                    <p>Loading…</p>
+                    <p>No calls yet</p>
                 </div>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in">
+            <div class="section-header"><span class="title">Recharge History</span></div>
+            <div id="rechargeHistoryList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+                    <p>No recharges yet</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" id="withdrawalHistorySection" style="display:none">
+            <div class="section-header"><span class="title">Withdrawal History</span></div>
+            <div id="withdrawalHistoryList">
+                <div class="empty-state"><p>No withdrawals yet</p></div>
             </div>
         </section>
 

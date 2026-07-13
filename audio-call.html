@@ -400,6 +400,167 @@ box-shadow:0 0 30px rgba(255,77,109,.45);
 
 }
 
+.modal-overlay{
+
+position:fixed;
+inset:0;
+z-index:50;
+
+display:none;
+
+align-items:center;
+justify-content:center;
+
+padding:24px;
+
+background:rgba(10,7,18,.72);
+
+backdrop-filter:blur(6px);
+
+}
+
+.modal-overlay.show{
+
+display:flex;
+
+}
+
+.modal-card{
+
+width:100%;
+max-width:340px;
+
+padding:26px 22px;
+
+border-radius:var(--radius);
+
+background:var(--glass);
+
+border:1px solid var(--glassBorder);
+
+backdrop-filter:blur(24px);
+
+text-align:center;
+
+}
+
+.modal-icon{
+
+width:56px;
+height:56px;
+
+margin:0 auto 14px;
+
+border-radius:50%;
+
+background:linear-gradient(135deg,var(--primary),var(--secondary));
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:26px;
+
+}
+
+.modal-title{
+
+font-size:17px;
+font-weight:700;
+
+margin-bottom:6px;
+
+}
+
+.modal-sub{
+
+font-size:13px;
+
+color:var(--textDim);
+
+margin-bottom:20px;
+
+}
+
+.modal-actions{
+
+display:flex;
+flex-direction:column;
+gap:10px;
+
+}
+
+.modal-btn{
+
+width:100%;
+
+padding:14px;
+
+border:none;
+border-radius:14px;
+
+font-family:Poppins,sans-serif;
+font-weight:600;
+font-size:14px;
+
+cursor:pointer;
+
+}
+
+.modal-btn.primary{
+
+background:linear-gradient(135deg,var(--primary),var(--secondary));
+
+color:#fff;
+
+}
+
+.modal-btn.secondary{
+
+background:var(--glass);
+
+border:1px solid var(--glassBorder);
+
+color:var(--text);
+
+}
+
+.mini-toast{
+
+position:fixed;
+left:50%;
+bottom:calc(150px + var(--safeBottom));
+z-index:60;
+
+transform:translate(-50%,10px);
+
+padding:11px 18px;
+
+border-radius:999px;
+
+background:rgba(20,14,38,.95);
+border:1px solid var(--glassBorder);
+
+font-size:12.5px;
+font-weight:500;
+
+opacity:0;
+pointer-events:none;
+
+transition:transform .25s ease,opacity .25s ease;
+
+max-width:calc(100% - 48px);
+text-align:center;
+
+}
+
+.mini-toast.show{
+
+opacity:1;
+transform:translate(-50%,0);
+
+}
+
 </style>
 
 </head>
@@ -507,6 +668,30 @@ Loading...
 <button id="speakerBtn" class="control">🔊</button>
 
 <button id="messageBtn" class="control">💬</button>
+
+</div>
+
+</div>
+
+<div class="modal-overlay" id="lowBalanceModal">
+
+<div class="modal-card">
+
+<div class="modal-icon">🪙</div>
+
+<div class="modal-title">Low Coin Balance</div>
+
+<div class="modal-sub" id="lowBalanceSub">You're running low on coins. Recharge now to keep the call going.</div>
+
+<div class="modal-actions">
+
+<button type="button" class="modal-btn primary" id="lowBalanceRechargeBtn">Recharge Now</button>
+
+<button type="button" class="modal-btn secondary" id="lowBalanceEndBtn">End Call</button>
+
+</div>
+
+</div>
 
 </div>
 

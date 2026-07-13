@@ -17,25 +17,77 @@
 }
 
 .balance-strip .lbl { font-size: 0.76rem; color: var(--text-dim); }
-.balance-strip .amt { font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, #fff, var(--secondary)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.balance-strip .amt { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
 
-.amount-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
+.package-list { display: flex; flex-direction: column; gap: 10px; }
 
-.amount-option {
-    padding: 18px 12px;
-    text-align: center;
+.coin-package {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
     cursor: pointer;
-    font-size: 1.05rem;
-    font-weight: 700;
     transition: transform 0.14s ease, border-color 0.2s ease;
+    position: relative;
 }
 
-.amount-option:active { transform: scale(0.96); }
-.amount-option.selected { border-color: var(--secondary); background: rgba(168,85,247,0.15); }
+.coin-package:active { transform: scale(0.98); }
+.coin-package.selected { border-color: var(--secondary); background: rgba(168,85,247,0.12); }
+
+.coin-package-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(251,191,36,0.35), rgba(251,191,36,0.15));
+    font-size: 1.2rem;
+}
+
+.coin-package-text { flex: 1; min-width: 0; }
+.coin-package-coins { font-size: 0.92rem; font-weight: 700; }
+.coin-package-bonus { font-size: 0.72rem; color: var(--gold); font-weight: 600; margin-top: 2px; }
+.coin-package-price { font-size: 1rem; font-weight: 800; flex-shrink: 0; }
+
+.badge-best {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    background: var(--gold);
+    color: #1a1035;
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.order-summary {
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.order-summary.show { display: flex; }
+
+.order-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+}
+
+.order-row.total {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--text);
+    padding-top: 8px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.order-row.bonus-row { color: var(--gold); }
 </style>
 </head>
 <body>
@@ -46,73 +98,132 @@
         <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="page-title">Recharge Wallet</h1>
+        <h1 class="page-title">Recharge Coins</h1>
     </header>
 
     <section class="glass-card animate-in balance-strip" style="margin:16px 16px 0">
-        <span class="lbl">Current Wallet Balance</span>
-        <span class="amt">$<span id="walletBalanceAmt" class="skeleton">0.00</span></span>
+        <span class="lbl">Current Coin Balance</span>
+        <span class="amt">💜 <span id="coinBalanceAmt" class="skeleton">0</span></span>
     </section>
 
     <div class="page-content">
 
-        <div class="amount-grid" id="amountGrid"></div>
+        <div class="package-list" id="packageList"></div>
 
-        <button type="button" class="btn btn-primary-solid" id="confirmRechargeBtn" disabled style="opacity:0.5">
-            Select an amount
+        <section class="glass-card animate-in order-summary" id="orderSummary">
+            <div class="order-row">
+                <span>Coins</span>
+                <span id="summaryCoins">0</span>
+            </div>
+            <div class="order-row bonus-row" id="summaryBonusRow" hidden>
+                <span>Bonus Coins</span>
+                <span id="summaryBonus">+0</span>
+            </div>
+            <div class="order-row total">
+                <span>Total Coins</span>
+                <span id="summaryTotal">0</span>
+            </div>
+        </section>
+
+        <button type="button" class="btn btn-primary-solid" id="payBtn" disabled style="opacity:0.5">
+            Select a package
         </button>
 
-        <p style="font-size:0.7rem;color:var(--text-faint);text-align:center;padding:0 8px">
-            Payments are simulated in this build. Real payment processing plugs in here later.
+        <p style="font-size:0.68rem;color:var(--text-faint);text-align:center;padding:0 8px">
+            Secure payment powered by Paystack. Coins are added to your balance immediately after payment is confirmed.
         </p>
 
     </div>
 
 </div>
 
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
 import { db } from "./firebase-config.js";
-import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { showToast, goBack } from "./ui-helpers.js";
+import { doc, updateDoc, increment, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { showToast, goBack, formatNumber } from "./ui-helpers.js";
 
-const AMOUNTS = [5, 10, 25, 50, 100, 250];
+// ======================================================
+// Paystack public key
+// NOTE: this is the PUBLIC key only — safe to expose client-side.
+// The secret key must never appear in frontend code.
+// ======================================================
+const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
+
+// ======================================================
+// Coin economy — DO NOT CHANGE (matches the Vivy economy spec)
+// ======================================================
+const PACKAGES = [
+    { coins: 500,    bonus: 0,    priceUsd: 0.50 },
+    { coins: 1000,   bonus: 0,    priceUsd: 1 },
+    { coins: 5000,   bonus: 0,    priceUsd: 5 },
+    { coins: 10000,  bonus: 0,    priceUsd: 10 },
+    { coins: 20000,  bonus: 1000, priceUsd: 20 },
+    { coins: 50000,  bonus: 3000, priceUsd: 50, best: true },
+    { coins: 100000, bonus: 8000, priceUsd: 100 }
+];
 
 let currentUser = null;
-let selectedAmount = null;
+let selectedPackage = null;
 
 document.getElementById("backBtn").addEventListener("click", () => goBack("wallet.html"));
 
-renderAmounts();
+renderPackages();
 init();
 
-function renderAmounts() {
+function renderPackages() {
 
-    const grid = document.getElementById("amountGrid");
+    const list = document.getElementById("packageList");
 
-    AMOUNTS.forEach((amount) => {
+    PACKAGES.forEach((pkg, index) => {
+
+        const total = pkg.coins + pkg.bonus;
 
         const el = document.createElement("div");
-        el.className = "glass-card amount-option";
-        el.textContent = `$${amount}`;
-        el.addEventListener("click", () => selectAmount(amount, el));
-        grid.appendChild(el);
+        el.className = "glass-card coin-package";
+        el.dataset.index = String(index);
+
+        el.innerHTML = `
+            ${pkg.best ? '<span class="badge-best">Best Value</span>' : ""}
+            <span class="coin-package-icon">💜</span>
+            <div class="coin-package-text">
+                <div class="coin-package-coins">${formatNumber(pkg.coins)} Coins${pkg.bonus ? ` <span style="color:var(--text-faint);font-weight:500">→ ${formatNumber(total)} total</span>` : ""}</div>
+                ${pkg.bonus ? `<div class="coin-package-bonus">+${formatNumber(pkg.bonus)} Bonus Coins</div>` : ""}
+            </div>
+            <div class="coin-package-price">$${pkg.priceUsd.toFixed(2)}</div>
+        `;
+
+        el.addEventListener("click", () => selectPackage(index, el));
+        list.appendChild(el);
 
     });
 
 }
 
-function selectAmount(amount, el) {
+function selectPackage(index, el) {
 
-    document.querySelectorAll(".amount-option").forEach((n) => n.classList.remove("selected"));
+    document.querySelectorAll(".coin-package").forEach((n) => n.classList.remove("selected"));
     el.classList.add("selected");
-    selectedAmount = amount;
 
-    const btn = document.getElementById("confirmRechargeBtn");
-    btn.disabled = false;
-    btn.style.opacity = "1";
-    btn.textContent = `Recharge $${amount}.00`;
+    selectedPackage = PACKAGES[index];
+
+    const total = selectedPackage.coins + selectedPackage.bonus;
+
+    document.getElementById("summaryCoins").textContent = formatNumber(selectedPackage.coins);
+
+    const bonusRow = document.getElementById("summaryBonusRow");
+    bonusRow.hidden = selectedPackage.bonus === 0;
+    document.getElementById("summaryBonus").textContent = `+${formatNumber(selectedPackage.bonus)}`;
+
+    document.getElementById("summaryTotal").textContent = formatNumber(total);
+    document.getElementById("orderSummary").classList.add("show");
+
+    const payBtn = document.getElementById("payBtn");
+    payBtn.disabled = false;
+    payBtn.style.opacity = "1";
+    payBtn.textContent = `Pay $${selectedPackage.priceUsd.toFixed(2)}`;
 
 }
 
@@ -124,56 +235,115 @@ async function init() {
     try {
 
         const profile = await getCurrentProfile(currentUser.uid);
-        const el = document.getElementById("walletBalanceAmt");
-        el.textContent = Number(profile?.walletBalance ?? 0).toFixed(2);
+        const el = document.getElementById("coinBalanceAmt");
+        el.textContent = formatNumber(profile?.coins ?? 0);
         el.classList.remove("skeleton");
 
     }
 
     catch (error) {
 
-        console.error("Failed to load wallet balance:", error);
+        console.error("Failed to load coin balance:", error);
 
     }
 
-    document.getElementById("confirmRechargeBtn").addEventListener("click", handleRecharge);
+    document.getElementById("payBtn").addEventListener("click", startPayment);
 
 }
 
-async function handleRecharge() {
+function startPayment() {
 
-    if (!currentUser || !selectedAmount) return;
+    if (!currentUser || !selectedPackage) return;
 
-    const btn = document.getElementById("confirmRechargeBtn");
-    btn.disabled = true;
-    const originalText = btn.textContent;
-    btn.textContent = "Processing…";
+    const payBtn = document.getElementById("payBtn");
+    payBtn.disabled = true;
+    payBtn.textContent = "Opening Paystack…";
+
+    const handler = PaystackPop.setup({
+
+        key: PAYSTACK_PUBLIC_KEY,
+        email: currentUser.email || `${currentUser.uid}@vivy.app`,
+        amount: Math.round(selectedPackage.priceUsd * 100), // smallest currency unit
+        currency: "USD",
+        ref: `vivy_${currentUser.uid}_${Date.now()}`,
+
+        metadata: {
+            uid: currentUser.uid,
+            coins: selectedPackage.coins,
+            bonus: selectedPackage.bonus
+        },
+
+        callback: (response) => {
+
+            // NOTE: this confirms the Paystack popup completed, but for a
+            // production launch the coin credit below should instead be
+            // triggered by a server-side webhook (Cloud Function) that
+            // verifies `response.reference` against Paystack's API using
+            // the SECRET key — never trust the client alone for the
+            // credit step. Wired here client-side because this project
+            // has no backend/Cloud Functions available.
+            handlePaymentSuccess(response);
+
+        },
+
+        onClose: () => {
+
+            payBtn.disabled = false;
+            payBtn.textContent = `Pay $${selectedPackage.priceUsd.toFixed(2)}`;
+
+        }
+
+    });
+
+    handler.openIframe();
+
+}
+
+async function handlePaymentSuccess(response) {
+
+    const total = selectedPackage.coins + selectedPackage.bonus;
 
     try {
 
         await updateDoc(doc(db, "accounts", currentUser.uid), {
-            walletBalance: increment(selectedAmount)
+            coins: increment(total)
         });
 
-        const el = document.getElementById("walletBalanceAmt");
-        const current = Number(el.textContent) || 0;
-        el.textContent = (current + selectedAmount).toFixed(2);
+        await addDoc(collection(db, "recharges"), {
 
-        showToast(`$${selectedAmount}.00 added to your wallet`);
+            uid: currentUser.uid,
+            reference: response.reference,
+            coins: selectedPackage.coins,
+            bonus: selectedPackage.bonus,
+            totalCoins: total,
+            amountUsd: selectedPackage.priceUsd,
+            status: "success",
+            createdAt: serverTimestamp()
+
+        });
+
+        const balanceEl = document.getElementById("coinBalanceAmt");
+        const current = Number(balanceEl.textContent.replace(/,/g, "")) || 0;
+        balanceEl.textContent = formatNumber(current + total);
+
+        showToast(`+${formatNumber(total)} coins added!`);
+
+        setTimeout(() => { window.location.href = "wallet.html"; }, 1400);
 
     }
 
     catch (error) {
 
-        console.error("Recharge failed:", error);
-        showToast("Recharge failed. Please try again.");
+        console.error("Failed to credit coins after payment:", error);
+        showToast("Payment succeeded but crediting failed — contact support.");
 
     }
 
     finally {
 
-        btn.disabled = false;
-        btn.textContent = originalText;
+        const payBtn = document.getElementById("payBtn");
+        payBtn.disabled = false;
+        payBtn.textContent = `Pay $${selectedPackage.priceUsd.toFixed(2)}`;
 
     }
 

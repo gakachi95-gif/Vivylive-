@@ -176,7 +176,12 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
 }
+
+.quick-item:active { opacity: 0.7; }
 
 .quick-item .icon-wrap {
     width: 42px;
@@ -223,6 +228,123 @@
     background: var(--danger);
     border: 2px solid var(--bg-bottom);
 }
+
+/* --- Avatar download button --- */
+.avatar-download-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary);
+    border: 2px solid var(--bg-bottom);
+    cursor: pointer;
+    padding: 0;
+}
+
+.avatar-download-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke: #fff;
+}
+
+.avatar-download-btn:active { transform: scale(0.92); }
+
+/* --- Notification panel --- */
+.notif-panel-wrap { position: relative; flex-shrink: 0; }
+
+.notif-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 280px;
+    max-height: 340px;
+    overflow-y: auto;
+    background: var(--bg-bottom, #1a0f2e);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-sm, 14px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    padding: 6px;
+}
+
+.notif-panel.open { display: flex; }
+
+.notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 6px;
+}
+
+.notif-panel-header span:first-child {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.notif-mark-read {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--secondary);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.notif-empty {
+    padding: 24px 10px;
+    text-align: center;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+}
+
+.notif-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--r-sm, 10px);
+    cursor: default;
+}
+
+.notif-item:hover { background: rgba(255,255,255,0.05); }
+
+.notif-item.unread { background: rgba(168,85,247,0.10); }
+
+.notif-item .notif-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168,85,247,0.16);
+}
+
+.notif-item .notif-icon svg { width: 14px; height: 14px; stroke: var(--secondary); }
+
+.notif-item .notif-body { flex: 1; min-width: 0; }
+
+.notif-item .notif-title {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.notif-item .notif-time {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    margin-top: 3px;
+}
 </style>
 </head>
 <body>
@@ -232,6 +354,9 @@
     <div class="host-header glass-card animate-in" style="margin:16px 16px 0">
         <div class="host-avatar-wrap">
             <img class="host-avatar skeleton" id="hostAvatar" src="assets/default-avatar.png" alt="">
+            <button type="button" class="avatar-download-btn" id="avatarDownloadBtn" aria-label="Download profile picture" title="Download profile picture">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            </button>
         </div>
         <div class="host-header-text">
             <div class="name skeleton" id="hostUsername">Loading…</div>
@@ -246,10 +371,19 @@
             <span class="presence-label" id="presenceLabel">Offline</span>
             <span class="switch"></span>
         </div>
-        <button type="button" class="icon-btn" id="notificationBtn" aria-label="Notifications" style="flex-shrink:0">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="notif-dot" id="notifDot" hidden></span>
-        </button>
+        <div class="notif-panel-wrap">
+            <button type="button" class="icon-btn" id="notificationBtn" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" style="flex-shrink:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notif-dot" id="notifDot" hidden></span>
+            </button>
+            <div class="notif-panel" id="notifPanel">
+                <div class="notif-panel-header">
+                    <span>Notifications</span>
+                    <button type="button" class="notif-mark-read" id="notifMarkRead">Mark all read</button>
+                </div>
+                <div id="notifList"></div>
+            </div>
+        </div>
     </div>
 
     <div class="page-content">
@@ -292,30 +426,30 @@
 
         <div class="glass-card animate-in" style="padding:14px;animation-delay:0.21s">
             <div class="quick-grid">
-                <div class="quick-item" id="qaWallet">
+                <a class="quick-item" id="qaWallet" href="host-wallet.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span>
                     <span>Wallet</span>
-                </div>
-                <div class="quick-item" id="qaPayments">
+                </a>
+                <a class="quick-item" id="qaPayments" href="host-payment-history.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>
                     <span>Payment History</span>
-                </div>
-                <div class="quick-item" id="qaProfile">
+                </a>
+                <a class="quick-item" id="qaProfile" href="host-edit-profile.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     <span>Edit Profile</span>
-                </div>
-                <div class="quick-item" id="qaCallHistory">
+                </a>
+                <a class="quick-item" id="qaCallHistory" href="host-call-history.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                     <span>Call History</span>
-                </div>
-                <div class="quick-item" id="qaSupport">
+                </a>
+                <a class="quick-item" id="qaSupport" href="host-support.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18h.01"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 2-3 5"/><circle cx="12" cy="12" r="10"/></svg></span>
                     <span>Support</span>
-                </div>
-                <div class="quick-item" id="qaSettings">
+                </a>
+                <a class="quick-item" id="qaSettings" href="host-settings.html">
                     <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
                     <span>Settings</span>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -355,6 +489,162 @@
 </div>
 
 <script type="module" src="host-dashboard.js"></script>
+
+<script>
+(function () {
+    "use strict";
+
+    /* ---------- Download profile picture ---------- */
+    var avatarImg = document.getElementById("hostAvatar");
+    var downloadBtn = document.getElementById("avatarDownloadBtn");
+
+    if (downloadBtn && avatarImg) {
+        downloadBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            downloadImage(avatarImg.src, buildAvatarFilename(avatarImg.src));
+        });
+    }
+
+    function buildAvatarFilename(src) {
+        var uidEl = document.getElementById("hostUidLabel");
+        var uid = (uidEl && uidEl.textContent || "").replace(/[^a-zA-Z0-9]/g, "");
+        var ext = (src.split(".").pop() || "jpg").split(/[?#]/)[0];
+        return "vivy-profile-" + (uid || "photo") + "." + ext;
+    }
+
+    function downloadImage(src, filename) {
+        // Try a same-origin/local download first (works for local assets).
+        fetch(src, { mode: "cors" })
+            .then(function (res) {
+                if (!res.ok) throw new Error("Network response was not ok");
+                return res.blob();
+            })
+            .then(function (blob) {
+                triggerBlobDownload(blob, filename);
+            })
+            .catch(function () {
+                // Fallback for cross-origin images that block fetch/canvas export:
+                // open the image in a new tab so the user can save it manually.
+                var a = document.createElement("a");
+                a.href = src;
+                a.download = filename;
+                a.target = "_blank";
+                a.rel = "noopener";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
+    }
+
+    function triggerBlobDownload(blob, filename) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    /* ---------- Notifications dropdown ---------- */
+    var notifBtn = document.getElementById("notificationBtn");
+    var notifPanel = document.getElementById("notifPanel");
+    var notifDot = document.getElementById("notifDot");
+    var notifList = document.getElementById("notifList");
+    var markReadBtn = document.getElementById("notifMarkRead");
+
+    // Sample data — replace with a real feed from your backend/API.
+    var notifications = [
+        {
+            title: "Payout of 12,000 diamonds processed",
+            time: "2h ago",
+            unread: true,
+            icon: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
+        },
+        {
+            title: "New message from support",
+            time: "5h ago",
+            unread: true,
+            icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
+        },
+        {
+            title: "You reached 80% of this week's goal",
+            time: "1d ago",
+            unread: false,
+            icon: '<path d="M12 20V10M18 20V4M6 20v-4"/>'
+        }
+    ];
+
+    function renderNotifications() {
+        if (!notifList) return;
+        if (!notifications.length) {
+            notifList.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+            updateDot();
+            return;
+        }
+        notifList.innerHTML = notifications.map(function (n) {
+            return '' +
+                '<div class="notif-item' + (n.unread ? ' unread' : '') + '">' +
+                    '<span class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + n.icon + '</svg></span>' +
+                    '<span class="notif-body">' +
+                        '<span class="notif-title">' + escapeHtml(n.title) + '</span>' +
+                        '<span class="notif-time">' + escapeHtml(n.time) + '</span>' +
+                    '</span>' +
+                '</div>';
+        }).join("");
+        updateDot();
+    }
+
+    function updateDot() {
+        var hasUnread = notifications.some(function (n) { return n.unread; });
+        if (notifDot) notifDot.hidden = !hasUnread;
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function openPanel() {
+        notifPanel.classList.add("open");
+        notifBtn.setAttribute("aria-expanded", "true");
+    }
+
+    function closePanel() {
+        notifPanel.classList.remove("open");
+        notifBtn.setAttribute("aria-expanded", "false");
+    }
+
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifPanel.classList.contains("open") ? closePanel() : openPanel();
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!notifPanel.contains(e.target) && e.target !== notifBtn) {
+                closePanel();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closePanel();
+        });
+    }
+
+    if (markReadBtn) {
+        markReadBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifications.forEach(function (n) { n.unread = false; });
+            renderNotifications();
+        });
+    }
+
+    renderNotifications();
+})();
+</script>
 
 </body>
     </html>

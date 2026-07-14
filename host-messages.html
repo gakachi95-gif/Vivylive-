@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Messages | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    margin: 0 16px;
+}
+
+.search-bar svg { width: 17px; height: 17px; stroke: var(--text-faint); flex-shrink: 0; }
+
+.search-bar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.86rem;
+    color: var(--text);
+}
+
+.search-bar input::placeholder { color: var(--text-faint); }
+
+.search-clear-btn {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--glass-hover);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.search-clear-btn svg { width: 11px; height: 11px; stroke: var(--text-dim); }
+
+.search-bar.has-value .search-clear-btn { display: flex; }
+
+.convo-photo-wrap { position: relative; flex-shrink: 0; }
+
+.convo-photo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.convo-online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 2px solid var(--bg-bottom);
+    display: none;
+}
+
+.convo-online-dot.online { display: block; }
+
+.convo-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.convo-time {
+    font-size: 0.66rem;
+    color: var(--text-faint);
+}
+
+.unread-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.unread-badge.show { display: flex; }
+
+.list-subtitle.unread-text { color: var(--text); font-weight: 600; }
+.list-subtitle.typing-text { color: var(--secondary); font-style: italic; }
+
+.read-receipt {
+    width: 13px;
+    height: 13px;
+    stroke: var(--text-faint);
+    flex-shrink: 0;
+}
+
+.read-receipt.seen { stroke: var(--verified); }
+
+.list-subtitle-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+
+.search-results-label {
+    padding: 12px 14px 2px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+    <defs><linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7B2FF7"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>
+</svg>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Messages</h1>
+        <button type="button" class="icon-btn" id="searchBtn" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </button>
+    </header>
+
+    <div class="glass-card animate-in search-bar" id="searchBar" style="margin:14px 16px 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search Users…">
+        <span class="search-clear-btn" id="searchClearBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </span>
+    </div>
+
+    <div class="page-content">
+        <section class="glass-card animate-in" id="conversationsCard" style="animation-delay:0.05s">
+            <div id="searchResultsLabel" class="search-results-label" hidden>Users</div>
+            <div id="conversationsList">
+                <div class="empty-state"><p>Loading conversations…</p></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- HOST BOTTOM NAVIGATION — see host-dashboard.html for the canonical copy -->
+    <nav class="bottom-nav" aria-label="Host navigation">
+        <a href="host-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="nav-label">Home</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-messages.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nav-label">Messages</span><span class="nav-indicator"></span>
+        </a>
+        <a href="online-users.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="nav-label">Online Users</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-wallet.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+            <span class="nav-label">Wallet</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-profile.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-label">Profile</span><span class="nav-indicator"></span>
+        </a>
+    </nav>
+
+</div>
+
+<script type="module" src="host-messages.js"></script>
+
+</body>
+  </html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Online Users | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.online-count-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(74,222,128,0.14);
+    color: var(--online);
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin: 0 16px;
+}
+
+.online-count-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--online);
+    box-shadow: 0 0 8px var(--online);
+}
+
+.user-photo-wrap { position: relative; flex-shrink: 0; }
+
+.user-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.user-online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 2px solid var(--bg-bottom);
+    box-shadow: 0 0 6px var(--online);
+}
+
+.user-flag {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.user-uid {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+}
+
+.message-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.message-btn svg { width: 18px; height: 18px; stroke: #fff; }
+
+.message-btn:active { transform: scale(0.9); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+    <defs><linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7B2FF7"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>
+</svg>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Online Users</h1>
+    </header>
+
+    <div class="online-count-pill" id="onlineCountPill" style="margin-top:14px">
+        <span class="dot"></span>
+        <span id="onlineCountLabel">0 online now</span>
+    </div>
+
+    <div class="page-content">
+        <section class="glass-card animate-in" id="usersCard">
+            <div id="usersList">
+                <div class="empty-state"><p>Loading online users…</p></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- HOST BOTTOM NAVIGATION — see host-dashboard.html for the canonical copy -->
+    <nav class="bottom-nav" aria-label="Host navigation">
+        <a href="host-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="nav-label">Home</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-messages.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nav-label">Messages</span><span class="nav-indicator"></span>
+        </a>
+        <a href="online-users.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="nav-label">Online Users</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-wallet.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+            <span class="nav-label">Wallet</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-profile.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-label">Profile</span><span class="nav-indicator"></span>
+        </a>
+    </nav>
+
+</div>
+
+<script type="module" src="online-users.js"></script>
+
+</body>
+  </html>

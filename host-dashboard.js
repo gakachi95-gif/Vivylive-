@@ -7,7 +7,7 @@
 import { hostSessionReady } from "./host-guard.js";
 import { logoutUser } from "./auth-service.js";
 import { db } from "./firebase-config.js";
-import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, onSnapshot, updateDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { formatNumber, showToast } from "./ui-helpers.js";
 
 const MIN_WITHDRAWAL_DIAMONDS = 50000;
@@ -22,11 +22,13 @@ const presenceLabel = document.getElementById("presenceLabel");
 presenceToggle.addEventListener("click", togglePresence);
 
 document.getElementById("qaWallet").addEventListener("click", () => window.location.href = "host-wallet.html");
-document.getElementById("qaPayments").addEventListener("click", () => window.location.href = "host-payment-history.html");
+document.getElementById("qaPayments").addEventListener("click", () => window.location.href = "host-wallet.html");
 document.getElementById("qaProfile").addEventListener("click", () => window.location.href = "host-profile.html");
 document.getElementById("qaCallHistory").addEventListener("click", () => window.location.href = "host-call-history.html");
 document.getElementById("qaSupport").addEventListener("click", () => window.location.href = "host-support.html");
 document.getElementById("qaSettings").addEventListener("click", () => window.location.href = "host-settings.html");
+
+document.getElementById("notificationBtn").addEventListener("click", () => window.location.href = "host-notifications.html");
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
 
@@ -74,6 +76,26 @@ async function init() {
     document.getElementById("hostUidLabel").textContent = `UID: ${currentUser.uid.slice(0, 10)}…`;
 
     listenForHostUpdates();
+    listenForUnreadNotifications();
+
+}
+
+function listenForUnreadNotifications() {
+
+    const notifQuery = query(
+        collection(db, "hosts", currentUser.uid, "notifications"),
+        where("read", "==", false)
+    );
+
+    onSnapshot(notifQuery, (snapshot) => {
+
+        document.getElementById("notifDot").hidden = snapshot.empty;
+
+    }, (error) => {
+
+        console.error("Failed to listen for notifications:", error);
+
+    });
 
 }
 
@@ -176,4 +198,4 @@ async function togglePresence() {
 
     }
 
-}
+              }

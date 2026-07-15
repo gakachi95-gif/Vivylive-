@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agency Settings | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.logo-wrap {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    margin: 20px auto 0;
+}
+
+.logo-photo {
+    width: 84px;
+    height: 84px;
+    border-radius: 20px;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: 2px solid var(--glass-border);
+}
+
+.logo-edit-btn {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--secondary);
+    border: 2px solid var(--bg-bottom);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.logo-edit-btn svg { width: 13px; height: 13px; stroke: #fff; }
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.settings-row + .settings-row { border-top: 1px solid var(--glass-border); }
+
+.settings-label { flex: 1; font-size: 0.86rem; font-weight: 600; }
+.settings-sub { font-size: 0.72rem; color: var(--text-faint); margin-top: 2px; }
+
+.readonly-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.readonly-row:last-child { border-bottom: none; }
+
+.readonly-row .lbl { font-size: 0.74rem; color: var(--text-dim); }
+.readonly-row .val { font-size: 0.78rem; font-weight: 600; text-align: right; max-width: 60%; word-break: break-all; }
+
+.lock-icon { width: 13px; height: 13px; stroke: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Agency Settings</h1>
+    </header>
+
+    <div class="logo-wrap animate-in">
+        <img class="logo-photo skeleton" id="logoPhoto" src="assets/default-avatar.png" alt="">
+        <div class="logo-edit-btn" id="logoEditBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <input type="file" id="logoInput" accept="image/*" hidden>
+    </div>
+
+    <div class="page-content" style="padding-top:14px">
+
+        <form id="profileForm">
+
+            <div class="section-title" style="padding:4px">Agency Profile</div>
+
+            <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                <div class="field-group">
+                    <label class="field-label" for="agencyNameInput">Agency Name</label>
+                    <input type="text" id="agencyNameInput" class="field-input" maxlength="60" required>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="whatsappInput">WhatsApp Number</label>
+                    <input type="tel" id="whatsappInput" class="field-input" required>
+                </div>
+
+            </section>
+
+            <button type="submit" class="btn btn-primary-solid btn-block" id="saveBtn" style="margin-top:14px">Save Changes</button>
+
+        </form>
+
+        <div class="section-title" style="padding:16px 4px 8px">Account Info</div>
+
+        <section class="glass-card animate-in">
+            <div class="readonly-row">
+                <span class="lbl">Agency UID</span>
+                <span class="val" id="agencyUidVal">—</span>
+            </div>
+            <div class="readonly-row">
+                <span class="lbl">Invitation Code</span>
+                <span class="val" id="invitationCodeVal">—</span>
+            </div>
+            <div class="readonly-row">
+                <span class="lbl">Invitation Link</span>
+                <span class="val" id="invitationLinkVal">—</span>
+            </div>
+        </section>
+
+        <p style="font-size:0.7rem;color:var(--text-faint);padding:10px 4px 0">
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Your UID, Invitation Code, and Invitation Link are locked — only Vivy Admin can change them.
+        </p>
+
+        <div class="section-title" style="padding:16px 4px 8px">Account</div>
+
+        <section class="glass-card animate-in">
+            <div class="settings-row list-card" id="changePasswordRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <div class="list-text" style="flex:1">
+                    <div class="settings-label">Change Password</div>
+                    <div class="settings-sub">Send a reset link to your email</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="margin-top:12px">
+            <div class="settings-row list-card" id="logoutRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span>
+                <div class="list-text" style="flex:1"><div class="settings-label">Log Out</div></div>
+            </div>
+        </section>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-settings.js"></script>
+
+</body>
+  </html>

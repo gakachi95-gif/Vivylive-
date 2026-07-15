@@ -51,6 +51,21 @@ export function formatCoins(value) {
 
 }
 
+// Matches the Host Wallet's fixed rate: 50,000 💎 = $15.
+export const DIAMOND_TO_USD_RATE = 15 / 50000;
+
+export function diamondsToUsd(diamonds) {
+
+    return Number(diamonds ?? 0) * DIAMOND_TO_USD_RATE;
+
+}
+
+export function formatUsd(value) {
+
+    return `$${Number(value ?? 0).toFixed(2)}`;
+
+}
+
 export function getUrlParam(name) {
 
     return new URLSearchParams(window.location.search).get(name);

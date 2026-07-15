@@ -89,6 +89,7 @@ async function init() {
     // shouldn't have to wait for data to be able to tap around.
     bindStaticControls();
     setupProfilePhotoUpload();
+    setupPresenceTracking();
 
     // Everything data-driven loads in the background, in parallel.
     // The shell (header, wallet card, skeleton host rails) is already
@@ -105,6 +106,42 @@ async function init() {
         console.error("Dashboard background load error:", error);
 
     });
+
+}
+
+// ======================================================
+// Presence
+// Marks this User account "online" (and stamps lastActive)
+// while the dashboard tab is open/visible, so Hosts can see
+// them in Online Users. This is the only place in the app
+// that writes these two fields for a User account — without
+// it, Online Users would always be empty.
+// Best-effort only — there's no realtime presence backend
+// (e.g. Realtime Database onDisconnect) wired up, so this
+// relies on visibility/unload events rather than a true
+// server-side disconnect signal.
+// ======================================================
+
+function setupPresenceTracking() {
+
+    const setOnline = (isOnline) => {
+
+        updateDoc(doc(db, "accounts", currentUser.uid), {
+            isOnline,
+            lastActive: new Date()
+        }).catch(() => { /* best effort */ });
+
+    };
+
+    setOnline(true);
+
+    document.addEventListener("visibilitychange", () => {
+
+        setOnline(document.visibilityState === "visible");
+
+    });
+
+    window.addEventListener("pagehide", () => setOnline(false));
 
 }
 

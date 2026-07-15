@@ -19,7 +19,8 @@ import {
     query,
     where,
     limit,
-    getDocs
+    getDocs,
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 // ======================================================
@@ -263,4 +264,153 @@ export async function getHostProfile(uid) {
 
     return snap.data();
 
-                }
+}
+
+// ======================================================
+// AGENCY SYSTEM — Agency registration + profile lookup
+// Additive only. Agencies never self-register through the
+// normal /auth.html flow — Vivy Admin shares a dedicated
+// agency-register.html link. New Agencies always start
+// approved: false and cannot open agency-dashboard.html
+// until Vivy Admin flips that flag (see agency-guard.js).
+// ======================================================
+
+// ------------------------------------------------------
+// Generate a sequential, human-friendly Agency UID
+// ("AG000001", "AG000002", ...) using a Firestore counter
+// document so concurrent registrations never collide.
+// ------------------------------------------------------
+
+async function nextAgencyUID() {
+
+    const counterRef = doc(db, "settings", "agencyCounter");
+
+    const nextNumber = await runTransaction(db, async (transaction) => {
+
+        const counterSnap = await transaction.get(counterRef);
+
+        const current =
+            counterSnap.exists() ? Number(counterSnap.data().value || 0) : 0;
+
+        const updated = current + 1;
+
+        transaction.set(counterRef, { value: updated }, { merge: true });
+
+        return updated;
+
+    });
+
+    return `AG${String(nextNumber).padStart(6, "0")}`;
+
+}
+
+// ------------------------------------------------------
+// Generate a unique Invitation Code ("AGY" + 5 random
+// base-36 characters), retrying on the rare collision.
+// ------------------------------------------------------
+
+async function generateUniqueInvitationCode() {
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+
+        const random =
+            Math.random().toString(36).slice(2, 7).toUpperCase();
+
+        const candidate = `AGY${random}`;
+
+        const existing = await getAgencyByCode(candidate);
+
+        if (!existing) {
+
+            return candidate;
+
+        }
+
+    }
+
+    throw new Error("Could not generate a unique invitation code. Please try again.");
+
+}
+
+// ======================================================
+// Register Agency
+// ======================================================
+
+export async function registerAgency(agencyData) {
+
+    const credential =
+        await createUserWithEmailAndPassword(
+            auth,
+            agencyData.email,
+            agencyData.password
+        );
+
+    const uid = credential.user.uid;
+
+    const [agencyUID, invitationCode] = await Promise.all([
+        nextAgencyUID(),
+        generateUniqueInvitationCode()
+    ]);
+
+    const invitationLink =
+        `${window.location.origin}/host-register.html?agency=${invitationCode}`;
+
+    const agencyDoc = {
+
+        agencyUID,
+        fullName: agencyData.fullName,
+        agencyName: agencyData.agencyName,
+        email: agencyData.email,
+        whatsapp: agencyData.whatsapp,
+
+        invitationCode,
+        invitationLink,
+
+        role: "agency",
+
+        // Vivy Admin must flip this to true before the Agency can log
+        // into agency-dashboard.html — see AGENCY APPROVAL in the spec.
+        approved: false,
+
+        // Kept alongside "approved" so Vivy Admin can also suspend/ban
+        // an already-approved Agency later without touching the
+        // approval flag itself.
+        status: "active", // active | suspended | banned
+
+        logoURL: "",
+
+        commissionRate: 0.10,
+        totalCommissionEarned: 0,
+        weekCommission: 0,
+
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+
+    };
+
+    await setDoc(doc(db, "agencies", uid), agencyDoc);
+
+    return { uid, agencyUID, invitationCode, invitationLink };
+
+}
+
+// ======================================================
+// Get Agency Profile (by uid)
+// ======================================================
+
+export async function getAgencyProfile(uid) {
+
+    const snap =
+        await getDoc(
+            doc(db, "agencies", uid)
+        );
+
+    if (!snap.exists()) {
+
+        return null;
+
+    }
+
+    return snap.data();
+
+}

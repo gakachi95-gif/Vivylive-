@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Invite Host | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.invite-hero {
+    padding: 30px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.invite-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 26px rgba(123, 47, 247, 0.5);
+}
+
+.invite-icon svg { width: 34px; height: 34px; stroke: #fff; }
+
+.invite-hero h2 { font-size: 1.1rem; font-weight: 700; }
+.invite-hero p { font-size: 0.8rem; color: var(--text-dim); max-width: 300px; }
+
+.code-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    gap: 12px;
+}
+
+.code-box .code { font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; }
+
+.link-box {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.link-box .link-text {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+    word-break: break-all;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+}
+
+.link-actions { display: flex; gap: 10px; }
+.link-actions .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Invite Host</h1>
+    </header>
+
+    <section class="glass-card animate-in invite-hero" style="margin:16px">
+        <div class="invite-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+        </div>
+        <h2>Grow Your Agency</h2>
+        <p>Share your Invitation Code or Link — every Host who joins through it automatically belongs to your Agency.</p>
+    </section>
+
+    <div class="page-content" style="padding-top:0">
+
+        <div class="section-title" style="padding:4px">Invitation Code</div>
+
+        <section class="glass-card animate-in code-box" style="animation-delay:0.05s">
+            <span class="code" id="codeDisplay">Loading…</span>
+            <button type="button" class="btn btn-primary-outline" id="copyCodeBtn" style="width:auto;padding:10px 16px">Copy</button>
+        </section>
+
+        <div class="section-title" style="padding:4px">Invitation Link</div>
+
+        <section class="glass-card animate-in link-box" style="animation-delay:0.1s">
+            <div class="link-text" id="linkDisplay">Loading…</div>
+            <div class="link-actions">
+                <button type="button" class="btn btn-primary-outline" id="copyLinkBtn">Copy Link</button>
+                <button type="button" class="btn btn-primary-solid" id="shareBtn">Share</button>
+            </div>
+        </section>
+
+        <p style="font-size:0.72rem;color:var(--text-faint);text-align:center;padding:8px 12px 0">
+            This code and link never expire and never change — only Vivy Admin can reset them.
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-invite.js"></script>
+
+</body>
+</html>

@@ -26,7 +26,12 @@ let activeTab = "activity";
 
 document.getElementById("backBtn").addEventListener("click", () => goBack("user-dashboard.html"));
 document.getElementById("rechargeBtn").addEventListener("click", () => window.location.href = "recharge.html");
-document.getElementById("historyBtn").addEventListener("click", () => {
+
+// Optional — only wired up if a future markup change adds a #historyBtn.
+// Guarded so its absence can never crash the module (this was previously
+// an unguarded getElementById(...).addEventListener(...) call that threw
+// on every page load and silently prevented init() from ever running).
+document.getElementById("historyBtn")?.addEventListener("click", () => {
 
     switchTab("recharge");
     document.getElementById("transactionsList").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -53,7 +58,9 @@ async function init() {
 
         if (profile?.role === "host") {
 
-            document.querySelectorAll(".host-only").forEach((el) => el.classList.add("show"));
+            // wallet.html's Host section is id="hostPayrollSection" (not a
+            // .host-only class — that selector never matched anything here).
+            document.getElementById("hostPayrollSection")?.classList.add("show");
             renderHostEconomy();
 
         }
@@ -78,8 +85,11 @@ function renderBalances() {
 
     if (profile?.bonusCoinsTotal) {
 
-        document.getElementById("bonusCoinsLine").style.display = "block";
-        document.getElementById("bonusCoinsAmt").textContent = formatNumber(profile.bonusCoinsTotal);
+        const bonusLineEl = document.getElementById("bonusCoinsLine");
+        const bonusAmtEl = document.getElementById("bonusCoinsAmt");
+
+        if (bonusLineEl) bonusLineEl.style.display = "block";
+        if (bonusAmtEl) bonusAmtEl.textContent = formatNumber(profile.bonusCoinsTotal);
 
     }
 
@@ -99,24 +109,41 @@ function renderHostEconomy() {
     const eligibleUnits = Math.floor(diamonds / MIN_WITHDRAWAL_DIAMONDS);
     const pendingUsd = eligibleUnits * MIN_WITHDRAWAL_USD;
 
-    document.getElementById("pendingPayrollAmt").textContent = `$${pendingUsd.toFixed(2)}`;
-    document.getElementById("pendingPayrollSub").textContent =
-        diamonds >= MIN_WITHDRAWAL_DIAMONDS
-            ? "Included in the next payroll run"
-            : `${formatNumber(MIN_WITHDRAWAL_DIAMONDS - diamonds)} 💎 until eligible`;
+    // Every lookup below is optional-chained on purpose: this branch only
+    // ever runs for profile.role === "host", which — given Hosts live in
+    // their own "hosts" collection, not "accounts" — can't currently
+    // happen in practice (Hosts use host-wallet.html instead). Guarding
+    // it means that fact can never turn into a crash that blocks the
+    // rest of the page (Recent Calls / Recharge History) from loading.
+    const pendingPayrollEl = document.getElementById("pendingPayrollAmt");
+    if (pendingPayrollEl) pendingPayrollEl.textContent = `$${pendingUsd.toFixed(2)}`;
 
-    document.getElementById("nextPayrollDate").textContent = formatDate(getNextPayrollDate());
+    const nextPayrollEl = document.getElementById("nextPayrollDate");
+    if (nextPayrollEl) nextPayrollEl.textContent = formatDate(getNextPayrollDate());
 
     const weeklyUsd = (weeklyDiamonds / MIN_WITHDRAWAL_DIAMONDS) * MIN_WITHDRAWAL_USD;
-    document.getElementById("weeklyDiamondsAmt").textContent = `${formatNumber(weeklyDiamonds)} 💎`;
-    document.getElementById("weeklyUsdEquivalent").textContent = `≈ $${weeklyUsd.toFixed(2)}`;
 
-    document.getElementById("hostBonusAmt").textContent = formatNumber(profile?.bonusCoinsTotal ?? 0);
+    const weeklyDiamondsEl = document.getElementById("weeklyDiamondsAmt");
+    if (weeklyDiamondsEl) weeklyDiamondsEl.textContent = `${formatNumber(weeklyDiamonds)} 💎`;
+
+    const weeklyEarningsEl = document.getElementById("weeklyEarningsAmt");
+    if (weeklyEarningsEl) weeklyEarningsEl.textContent = `$${weeklyUsd.toFixed(2)}`;
 
     const progressPct = Math.min(100, (diamonds / MIN_WITHDRAWAL_DIAMONDS) * 100);
-    document.getElementById("withdrawalProgressFill").style.width = `${progressPct}%`;
-    document.getElementById("withdrawalProgressCaption").textContent =
-        `${formatNumber(Math.min(diamonds, MIN_WITHDRAWAL_DIAMONDS))} / ${formatNumber(MIN_WITHDRAWAL_DIAMONDS)} diamonds`;
+
+    const progressFillEl = document.getElementById("withdrawalProgressFill");
+    if (progressFillEl) progressFillEl.style.width = `${progressPct}%`;
+
+    const progressPercentEl = document.getElementById("progressPercentLabel");
+    if (progressPercentEl) progressPercentEl.textContent = `${Math.round(progressPct)}%`;
+
+    const progressNoteEl = document.getElementById("withdrawalProgressNote");
+    if (progressNoteEl) {
+
+        progressNoteEl.textContent =
+            `${formatNumber(Math.min(diamonds, MIN_WITHDRAWAL_DIAMONDS))} / ${formatNumber(MIN_WITHDRAWAL_DIAMONDS)} Diamonds needed to withdraw`;
+
+    }
 
 }
 

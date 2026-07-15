@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Host Performance | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 4px;
+}
+
+.stat-box {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-box .lbl { font-size: 0.68rem; color: var(--text-dim); }
+.stat-box .val { font-size: 1.22rem; font-weight: 800; }
+.stat-box .val.diamond { color: #7DD3FC; }
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    margin-bottom: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    border-color: transparent;
+}
+
+.rank-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.rank-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.rank-row:nth-child(1) .rank-num { background: rgba(251,191,36,0.2); color: var(--gold); border-color: transparent; }
+
+.rank-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    flex-shrink: 0;
+}
+
+.rank-text { flex: 1; min-width: 0; }
+.rank-text .name { font-size: 0.86rem; font-weight: 700; }
+.rank-diamonds { font-size: 0.82rem; font-weight: 700; color: #7DD3FC; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Host Performance</h1>
+    </header>
+
+    <div class="page-content">
+
+        <div class="stats-grid">
+            <div class="glass-card stat-box animate-in" style="animation-delay:0.03s">
+                <span class="lbl">Total Calls</span>
+                <span class="val" id="totalCalls">0</span>
+            </div>
+            <div class="glass-card stat-box animate-in" style="animation-delay:0.06s">
+                <span class="lbl">Total Diamonds Earned</span>
+                <span class="val diamond" id="totalDiamonds">0</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button type="button" class="tab-btn active" id="tabTop">Top Hosts</button>
+            <button type="button" class="tab-btn" id="tabWeekly">Weekly</button>
+            <button type="button" class="tab-btn" id="tabMonthly">Monthly</button>
+        </div>
+
+        <section class="glass-card animate-in" id="rankingsList" style="animation-delay:0.1s">
+            <div class="empty-state"><p>Loading rankings…</p></div>
+        </section>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-performance.js"></script>
+
+</body>
+  </html>

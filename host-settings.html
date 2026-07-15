@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Settings | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.settings-row + .settings-row { border-top: 1px solid var(--glass-border); }
+
+.settings-label { flex: 1; font-size: 0.86rem; font-weight: 600; }
+.settings-sub { font-size: 0.72rem; color: var(--text-faint); margin-top: 2px; }
+
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+}
+
+.toggle.on { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+.toggle.on::after { transform: translateX(18px); }
+
+.danger-text { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Settings</h1>
+    </header>
+
+    <div class="page-content">
+
+        <div class="section-title" style="padding:4px">Account</div>
+
+        <section class="glass-card animate-in">
+            <div class="settings-row list-card" id="changePasswordRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <div class="list-text" style="flex:1">
+                    <div class="settings-label">Change Password</div>
+                    <div class="settings-sub">Send a reset link to your email</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-title" style="padding:4px">Notification Preferences</div>
+
+        <section class="glass-card animate-in" style="animation-delay:0.04s">
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Messages</div>
+                    <div class="settings-sub">New messages from Users</div>
+                </div>
+                <button type="button" class="toggle" id="toggleMessages" role="switch" aria-checked="true"></button>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Missed Calls</div>
+                    <div class="settings-sub">Alerts for calls you missed</div>
+                </div>
+                <button type="button" class="toggle" id="toggleMissedCalls" role="switch" aria-checked="true"></button>
+            </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Admin Announcements</div>
+                    <div class="settings-sub">Updates from Vivy Admin</div>
+                </div>
+                <button type="button" class="toggle" id="toggleAnnouncements" role="switch" aria-checked="true"></button>
+            </div>
+        </section>
+
+        <div class="section-title" style="padding:4px">Privacy</div>
+
+        <section class="glass-card animate-in" style="animation-delay:0.08s">
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label">Show Online Status</div>
+                    <div class="settings-sub">Let Users see when you're online</div>
+                </div>
+                <button type="button" class="toggle" id="toggleShowOnline" role="switch" aria-checked="true"></button>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="animation-delay:0.12s">
+            <div class="settings-row list-card" id="logoutRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span>
+                <div class="list-text" style="flex:1"><div class="settings-label">Log Out</div></div>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="animation-delay:0.16s">
+            <div class="settings-row list-card danger-text" id="deleteAccountRow">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span>
+                <div class="list-text" style="flex:1">
+                    <div class="settings-label danger-text">Delete Account</div>
+                    <div class="settings-sub">This can't be undone</div>
+                </div>
+            </div>
+        </section>
+
+        <p style="font-size:0.72rem;color:var(--text-faint);text-align:center;padding:4px 12px">
+            Hosts cannot change Agencies here — contact Support if this needs to change.
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module" src="host-settings.js"></script>
+
+</body>
+</html>

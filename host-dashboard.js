@@ -22,7 +22,6 @@ const presenceLabel = document.getElementById("presenceLabel");
 presenceToggle.addEventListener("click", togglePresence);
 
 document.getElementById("qaWallet").addEventListener("click", () => window.location.href = "host-wallet.html");
-document.getElementById("qaPayments").addEventListener("click", () => window.location.href = "host-wallet.html");
 document.getElementById("qaProfile").addEventListener("click", () => window.location.href = "host-profile.html");
 document.getElementById("qaCallHistory").addEventListener("click", () => window.location.href = "host-call-history.html");
 document.getElementById("qaSupport").addEventListener("click", () => window.location.href = "host-support.html");

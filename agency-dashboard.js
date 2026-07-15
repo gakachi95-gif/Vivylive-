@@ -17,7 +17,7 @@ import { formatNumber, diamondsToUsd, formatUsd } from "./ui-helpers.js";
 let currentUser = null;
 
 document.getElementById("qaInvite").addEventListener("click", () => window.location.href = "agency-invite.html");
-document.getElementById("qaHosts").addEventListener("click", () => window.location.href = "agency-hosts.html");
+document.getElementById("qaHosts").addEventListener("click", () => window.location.href = "agency-host.html");
 document.getElementById("qaPerformance").addEventListener("click", () => window.location.href = "agency-performance.html");
 document.getElementById("qaWallet").addEventListener("click", () => window.location.href = "agency-wallet.html");
 document.getElementById("qaSupport").addEventListener("click", () => window.location.href = "agency-support.html");

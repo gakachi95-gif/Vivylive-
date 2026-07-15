@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agency Registration | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.agency-hero {
+    padding: 28px 20px 6px;
+    text-align: center;
+}
+
+.agency-hero .badge-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 26px rgba(123, 47, 247, 0.5);
+}
+
+.agency-hero .badge-icon svg { width: 30px; height: 30px; stroke: #fff; }
+.agency-hero h1 { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.agency-hero p { font-size: 0.82rem; color: var(--text-dim); max-width: 320px; margin: 0 auto; line-height: 1.5; }
+
+.success-screen { display: none; }
+.success-screen.show { display: block; }
+#registerScreen.hide { display: none; }
+
+.field-error {
+    font-size: 0.72rem;
+    color: var(--danger);
+    display: none;
+}
+
+.field-error.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Agency Registration</h1>
+    </header>
+
+    <div id="registerScreen">
+
+        <div class="agency-hero animate-in">
+            <div class="badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M14 9h1M14 13h1"/></svg>
+            </div>
+            <h1>Become a Vivy Agency Partner</h1>
+            <p>Complete the form below to submit your Agency for review by Vivy Admin.</p>
+        </div>
+
+        <div class="page-content" style="padding-top:14px">
+
+            <form id="agencyForm">
+
+                <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                    <div class="field-group">
+                        <label class="field-label" for="fullName">Full Name</label>
+                        <input type="text" id="fullName" class="field-input" placeholder="Your full name" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="agencyName">Agency Name</label>
+                        <input type="text" id="agencyName" class="field-input" placeholder="e.g. Starlight Talent Agency" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="email">Email Address</label>
+                        <input type="email" id="email" class="field-input" placeholder="agency@example.com" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="whatsapp">WhatsApp Number</label>
+                        <input type="tel" id="whatsapp" class="field-input" placeholder="+234 800 000 0000" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="password">Password</label>
+                        <input type="password" id="password" class="field-input" placeholder="At least 6 characters" minlength="6" required>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="field-input" placeholder="Re-enter password" minlength="6" required>
+                        <span class="field-error" id="passwordError">Passwords do not match.</span>
+                    </div>
+
+                </section>
+
+                <button type="submit" class="btn btn-primary-solid btn-block" id="submitBtn" style="margin-top:18px">Submit Agency Application</button>
+
+                <p style="font-size:0.72rem;color:var(--text-faint);text-align:center;padding:14px 12px 0">
+                    Already registered? <a href="agency-login.html" style="color:var(--secondary);font-weight:600">Log in here</a>.
+                </p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="success-screen" id="successScreen">
+
+        <div class="status-wrap" style="max-width:480px;margin:0 auto;min-height:80vh;display:flex;flex-direction:column;justify-content:center;padding:24px 20px">
+
+            <section class="glass-card animate-in" style="padding:32px 24px;text-align:center">
+
+                <div style="width:72px;height:72px;margin:0 auto 20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(251,191,36,0.35), rgba(251,191,36,0.15))">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+
+                <h1 style="font-size:1.1rem;font-weight:800;margin-bottom:12px">Registration Submitted Successfully</h1>
+
+                <p style="font-size:0.86rem;color:var(--text-dim);line-height:1.6;margin-bottom:4px">
+                    Your application has been received. Please wait for Vivy Admin to review and approve your
+                    Agency account. You will receive access after approval.
+                </p>
+
+                <span class="status-badge" style="display:inline-block;margin-top:14px;padding:6px 14px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;background:rgba(251,191,36,0.18);color:var(--gold)">Pending Approval</span>
+
+                <button type="button" class="btn btn-primary-solid btn-block" id="continueBtn" style="margin-top:26px">Continue</button>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-register.js"></script>
+
+</body>
+  </html>

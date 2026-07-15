@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Support | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.support-contact-row { display: flex; align-items: center; gap: 12px; padding: 14px; }
+
+.ticket-pill {
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.ticket-pill.open { background: rgba(251,191,36,0.14); color: var(--gold); }
+.ticket-pill.resolved, .ticket-pill.closed { background: rgba(74,222,128,0.14); color: var(--online); }
+
+.faq-item { padding: 14px; cursor: pointer; }
+
+.faq-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.faq-q svg { width: 16px; height: 16px; stroke: var(--text-faint); flex-shrink: 0; transition: transform 0.2s ease; }
+.faq-item.open .faq-q svg { transform: rotate(180deg); }
+
+.faq-a {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease, margin-top 0.25s ease;
+}
+
+.faq-item.open .faq-a { max-height: 240px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Support</h1>
+    </header>
+
+    <div class="page-content">
+
+        <section class="glass-card animate-in">
+            <a class="support-contact-row list-card" href="mailto:support@vivy.app?subject=Agency%20Support">
+                <span class="list-icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg></span>
+                <div class="list-text">
+                    <div class="list-title">Contact Vivy Support</div>
+                    <div class="list-subtitle">support@vivy.app</div>
+                </div>
+            </a>
+        </section>
+
+        <div class="section-title" style="padding:4px">Submit a Ticket</div>
+
+        <section class="glass-card animate-in" style="padding:16px;animation-delay:0.04s">
+            <form id="ticketForm" style="display:flex;flex-direction:column;gap:14px">
+                <div class="field-group">
+                    <label class="field-label" for="ticketSubject">Subject</label>
+                    <input type="text" id="ticketSubject" class="field-input" maxlength="80" required placeholder="What's this about?">
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="ticketMessage">Message</label>
+                    <textarea id="ticketMessage" class="field-input" rows="4" maxlength="1000" required placeholder="Describe the issue in detail..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary-solid btn-block" id="ticketSubmitBtn">Submit Ticket</button>
+            </form>
+        </section>
+
+        <div class="section-title" style="padding:4px">Your Tickets</div>
+
+        <section class="glass-card animate-in" style="animation-delay:0.08s" id="ticketList">
+            <div class="empty-state"><p>Loading tickets…</p></div>
+        </section>
+
+        <div class="section-title" style="padding:4px">FAQs</div>
+
+        <section class="glass-card animate-in" style="animation-delay:0.12s" id="faqList"></section>
+
+        <p style="font-size:0.72rem;color:var(--text-faint);text-align:center;padding:4px 12px">
+            Only Vivy Admin or the Support Team can reply to a ticket.
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-support.js"></script>
+
+</body>
+              </html>

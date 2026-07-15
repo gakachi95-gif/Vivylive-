@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Call History | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.call-photo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    flex-shrink: 0;
+}
+
+.call-type-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168,85,247,0.16);
+    margin-left: -14px;
+    margin-top: 20px;
+    flex-shrink: 0;
+    border: 2px solid var(--bg-bottom);
+}
+
+.call-type-icon svg { width: 12px; height: 12px; stroke: var(--secondary); }
+
+.call-meta-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.call-duration { font-size: 0.7rem; color: var(--text-faint); }
+
+.call-status-pill {
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.call-status-pill.connected { background: rgba(74,222,128,0.14); color: var(--online); }
+.call-status-pill.declined { background: rgba(248,113,113,0.14); color: var(--danger); }
+.call-status-pill.missed { background: rgba(251,191,36,0.14); color: var(--gold); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+    <defs><linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7B2FF7"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>
+</svg>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Call History</h1>
+    </header>
+
+    <div class="page-content">
+        <section class="glass-card animate-in" id="callList">
+            <div class="empty-state">
+                <p>Loading call history…</p>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script type="module" src="host-call-history.js"></script>
+
+</body>
+</html>

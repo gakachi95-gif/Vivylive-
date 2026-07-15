@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>My Hosts | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.host-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+}
+
+.host-card-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    flex-shrink: 0;
+    position: relative;
+}
+
+.online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    border: 2px solid var(--bg-bottom);
+}
+
+.online-dot.online { background: var(--online); }
+
+.host-card-text { flex: 1; min-width: 0; }
+.host-card-text .name { font-size: 0.88rem; font-weight: 700; }
+.host-card-text .meta { font-size: 0.7rem; color: var(--text-faint); margin-top: 2px; }
+
+.host-card-stats { text-align: right; flex-shrink: 0; }
+.host-card-stats .diamonds { font-size: 0.82rem; font-weight: 700; color: #7DD3FC; }
+.host-card-stats .earnings { font-size: 0.68rem; color: var(--text-dim); margin-top: 2px; }
+
+.search-bar {
+    margin: 0 16px 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">My Hosts</h1>
+    </header>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" class="field-input" placeholder="Search by username or UID...">
+    </div>
+
+    <div class="page-content" style="padding-top:0">
+
+        <section class="glass-card animate-in" id="hostsList">
+            <div class="empty-state"><p>Loading hosts…</p></div>
+        </section>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-hosts.js"></script>
+
+</body>
+  </html>

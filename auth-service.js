@@ -402,15 +402,4 @@ export async function getAgencyProfile(uid) {
 
     const snap =
         await getDoc(
-            doc(db, "agencies", uid)
-        );
-
-    if (!snap.exists()) {
-
-        return null;
-
-    }
-
-    return snap.data();
-
-}
+            doc(d

@@ -2,188 +2,177 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Host Wallet | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.wallet-hero {
+    padding: 22px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    text-align: center;
+}
 
-<link rel="stylesheet" href="host-wallet.css">
+.wallet-hero-stat { display: flex; flex-direction: column; gap: 4px; }
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+.wallet-hero-stat .lbl { font-size: 0.72rem; color: var(--text-dim); }
 
+.wallet-hero-stat .amt {
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, #7DD3FC);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.wallet-hero-stat.gold .amt {
+    background: linear-gradient(135deg, #fff, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.progress-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+.progress-caption {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    margin-top: 8px;
+}
+
+.progress-status {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-dim);
+}
+
+.progress-status.eligible {
+    background: rgba(74,222,128,0.14);
+    color: var(--online);
+}
+
+.payroll-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+}
+
+.payroll-row .lbl { font-size: 0.82rem; color: var(--text-dim); }
+.payroll-row .val { font-size: 0.86rem; font-weight: 700; }
+
+.wallet-note {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-align: center;
+    padding: 4px 12px;
+}
+</style>
 </head>
-
 <body>
 
-<div class="wallet-container">
+<svg width="0" height="0" style="position:absolute">
+    <defs><linearGradient id="navGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7B2FF7"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>
+</svg>
 
-    <!-- Header -->
-    <header class="wallet-header">
+<div class="app">
 
-        <button id="backBtn">
-            <i class="fa-solid fa-arrow-left"></i>
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-
-        <h2>Host Wallet</h2>
-
-        <button id="notificationBtn">
-            <i class="fa-regular fa-bell"></i>
-        </button>
-
+        <h1 class="page-title">Wallet</h1>
     </header>
 
-    <!-- Diamond Balance -->
-    <section class="wallet-card">
-
-        <p>Diamond Balance</p>
-
-        <h1 id="diamondBalance">0</h1>
-
-        <span>Diamonds</span>
-
+    <section class="glass-card animate-in wallet-hero" style="margin:16px 16px 0">
+        <div class="wallet-hero-stat">
+            <span class="lbl">💎 Diamond Balance</span>
+            <span class="amt skeleton" id="diamondBalance">0</span>
+        </div>
+        <div class="wallet-hero-stat gold">
+            <span class="lbl">Today's Earnings</span>
+            <span class="amt skeleton" id="todayEarnings">0</span>
+        </div>
+        <div class="wallet-hero-stat gold">
+            <span class="lbl">This Week's Earnings</span>
+            <span class="amt skeleton" id="weekEarnings">0</span>
+        </div>
+        <div class="wallet-hero-stat">
+            <span class="lbl">Total Diamonds Earned</span>
+            <span class="amt skeleton" id="totalDiamondsEarned">0</span>
+        </div>
     </section>
 
-    <!-- Earnings -->
+    <div class="page-content">
 
-    <div class="earning-grid">
+        <section class="glass-card animate-in" style="padding:16px;animation-delay:0.06s">
+            <div class="section-title" style="margin-bottom:2px">Progress to Minimum Withdrawal</div>
+            <div class="section-subtitle">50,000 💎 = $15</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="withdrawalProgressFill"></div>
+            </div>
+            <div class="progress-caption" id="withdrawalProgressCaption">0 / 50,000 diamonds</div>
+            <div class="progress-status" id="withdrawalStatus">Keep earning to reach the minimum withdrawal.</div>
+        </section>
 
-        <div class="earning-card">
-            <small>Today's Earnings</small>
-            <h3 id="todayEarnings">0</h3>
-        </div>
+        <section class="glass-card animate-in" style="animation-delay:0.1s">
+            <div class="payroll-row">
+                <span class="lbl">Next Payroll</span>
+                <span class="val">Every Monday</span>
+            </div>
+        </section>
 
-        <div class="earning-card">
-            <small>This Week</small>
-            <h3 id="weekEarnings">0</h3>
-        </div>
-
-        <div class="earning-card">
-            <small>Total Diamonds</small>
-            <h3 id="totalDiamonds">0</h3>
-        </div>
+        <p class="wallet-note">Payroll is calculated and paid by your Agency after Vivy Admin processes it — Hosts don't generate or approve payroll directly.</p>
 
     </div>
 
-    <!-- Payroll -->
-
-    <section class="payroll-card">
-
-        <h3>Weekly Payroll</h3>
-
-        <p>
-
-            Minimum Withdrawal
-
-            <strong>
-
-                50,000 Diamonds = $15
-
-            </strong>
-
-        </p>
-
-        <div class="progress">
-
-            <div id="progressBar"></div>
-
-        </div>
-
-        <p id="progressText">
-
-            0 / 50,000 Diamonds
-
-        </p>
-
-        <div id="withdrawStatus">
-
-            Keep earning to reach the minimum withdrawal.
-
-        </div>
-
-    </section>
-
-    <!-- Next Payroll -->
-
-    <section class="next-payroll">
-
-        <h3>Next Payroll</h3>
-
-        <p>
-
-            Every Monday
-
-        </p>
-
-    </section>
-
-    <!-- Payment History -->
-
-    <section class="history-section">
-
-        <div class="section-title">
-
-            <h3>Payment History</h3>
-
-        </div>
-
-        <div id="paymentHistory">
-
-            <p class="empty">
-
-                No payment history yet.
-
-            </p>
-
-        </div>
-
-    </section>
+    <nav class="bottom-nav" aria-label="Host navigation">
+        <a href="host-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="nav-label">Home</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-messages.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nav-label">Messages</span><span class="nav-indicator"></span>
+        </a>
+        <a href="online-users.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="nav-label">Online Users</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-wallet.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+            <span class="nav-label">Wallet</span><span class="nav-indicator"></span>
+        </a>
+        <a href="host-profile.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-label">Profile</span><span class="nav-indicator"></span>
+        </a>
+    </nav>
 
 </div>
-
-<!-- Bottom Navigation -->
-
-<nav class="bottom-nav">
-
-<a href="host-dashboard.html">
-
-<i class="fa-solid fa-house"></i>
-
-<span>Home</span>
-
-</a>
-
-<a href="host-messages.html">
-
-<i class="fa-solid fa-comments"></i>
-
-<span>Messages</span>
-
-</a>
-
-<a href="online-users.html">
-
-<i class="fa-solid fa-users"></i>
-
-<span>Users</span>
-
-</a>
-
-<a href="host-wallet.html" class="active">
-
-<i class="fa-solid fa-wallet"></i>
-
-<span>Wallet</span>
-
-</a>
-
-<a href="host-profile.html">
-
-<i class="fa-solid fa-user"></i>
-
-<span>Profile</span>
-
-</a>
-
-</nav>
 
 <script type="module" src="host-wallet.js"></script>
 

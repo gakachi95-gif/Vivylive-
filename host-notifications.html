@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Notifications | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.notif-icon.message { background: linear-gradient(135deg, rgba(56,189,248,0.4), rgba(56,189,248,0.15)); }
+.notif-icon.call { background: linear-gradient(135deg, rgba(74,222,128,0.4), rgba(74,222,128,0.15)); }
+.notif-icon.missed { background: linear-gradient(135deg, rgba(248,113,113,0.4), rgba(248,113,113,0.15)); }
+.notif-icon.approved { background: linear-gradient(135deg, rgba(74,222,128,0.4), rgba(74,222,128,0.15)); }
+.notif-icon.suspended { background: linear-gradient(135deg, rgba(248,113,113,0.4), rgba(248,113,113,0.15)); }
+.notif-icon.announcement { background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(168,85,247,0.15)); }
+.notif-icon.payroll { background: linear-gradient(135deg, rgba(251,191,36,0.4), rgba(251,191,36,0.15)); }
+.notif-unread { background: rgba(168,85,247,0.06); }
+.notif-time { font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Notifications</h1>
+    </header>
+
+    <div class="page-content">
+        <section class="glass-card animate-in" id="notificationsCard">
+            <div id="notificationsList">
+                <div class="empty-state">
+                    <p>Loading notifications…</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script type="module" src="host-notifications.js"></script>
+
+</body>
+</html>

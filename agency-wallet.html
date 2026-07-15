@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Agency Wallet | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<style>
+.wallet-hero {
+    margin: 16px 16px 0;
+    padding: 26px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    position: relative;
+    overflow: hidden;
+}
+
+.wallet-hero .lbl { font-size: 0.74rem; color: rgba(255,255,255,0.85); font-weight: 600; }
+.wallet-hero .val { font-size: 2.2rem; font-weight: 800; color: #fff; margin-top: 4px; }
+
+.payout-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+}
+
+.payout-row .lbl { font-size: 0.78rem; color: var(--text-dim); }
+.payout-row .val { font-size: 0.86rem; font-weight: 700; }
+
+.info-note { font-size: 0.72rem; color: var(--text-faint); line-height: 1.5; padding: 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="page-title">Agency Wallet</div>
+    </header>
+
+    <div class="page-content">
+
+        <div class="glass-card wallet-hero animate-in">
+            <div class="lbl">Total Commission Earned (10%)</div>
+            <div class="val" id="totalCommission">$0.00</div>
+        </div>
+
+        <section class="glass-card animate-in" style="animation-delay:0.05s">
+            <div class="payout-row">
+                <span class="lbl">This Week's Commission</span>
+                <span class="val" id="weekCommission">$0.00</span>
+            </div>
+        </section>
+
+        <section class="glass-card animate-in" style="animation-delay:0.1s">
+            <div class="payout-row">
+                <span class="lbl">Next Payroll Date</span>
+                <span class="val">Every Monday</span>
+            </div>
+        </section>
+
+        <p class="info-note">
+            Vivy Admin calculates and sends payroll to your Agency. Agencies then pay their Hosts directly —
+            there's no withdrawal or payroll generation here.
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module" src="agency-wallet.js"></script>
+
+</body>
+          </html>

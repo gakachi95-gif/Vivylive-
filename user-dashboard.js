@@ -1,5 +1,5 @@
 // ======================================================
-// Vivy 💜 User Dashboard
+// Vivy ðŸ’œ User Dashboard
 // Populates the dashboard UI and wires up interactions.
 //
 // NOTE ON DATA SHAPE (adjust to match your real schema):
@@ -68,11 +68,48 @@ const hostContainers = {
 let currentUser = null;
 let currentFavorites = [];
 
+// ------------------------------------------------------
+// TEMPORARY DIAGNOSTIC â€” build marker. If this line's date
+// doesn't match the file you just deployed, the browser (or
+// GitHub Pages CDN) is still serving a stale cached copy â€”
+// hard refresh / clear cache and reload before looking for
+// bugs anywhere else.
+// ------------------------------------------------------
+console.log("Vivy user-dashboard.js build: 2026-07-16-nav-fix");
+
+// ------------------------------------------------------
+// TEMPORARY DIAGNOSTIC â€” shows a red banner at the top of the
+// page with any error message, since mobile Chrome has no
+// easy console access. Safe to remove once things are
+// confirmed working.
+// ------------------------------------------------------
+
+function showDebugBanner(label, message) {
+
+    const banner = document.createElement("div");
+    banner.style.cssText =
+        "margin:10px 16px 0;padding:12px 14px;border-radius:14px;" +
+        "background:rgba(251,113,133,0.12);border:1px solid rgba(251,113,133,0.4);" +
+        "color:#F5F3FA;font-size:0.74rem;line-height:1.5;font-family:'Poppins',sans-serif;" +
+        "position:relative;z-index:2;word-break:break-word;";
+    banner.innerHTML =
+        "<strong style=\"color:#FB7185\">Debug â€” " + label + ":</strong><br>" + message;
+
+    const target = document.querySelector(".page-content") || document.body;
+    target.prepend(banner);
+
+}
+
 // ======================================================
 // Boot
 // ======================================================
 
-init();
+init().catch((error) => {
+
+    console.error("Dashboard init failed:", error);
+    showDebugBanner("dashboard init", (error.message || String(error)));
+
+});
 
 async function init() {
 
@@ -85,16 +122,22 @@ async function init() {
 
     }
 
-    // Wire up every interactive control immediately — the person
+    // Wire up every interactive control immediately â€” the person
     // shouldn't have to wait for data to be able to tap around.
-    bindStaticControls();
-    setupProfilePhotoUpload();
-    setupPresenceTracking();
+    // Each step is isolated in its own try/catch: previously, an
+    // uncaught error in ANY one of these (or in the block below)
+    // would silently abort the rest of init() â€” including button
+    // binding â€” with nothing visible to explain why taps did
+    // nothing. That failure mode is exactly what this guards
+    // against.
+    runInitStep("bindStaticControls", bindStaticControls);
+    runInitStep("setupProfilePhotoUpload", setupProfilePhotoUpload);
+    runInitStep("setupPresenceTracking", setupPresenceTracking);
 
     // Everything data-driven loads in the background, in parallel.
     // The shell (header, wallet card, skeleton host rails) is already
     // painted the instant the HTML/CSS loaded, so this never blocks
-    // the UI — it just fills skeletons in with real content.
+    // the UI â€” it just fills skeletons in with real content.
     Promise.all([
         loadProfile().then(() => renderFavorites()),
         renderHostSection("newHosts", newHostsQuery()),
@@ -104,8 +147,33 @@ async function init() {
     ]).catch((error) => {
 
         console.error("Dashboard background load error:", error);
+        showDebugBanner("background data load", (error.code ? "[" + error.code + "] " : "") + (error.message || String(error)));
 
     });
+
+}
+
+// ------------------------------------------------------
+// TEMPORARY DIAGNOSTIC helper â€” runs an init step in
+// isolation so one broken step can never take the others
+// down with it, and surfaces the real error on-screen if it
+// does fail.
+// ------------------------------------------------------
+
+function runInitStep(label, fn) {
+
+    try {
+
+        fn();
+
+    }
+
+    catch (error) {
+
+        console.error("Dashboard init step failed (" + label + "):", error);
+        showDebugBanner("init step \"" + label + "\" threw", (error.message || String(error)));
+
+    }
 
 }
 
@@ -114,9 +182,9 @@ async function init() {
 // Marks this User account "online" (and stamps lastActive)
 // while the dashboard tab is open/visible, so Hosts can see
 // them in Online Users. This is the only place in the app
-// that writes these two fields for a User account — without
+// that writes these two fields for a User account â€” without
 // it, Online Users would always be empty.
-// Best-effort only — there's no realtime presence backend
+// Best-effort only â€” there's no realtime presence backend
 // (e.g. Realtime Database onDisconnect) wired up, so this
 // relies on visibility/unload events rather than a true
 // server-side disconnect signal.
@@ -149,6 +217,81 @@ function setupPresenceTracking() {
 // Profile
 // ======================================================
 
+// ------------------------------------------------------
+// Clears every skeleton in the header + balance card with a
+// safe fallback. Used whenever the "accounts/{uid}" read
+// fails or comes back empty, so the UI never gets stuck
+// mid-shimmer forever (see loadProfile below).
+// ------------------------------------------------------
+
+function clearProfileSkeletons() {
+
+    if (userPhotoEl) {
+
+        userPhotoEl.src = userPhotoEl.getAttribute("src") || "assets/default-avatar.png";
+        userPhotoEl.classList.remove("skeleton");
+
+    }
+
+    if (usernameEl) {
+
+        usernameEl.textContent = usernameEl.textContent?.trim() || "Vivy User";
+        usernameEl.classList.remove("skeleton");
+
+    }
+
+    if (userUidEl) {
+
+        userUidEl.textContent = currentUser?.uid || "â€”";
+        userUidEl.classList.remove("skeleton");
+
+    }
+
+    if (coinBalanceEl) {
+
+        coinBalanceEl.textContent = "0";
+        coinBalanceEl.classList.remove("skeleton");
+
+    }
+
+    if (walletBalanceEl) {
+
+        walletBalanceEl.textContent = "0.00";
+        walletBalanceEl.classList.remove("skeleton");
+
+    }
+
+}
+
+// ------------------------------------------------------
+// TEMPORARY DIAGNOSTIC â€” surfaces the real Firebase error
+// directly on-screen. Mobile Chrome has no easy console
+// access, so this is the fastest way to see *why*
+// accounts/{uid} failed to load. Safe to remove once the
+// root cause (rules vs. missing doc) is confirmed â€” it only
+// renders when loadProfile actually fails.
+// ------------------------------------------------------
+
+// ------------------------------------------------------
+// Uses the shared showDebugBanner (defined near the top of
+// this file) to report profile load failures.
+// ------------------------------------------------------
+
+function showProfileErrorBanner(message) {
+
+    if (document.getElementById("vivyDebugBanner")) {
+
+        return;
+
+    }
+
+    showDebugBanner("profile failed to load", message);
+
+    document.querySelector(".page-content")?.firstElementChild
+        ?.setAttribute("id", "vivyDebugBanner");
+
+}
+
 async function loadProfile() {
 
     try {
@@ -157,6 +300,10 @@ async function loadProfile() {
 
         if (!profile) {
 
+            const message = "No accounts/" + currentUser.uid + " document was found for this signed-in user.";
+            console.error("Failed to load profile:", message);
+            clearProfileSkeletons();
+            showProfileErrorBanner(message);
             return;
 
         }
@@ -235,6 +382,8 @@ async function loadProfile() {
     catch (error) {
 
         console.error("Failed to load profile:", error);
+        clearProfileSkeletons();
+        showProfileErrorBanner((error.code ? "[" + error.code + "] " : "") + (error.message || String(error)));
 
     }
 
@@ -363,7 +512,7 @@ async function uploadProfilePhoto(file) {
 
         console.error("Profile photo upload failed:", error);
 
-        // Upload failed — keep the previous photo in place.
+        // Upload failed â€” keep the previous photo in place.
         if (userPhotoEl && previousSrc) {
 
             userPhotoEl.src = previousSrc;
@@ -838,8 +987,8 @@ function bindStaticControls() {
     document.getElementById("copyReferralBtn")
         ?.addEventListener("click", shareReferralCode);
 
-    // Profile photo → tap opens the image picker (see setupProfilePhotoUpload)
-    // Username / UID block → profile.html
+    // Profile photo â†’ tap opens the image picker (see setupProfilePhotoUpload)
+    // Username / UID block â†’ profile.html
     document.getElementById("headerIdBlock")
         ?.addEventListener("click", () => {
 
@@ -847,8 +996,8 @@ function bindStaticControls() {
 
         });
 
-    // Wallet card → wallet.html, unless the tap landed on the coin
-    // sub-item (→ buy-coins.html) or the wallet sub-item (→ wallet.html)
+    // Wallet card â†’ wallet.html, unless the tap landed on the coin
+    // sub-item (â†’ buy-coins.html) or the wallet sub-item (â†’ wallet.html)
     document.getElementById("walletCard")
         ?.addEventListener("click", (event) => {
 
@@ -878,7 +1027,7 @@ function bindStaticControls() {
 
         });
 
-    // Invite card → invite.html, unless the tap is the copy-code button
+    // Invite card â†’ invite.html, unless the tap is the copy-code button
     document.getElementById("inviteCard")
         ?.addEventListener("click", (event) => {
 
@@ -933,7 +1082,7 @@ async function shareReferralCode() {
         try {
 
             await navigator.share({
-                title: "Join me on Vivy 💜",
+                title: "Join me on Vivy ðŸ’œ",
                 text: `Use my code ${code} to join Vivy!`
             });
 
@@ -1144,5 +1293,5 @@ async function toggleFavorite(hostUid, buttonEl) {
 
 }
 
-// (no full-screen loading overlay anymore — the shell paints instantly
+// (no full-screen loading overlay anymore â€” the shell paints instantly
 // and skeletons handle the in-between state)

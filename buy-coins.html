@@ -84,19 +84,27 @@
         <div class="coin-packages" id="coinPackages"></div>
 
         <p style="font-size:0.7rem;color:var(--text-faint);text-align:center;padding:0 8px">
-            Payments are simulated in this build. Real payment processing plugs in here later.
+            Secure payment powered by Paystack. Coins are added to your balance immediately after payment is confirmed.
         </p>
 
     </div>
 
 </div>
 
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
 import { db } from "./firebase-config.js";
-import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, updateDoc, increment, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { showToast, goBack, formatNumber } from "./ui-helpers.js";
+
+// ======================================================
+// Paystack public key
+// NOTE: this is the PUBLIC key only — safe to expose client-side.
+// The secret key must never appear in frontend code.
+// ======================================================
+const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
 
 const PACKAGES = [
     { coins: 100, price: 0.99 },
@@ -127,7 +135,7 @@ function renderPackages() {
             <div class="coin-qty">💜 ${formatNumber(pkg.coins)}</div>
             <div class="coin-price">$${pkg.price.toFixed(2)}</div>
         `;
-        el.addEventListener("click", () => purchasePackage(pkg, el));
+        el.addEventListener("click", () => startPayment(pkg, el));
         container.appendChild(el);
 
     });
@@ -156,17 +164,78 @@ async function init() {
 
 }
 
-async function purchasePackage(pkg, el) {
+// ------------------------------------------------------
+// Opens the real Paystack checkout for the tapped package.
+// Coins are ONLY credited from handlePaymentSuccess(), which
+// only runs once Paystack's popup reports a completed charge
+// — tapping a package no longer credits anything by itself.
+// ------------------------------------------------------
+
+function startPayment(pkg, el) {
 
     if (!currentUser) return;
 
     el.style.pointerEvents = "none";
     el.style.opacity = "0.6";
 
+    const handler = PaystackPop.setup({
+
+        key: PAYSTACK_PUBLIC_KEY,
+        email: currentUser.email || `${currentUser.uid}@vivy.app`,
+        amount: Math.round(pkg.price * 100), // smallest currency unit
+        currency: "USD",
+        ref: `vivy_${currentUser.uid}_${Date.now()}`,
+
+        metadata: {
+            uid: currentUser.uid,
+            coins: pkg.coins
+        },
+
+        callback: (response) => {
+
+            // NOTE: this confirms the Paystack popup completed, but for a
+            // production launch the coin credit below should instead be
+            // triggered by a server-side webhook (Cloud Function) that
+            // verifies `response.reference` against Paystack's API using
+            // the SECRET key — never trust the client alone for the
+            // credit step. Wired here client-side because this project
+            // has no backend/Cloud Functions available.
+            handlePaymentSuccess(pkg, response, el);
+
+        },
+
+        onClose: () => {
+
+            el.style.pointerEvents = "";
+            el.style.opacity = "";
+
+        }
+
+    });
+
+    handler.openIframe();
+
+}
+
+async function handlePaymentSuccess(pkg, response, el) {
+
     try {
 
         await updateDoc(doc(db, "accounts", currentUser.uid), {
             coins: increment(pkg.coins)
+        });
+
+        await addDoc(collection(db, "recharges"), {
+
+            uid: currentUser.uid,
+            reference: response.reference,
+            coins: pkg.coins,
+            bonus: 0,
+            totalCoins: pkg.coins,
+            amountUsd: pkg.price,
+            status: "success",
+            createdAt: serverTimestamp()
+
         });
 
         const balanceEl = document.getElementById("coinBalanceAmt");
@@ -179,8 +248,8 @@ async function purchasePackage(pkg, el) {
 
     catch (error) {
 
-        console.error("Purchase failed:", error);
-        showToast("Purchase failed. Please try again.");
+        console.error("Failed to credit coins after payment:", error);
+        showToast("Payment succeeded but crediting failed — contact support.");
 
     }
 

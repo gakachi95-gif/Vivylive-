@@ -1,5 +1,5 @@
 // ======================================================
-// Vivy 💜 Authentication Service
+// Vivy ðŸ’œ Authentication Service
 // ======================================================
 
 import { auth, db } from "./firebase-config.js";
@@ -111,7 +111,7 @@ export async function getCurrentProfile(uid) {
 }
 
 // ======================================================
-// HOST SYSTEM — Agency + Host account functions
+// HOST SYSTEM â€” Agency + Host account functions
 // Additive only. Hosts live in their own "hosts" Firestore
 // collection (never mixed with "accounts"), keyed by the
 // same Firebase Auth uid used everywhere else in the app.
@@ -164,7 +164,7 @@ export async function getAgencyByCode(invitationCode) {
 // A Host account can only be created against a valid
 // Agency invitation. Creates the Firebase Auth user, then
 // writes the Host's Firestore document with status
-// "pending" — Hosts always start pending Vivy Admin
+// "pending" â€” Hosts always start pending Vivy Admin
 // verification and cannot receive calls, appear online, or
 // appear in Browse Hosts until approved.
 // ======================================================
@@ -199,7 +199,7 @@ export async function registerHost(hostData) {
         gender: hostData.gender,
         dateOfBirth: hostData.dob,
 
-        // Agency relationship — a Host belongs to exactly one
+        // Agency relationship â€” a Host belongs to exactly one
         // Agency for life. Only Vivy Admin can transfer a Host
         // to another Agency (future Admin Dashboard feature).
         agencyId: agency.agencyId,
@@ -209,7 +209,7 @@ export async function registerHost(hostData) {
         role: "host",
         status: "pending", // pending | approved | rejected | suspended
 
-        // Presence — pending Hosts always start offline and stay
+        // Presence â€” pending Hosts always start offline and stay
         // that way until Vivy Admin approves them.
         isOnline: false,
         callState: "offline", // future-ready: offline | online | busy
@@ -220,7 +220,7 @@ export async function registerHost(hostData) {
         bio: "",
         languages: [],
 
-        // Economy — Diamonds only, never Coins. See audio-call.js /
+        // Economy â€” Diamonds only, never Coins. See audio-call.js /
         // video-call.js for how these are credited during calls.
         diamonds: 0,
         totalDiamondsEarned: 0,
@@ -228,7 +228,7 @@ export async function registerHost(hostData) {
         weeklyDiamonds: 0,
         paymentHistory: [],
 
-        // Future Ready — reserved for the upcoming "Go Live" feature.
+        // Future Ready â€” reserved for the upcoming "Go Live" feature.
         // Left as false/empty so it can be wired up later without any
         // restructuring of this document.
         isLive: false,
@@ -267,9 +267,9 @@ export async function getHostProfile(uid) {
 }
 
 // ======================================================
-// AGENCY SYSTEM — Agency registration + profile lookup
+// AGENCY SYSTEM â€” Agency registration + profile lookup
 // Additive only. Agencies never self-register through the
-// normal /auth.html flow — Vivy Admin shares a dedicated
+// normal /auth.html flow â€” Vivy Admin shares a dedicated
 // agency-register.html link. New Agencies always start
 // approved: false and cannot open agency-dashboard.html
 // until Vivy Admin flips that flag (see agency-guard.js).
@@ -369,7 +369,7 @@ export async function registerAgency(agencyData) {
         role: "agency",
 
         // Vivy Admin must flip this to true before the Agency can log
-        // into agency-dashboard.html — see AGENCY APPROVAL in the spec.
+        // into agency-dashboard.html â€” see AGENCY APPROVAL in the spec.
         approved: false,
 
         // Kept alongside "approved" so Vivy Admin can also suspend/ban
@@ -402,4 +402,15 @@ export async function getAgencyProfile(uid) {
 
     const snap =
         await getDoc(
-            doc(d
+            doc(db, "agencies", uid)
+        );
+
+    if (!snap.exists()) {
+
+        return null;
+
+    }
+
+    return snap.data();
+
+}

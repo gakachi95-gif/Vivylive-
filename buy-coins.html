@@ -95,52 +95,35 @@
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
-import { db } from "./firebase-config.js";
-import { doc, updateDoc, increment, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { showToast, goBack, formatNumber } from "./ui-helpers.js";
+import { app, db } from "./firebase-config.js";
+import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-functions.js";
+import { showToast, goBack, formatNumber, formatUsd } from "./ui-helpers.js";
 
 // ======================================================
 // Paystack public key
 // NOTE: this is the PUBLIC key only — safe to expose client-side.
-// The secret key must never appear in frontend code.
+// The secret key lives only in the Cloud Functions environment
+// (see functions/index.js) and never reaches the browser.
+//
+// Packages now come from the SAME "coinPackages" collection
+// admin-coins.js manages and recharge.html reads — this page no
+// longer keeps its own separate hardcoded price list. Crediting
+// is server-verified the same way too (see verifyPaystackTransaction
+// in functions/index.js) instead of trusting the client.
 // ======================================================
 const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
 
-const PACKAGES = [
-    { coins: 100, price: 0.99 },
-    { coins: 550, price: 4.99 },
-    { coins: 1200, price: 9.99, best: true },
-    { coins: 2500, price: 19.99 },
-    { coins: 6500, price: 49.99 },
-    { coins: 14000, price: 99.99 }
-];
+const functionsClient = getFunctions(app);
+const verifyPaystackTransaction = httpsCallable(functionsClient, "verifyPaystackTransaction");
 
 let currentUser = null;
+let currentProfile = null;
+let localRate = null;
 
 document.getElementById("backBtn").addEventListener("click", () => goBack("wallet.html"));
 
-renderPackages();
 init();
-
-function renderPackages() {
-
-    const container = document.getElementById("coinPackages");
-
-    PACKAGES.forEach((pkg) => {
-
-        const el = document.createElement("div");
-        el.className = "glass-card coin-package" + (pkg.best ? " best-value" : "");
-        el.innerHTML = `
-            ${pkg.best ? '<span class="badge-best">Best Value</span>' : ""}
-            <div class="coin-qty">💜 ${formatNumber(pkg.coins)}</div>
-            <div class="coin-price">$${pkg.price.toFixed(2)}</div>
-        `;
-        el.addEventListener("click", () => startPayment(pkg, el));
-        container.appendChild(el);
-
-    });
-
-}
 
 async function init() {
 
@@ -149,26 +132,96 @@ async function init() {
 
     try {
 
-        const profile = await getCurrentProfile(currentUser.uid);
+        currentProfile = await getCurrentProfile(currentUser.uid);
+
         const el = document.getElementById("coinBalanceAmt");
-        el.textContent = formatNumber(profile?.coins ?? 0);
+        el.textContent = formatNumber(currentProfile?.coins ?? 0);
         el.classList.remove("skeleton");
+
+        await loadLocalRate();
+        await renderPackages();
 
     }
 
     catch (error) {
 
-        console.error("Failed to load coin balance:", error);
+        console.error("Failed to load buy-coins screen:", error);
+        showToast("Couldn't load Coin packages.");
 
     }
 
 }
 
+// Same lookup recharge.html uses — USD stays the base price,
+// this only adds a local-currency estimate underneath it.
+async function loadLocalRate() {
+
+    const country = currentProfile?.country;
+    if (!country) return;
+
+    try {
+
+        const snap = await getDocs(query(collection(db, "exchangeRates"), where("country", "==", country)));
+        const match = snap.docs.map((d) => ({ id: d.id, ...d.data() })).find((rate) => rate.enabled !== false);
+
+        if (match) localRate = match;
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to load exchange rate:", error);
+
+    }
+
+}
+
+function localPriceLabel(priceUsd) {
+
+    if (!localRate || !localRate.rateToUsd) return "";
+
+    const converted = priceUsd * Number(localRate.rateToUsd);
+    const formatted = converted.toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+    return `≈ ${localRate.symbol || ""}${formatted} ${localRate.currencyCode || ""}`;
+
+}
+
+async function renderPackages() {
+
+    const container = document.getElementById("coinPackages");
+    container.innerHTML = "";
+
+    const snap = await getDocs(query(collection(db, "coinPackages"), orderBy("priceUsd", "asc")));
+
+    const packages = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((pkg) => pkg.enabled !== false);
+
+    packages.forEach((pkg) => {
+
+        const localLabel = localPriceLabel(pkg.priceUsd);
+
+        const el = document.createElement("div");
+        el.className = "glass-card coin-package" + (pkg.best ? " best-value" : "");
+        el.innerHTML = `
+            ${pkg.best ? '<span class="badge-best">Best Value</span>' : ""}
+            <div class="coin-qty">💜 ${formatNumber(pkg.coins)}${pkg.bonus ? ` <span style="color:var(--gold);font-weight:600">+${formatNumber(pkg.bonus)}</span>` : ""}</div>
+            <div class="coin-price">${formatUsd(pkg.priceUsd)}</div>
+            ${localLabel ? `<div style="font-size:0.66rem;color:var(--text-faint)">${localLabel}</div>` : ""}
+        `;
+        el.addEventListener("click", () => startPayment(pkg, el));
+        container.appendChild(el);
+
+    });
+
+}
+
 // ------------------------------------------------------
 // Opens the real Paystack checkout for the tapped package.
-// Coins are ONLY credited from handlePaymentSuccess(), which
-// only runs once Paystack's popup reports a completed charge
-// — tapping a package no longer credits anything by itself.
+// Coins are ONLY credited once verifyPaystackTransaction (a
+// Cloud Function) has re-verified the reference server-side —
+// tapping a package never credits anything by itself.
 // ------------------------------------------------------
 
 function startPayment(pkg, el) {
@@ -182,24 +235,19 @@ function startPayment(pkg, el) {
 
         key: PAYSTACK_PUBLIC_KEY,
         email: currentUser.email || `${currentUser.uid}@vivy.app`,
-        amount: Math.round(pkg.price * 100), // smallest currency unit
+        amount: Math.round(pkg.priceUsd * 100), // smallest currency unit
         currency: "USD",
         ref: `vivy_${currentUser.uid}_${Date.now()}`,
 
         metadata: {
             uid: currentUser.uid,
-            coins: pkg.coins
+            packageId: pkg.id,
+            country: currentProfile?.country || null,
+            exchangeRateUsed: localRate?.rateToUsd || null
         },
 
         callback: (response) => {
 
-            // NOTE: this confirms the Paystack popup completed, but for a
-            // production launch the coin credit below should instead be
-            // triggered by a server-side webhook (Cloud Function) that
-            // verifies `response.reference` against Paystack's API using
-            // the SECRET key — never trust the client alone for the
-            // credit step. Wired here client-side because this project
-            // has no backend/Cloud Functions available.
             handlePaymentSuccess(pkg, response, el);
 
         },
@@ -221,35 +269,21 @@ async function handlePaymentSuccess(pkg, response, el) {
 
     try {
 
-        await updateDoc(doc(db, "accounts", currentUser.uid), {
-            coins: increment(pkg.coins)
-        });
-
-        await addDoc(collection(db, "recharges"), {
-
-            uid: currentUser.uid,
-            reference: response.reference,
-            coins: pkg.coins,
-            bonus: 0,
-            totalCoins: pkg.coins,
-            amountUsd: pkg.price,
-            status: "success",
-            createdAt: serverTimestamp()
-
-        });
+        const result = await verifyPaystackTransaction({ reference: response.reference });
+        const totalCoins = result.data?.totalCoins ?? (Number(pkg.coins) + Number(pkg.bonus || 0));
 
         const balanceEl = document.getElementById("coinBalanceAmt");
         const current = Number(balanceEl.textContent.replace(/,/g, "")) || 0;
-        balanceEl.textContent = formatNumber(current + pkg.coins);
+        balanceEl.textContent = formatNumber(current + totalCoins);
 
-        showToast(`+${formatNumber(pkg.coins)} coins added!`);
+        showToast(`+${formatNumber(totalCoins)} coins added!`);
 
     }
 
     catch (error) {
 
-        console.error("Failed to credit coins after payment:", error);
-        showToast("Payment succeeded but crediting failed — contact support.");
+        console.error("Payment verification failed:", error);
+        showToast("Payment received but verification failed — contact support with your reference.");
 
     }
 

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Settings | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<link rel="stylesheet" href="admin-shared.css">
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <h1 class="page-title">Settings</h1>
+    </header>
+
+    <div class="page-content">
+
+        <form id="settingsForm">
+
+            <div class="section-title" style="padding:4px">Platform</div>
+            <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                <div class="field-group" style="margin:0">
+                    <label class="field-label" for="fPlatformName">Platform Name</label>
+                    <input type="text" id="fPlatformName" class="field-input" placeholder="Vivy">
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                        <div class="field-label" style="margin:0">Maintenance Mode</div>
+                        <div class="admin-note" style="padding:0">Blocks all sign-ins except Admin</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fMaintenance">
+                        <span class="track"></span>
+                    </label>
+                </div>
+
+            </section>
+
+            <div class="section-title" style="padding:4px;margin-top:6px">Withdrawal Settings</div>
+            <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                <div class="field-group" style="margin:0">
+                    <label class="field-label" for="fMinWithdrawal">Minimum Withdrawal (Diamonds)</label>
+                    <input type="number" id="fMinWithdrawal" class="field-input" min="0" placeholder="50000">
+                </div>
+
+                <div class="field-group" style="margin:0">
+                    <label class="field-label" for="fCommissionRate">Agency Commission (%)</label>
+                    <input type="number" id="fCommissionRate" class="field-input" min="0" max="100" step="0.1" placeholder="10">
+                </div>
+
+            </section>
+
+            <div class="section-title" style="padding:4px;margin-top:6px">Coins</div>
+            <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                <div class="field-group" style="margin:0">
+                    <label class="field-label" for="fBonusCoins">Global Bonus Coins (%)</label>
+                    <input type="number" id="fBonusCoins" class="field-input" min="0" max="100" step="1" placeholder="0">
+                </div>
+
+                <a href="admin-coins.html" class="btn btn-primary-outline btn-block">Manage Coin Packages</a>
+
+            </section>
+
+            <div class="section-title" style="padding:4px;margin-top:6px">Notifications</div>
+            <section class="glass-card animate-in" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span class="field-label" style="margin:0">New Signup Alerts</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fNotifySignups" checked>
+                        <span class="track"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span class="field-label" style="margin:0">Transaction Alerts</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fNotifyTx" checked>
+                        <span class="track"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span class="field-label" style="margin:0">Support Ticket Alerts</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="fNotifyTickets" checked>
+                        <span class="track"></span>
+                    </label>
+                </div>
+
+            </section>
+
+            <button type="submit" class="btn btn-primary-solid btn-block" id="saveBtn" style="margin-top:16px">Save Settings</button>
+
+        </form>
+
+    </div>
+
+    <!-- ADMIN BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" aria-label="Admin navigation">
+        <a href="admin-dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="nav-label">Dashboard</span><span class="nav-indicator"></span>
+        </a>
+        <a href="admin-management.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span class="nav-label">Management</span><span class="nav-indicator"></span>
+        </a>
+        <a href="admin-payroll.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            <span class="nav-label">Payroll</span><span class="nav-indicator"></span>
+        </a>
+        <a href="admin-reports.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <span class="nav-label">Reports</span><span class="nav-indicator"></span>
+        </a>
+        <a href="admin-settings.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="nav-label">Settings</span><span class="nav-indicator"></span>
+        </a>
+    </nav>
+
+</div>
+
+<script type="module" src="admin-settings.js"></script>
+
+</body>
+                          </html>

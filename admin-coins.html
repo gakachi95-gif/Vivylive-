@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Coin Packages | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<link rel="stylesheet" href="admin-shared.css">
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Coin Packages</h1>
+    </header>
+
+    <div class="page-content" style="padding-top:12px">
+
+        <p class="admin-note">All packages are priced in USD — every user pays the local-currency equivalent but always receives the same amount of Coins.</p>
+
+        <section class="glass-card animate-in" id="packageList" style="padding:4px"></section>
+
+        <p class="admin-note" id="emptyState" hidden>No coin packages yet. Tap + to add one.</p>
+
+    </div>
+
+</div>
+
+<!-- ADD / EDIT PACKAGE MODAL -->
+<div class="admin-modal-backdrop" id="formBackdrop">
+    <div class="admin-modal">
+        <h3 id="formTitle">Add Package</h3>
+
+        <form id="packageForm" style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+
+            <div class="admin-form-row">
+                <div class="field-group">
+                    <label class="field-label" for="fCoins">Coins</label>
+                    <input type="number" id="fCoins" class="field-input" placeholder="10000" min="1" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="fPrice">Price (USD)</label>
+                    <input type="number" id="fPrice" class="field-input" placeholder="10" min="0.01" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label" for="fBonus">Bonus Coins</label>
+                <input type="number" id="fBonus" class="field-input" placeholder="0" min="0">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;padding:2px 2px">
+                <input type="checkbox" id="fBest" style="width:18px;height:18px;accent-color:var(--secondary)">
+                <span class="field-label" style="margin:0">Mark as Best Value</span>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 2px">
+                <span class="field-label" style="margin:0">Enabled</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fEnabled" checked>
+                    <span class="track"></span>
+                </label>
+            </div>
+
+            <p class="field-error" id="formError" style="display:none;color:var(--danger);font-size:0.76rem"></p>
+
+            <div class="modal-actions" style="margin-top:4px">
+                <button type="button" class="btn btn-primary-outline" id="formCancelBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary-solid" id="formSaveBtn">Save</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<button type="button" class="admin-fab" id="addBtn" aria-label="Add Package">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<script type="module" src="admin-coins.js"></script>
+
+</body>
+  </html>

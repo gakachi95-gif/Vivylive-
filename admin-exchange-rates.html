@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Exchange Rates | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<link rel="stylesheet" href="admin-shared.css">
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Exchange Rates</h1>
+    </header>
+
+    <div class="page-content" style="padding-top:12px">
+
+        <p class="admin-note">USD is Vivy's base currency. Coin Packages are always priced in USD — every currency below controls the local price users see and pay, without changing how many Coins they receive.</p>
+
+        <section class="glass-card animate-in" id="rateList" style="padding:4px"></section>
+
+        <p class="admin-note" id="emptyState" hidden>No currencies added yet. Tap + to add one.</p>
+
+    </div>
+
+</div>
+
+<!-- ADD / EDIT CURRENCY MODAL -->
+<div class="admin-modal-backdrop" id="formBackdrop">
+    <div class="admin-modal">
+        <h3 id="formTitle">Add Currency</h3>
+
+        <form id="rateForm" style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+
+            <div class="field-group">
+                <label class="field-label" for="fCountry">Country</label>
+                <input type="text" id="fCountry" class="field-input" placeholder="Nigeria" required>
+            </div>
+
+            <div class="admin-form-row">
+                <div class="field-group">
+                    <label class="field-label" for="fCurrencyName">Currency Name</label>
+                    <input type="text" id="fCurrencyName" class="field-input" placeholder="Naira" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="fCurrencyCode">Currency Code</label>
+                    <input type="text" id="fCurrencyCode" class="field-input" placeholder="NGN" maxlength="6" required>
+                </div>
+            </div>
+
+            <div class="admin-form-row">
+                <div class="field-group">
+                    <label class="field-label" for="fSymbol">Currency Symbol</label>
+                    <input type="text" id="fSymbol" class="field-input" placeholder="₦" required>
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="fRate">1 USD =</label>
+                    <input type="number" id="fRate" class="field-input" placeholder="1650" min="0" step="0.0001" required>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 2px">
+                <span class="field-label" style="margin:0">Enabled</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fEnabled" checked>
+                    <span class="track"></span>
+                </label>
+            </div>
+
+            <p class="field-error" id="formError" style="display:none;color:var(--danger);font-size:0.76rem"></p>
+
+            <div class="modal-actions" style="margin-top:4px">
+                <button type="button" class="btn btn-primary-outline" id="formCancelBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary-solid" id="formSaveBtn">Save</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<button type="button" class="admin-fab" id="addBtn" aria-label="Add Currency">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<script type="module" src="admin-exchange-rates.js"></script>
+
+</body>
+  </html>

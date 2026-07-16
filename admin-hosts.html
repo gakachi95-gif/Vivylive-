@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Host Management | Vivy 💜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app-shared.css">
+<link rel="stylesheet" href="admin-shared.css">
+</head>
+<body>
+
+<div class="app" style="max-width:480px;margin:0 auto;position:relative;z-index:1">
+
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="backBtn" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="page-title">Host Management</h1>
+    </header>
+
+    <section class="glass-card animate-in admin-search" style="margin:12px 16px 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search username, UID or agency">
+    </section>
+
+    <div class="filter-tabs" style="margin:10px 16px 0" id="filterTabs">
+        <button type="button" class="filter-tab active" data-filter="all">All</button>
+        <button type="button" class="filter-tab" data-filter="pending">Pending</button>
+        <button type="button" class="filter-tab" data-filter="approved">Approved</button>
+        <button type="button" class="filter-tab" data-filter="rejected">Rejected</button>
+        <button type="button" class="filter-tab" data-filter="suspended">Suspended</button>
+        <button type="button" class="filter-tab" data-filter="banned">Banned</button>
+    </div>
+
+    <div class="page-content" style="padding-top:10px">
+
+        <p class="admin-note" id="resultCount"></p>
+
+        <section class="glass-card animate-in" id="hostList" style="padding:4px 4px"></section>
+
+        <p class="admin-note" id="emptyState" hidden>No hosts found.</p>
+
+    </div>
+
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="admin-modal-backdrop" id="confirmBackdrop">
+    <div class="admin-modal">
+        <h3 id="confirmTitle">Are you sure?</h3>
+        <p id="confirmBody"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary-outline" id="confirmCancelBtn">Cancel</button>
+            <button type="button" class="btn btn-primary-solid" id="confirmOkBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="admin-hosts.js"></script>
+
+</body>
+          </html>

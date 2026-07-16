@@ -1,0 +1,407 @@
+/* ==========================================================================
+   Vivy 💜 Admin Shared Styles
+   Reused across every admin-*.html page. Extends app-shared.css with
+   Admin-only components (stat grid, quick actions, management cards,
+   pills, modals, tables). Same purple glass theme, same tokens —
+   nothing here redefines anything from app-shared.css.
+========================================================================== */
+
+/* ==========================================================================
+   ADMIN HEADER (dashboard-style header w/ avatar + welcome + notif bell)
+========================================================================== */
+.admin-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.admin-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--glass-border);
+}
+
+.admin-header-text { flex: 1; min-width: 0; }
+
+.admin-header-text .greet { font-size: 0.72rem; color: var(--text-faint); }
+.admin-header-text .name {
+    font-size: 0.98rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notif-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    border: 2px solid var(--bg-bottom);
+}
+
+/* ==========================================================================
+   STAT GRID (dashboard overview cards)
+========================================================================== */
+.stat-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+}
+
+.stat-box .lbl { font-size: 0.7rem; color: var(--text-faint); font-weight: 500; }
+.stat-box .val { font-size: 1.18rem; font-weight: 800; color: var(--text); }
+.stat-box .val.online { color: var(--online); }
+.stat-box .val.gold { color: var(--gold); }
+.stat-box .val.verified { color: var(--verified); }
+.stat-box .val.danger { color: var(--danger); }
+
+/* ==========================================================================
+   QUICK ACTIONS GRID
+========================================================================== */
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.quick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    padding: 6px 2px;
+    transition: transform 0.14s ease;
+}
+
+.quick-item:active { transform: scale(0.92); }
+
+.quick-item .icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(123,47,247,0.35), rgba(168,85,247,0.18));
+}
+
+.quick-item .icon-wrap svg { width: 21px; height: 21px; stroke: #fff; }
+.quick-item span:last-child { font-size: 0.66rem; font-weight: 500; color: var(--text-dim); line-height: 1.2; }
+
+/* ==========================================================================
+   SEARCH BAR
+========================================================================== */
+.admin-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+}
+
+.admin-search svg { width: 18px; height: 18px; stroke: var(--text-faint); flex-shrink: 0; }
+
+.admin-search input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 0.86rem;
+    font-family: inherit;
+}
+
+.admin-search input::placeholder { color: var(--text-faint); }
+
+/* ==========================================================================
+   FILTER TABS
+========================================================================== */
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+
+.filter-tabs::-webkit-scrollbar { display: none; }
+
+.filter-tab {
+    flex-shrink: 0;
+    padding: 8px 15px;
+    border-radius: 999px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    color: #fff;
+}
+
+/* ==========================================================================
+   ADMIN NOTE / RESULT COUNT
+========================================================================== */
+.admin-note {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    padding: 0 6px;
+}
+
+/* ==========================================================================
+   MANAGEMENT CARDS (users / hosts / agencies lists)
+========================================================================== */
+.mgmt-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+}
+
+.mgmt-card + .mgmt-card { border-top: 1px solid var(--glass-border); }
+
+.mgmt-full { width: 100%; }
+
+.mgmt-photo {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.mgmt-photo img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mgmt-photo .dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    border: 2px solid var(--bg-bottom);
+}
+
+.mgmt-photo .dot.online { background: var(--online); }
+
+.mgmt-text { flex: 1; min-width: 0; }
+
+.mgmt-name {
+    font-size: 0.86rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mgmt-meta {
+    font-size: 0.68rem;
+    color: var(--text-faint);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mgmt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.btn-mini {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text);
+    cursor: pointer;
+    transition: transform 0.14s ease, background 0.2s ease;
+}
+
+.btn-mini:active { transform: scale(0.93); }
+
+.btn-mini.approve { background: rgba(74, 222, 128, 0.16); border-color: rgba(74, 222, 128, 0.4); color: var(--online); }
+.btn-mini.reject { background: rgba(251, 113, 133, 0.14); border-color: rgba(251, 113, 133, 0.35); color: var(--danger); }
+.btn-mini.suspend { background: rgba(251, 191, 36, 0.14); border-color: rgba(251, 191, 36, 0.35); color: var(--gold); }
+.btn-mini.ban { background: rgba(251, 113, 133, 0.22); border-color: rgba(251, 113, 133, 0.5); color: var(--danger); }
+.btn-mini.delete { background: rgba(251, 113, 133, 0.22); border-color: rgba(251, 113, 133, 0.5); color: var(--danger); }
+
+/* ==========================================================================
+   STATUS PILLS
+========================================================================== */
+.pill {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.pill.active, .pill.approved, .pill.paid, .pill.success, .pill.open, .pill.enabled { background: rgba(74,222,128,0.18); color: var(--online); }
+.pill.pending { background: rgba(251,191,36,0.18); color: var(--gold); }
+.pill.suspended, .pill.disabled { background: rgba(148,148,170,0.2); color: var(--text-dim); }
+.pill.rejected, .pill.banned, .pill.failed, .pill.closed { background: rgba(251,113,133,0.18); color: var(--danger); }
+
+/* ==========================================================================
+   MODAL
+========================================================================== */
+.admin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 5, 16, 0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.admin-modal-backdrop.show { opacity: 1; pointer-events: auto; }
+
+.admin-modal {
+    width: 100%;
+    max-width: 480px;
+    background: #17102B;
+    border: 1px solid var(--glass-border);
+    border-radius: 22px 22px 0 0;
+    padding: 22px 20px calc(22px + var(--safe-bottom));
+    transform: translateY(16px);
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.admin-modal-backdrop.show .admin-modal { transform: translateY(0); }
+
+.admin-modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+.admin-modal p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.modal-actions .btn { flex: 1; padding: 12px; font-size: 0.82rem; }
+
+/* ==========================================================================
+   FORM ROW (settings/exchange-rate/coin-package edit forms)
+========================================================================== */
+.admin-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* ==========================================================================
+   SIMPLE DATA ROW (transactions / reports / payroll line items)
+========================================================================== */
+.data-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+}
+
+.data-row + .data-row { border-top: 1px solid var(--glass-border); }
+
+.data-row .dr-main { flex: 1; min-width: 0; }
+.data-row .dr-title { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-row .dr-sub { font-size: 0.68rem; color: var(--text-faint); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-row .dr-value { font-size: 0.86rem; font-weight: 700; flex-shrink: 0; text-align: right; }
+
+/* ==========================================================================
+   TOGGLE SWITCH (enable/disable currency, package, maintenance mode)
+========================================================================== */
+.toggle-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-switch .track {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.14);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.toggle-switch .track::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.toggle-switch input:checked + .track { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+.toggle-switch input:checked + .track::before { transform: translateX(18px); }
+
+/* ==========================================================================
+   FAB (add currency / add package / add announcement)
+========================================================================== */
+.admin-fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(var(--nav-h) + 18px + var(--safe-bottom));
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(123,47,247,0.5);
+    border: none;
+    cursor: pointer;
+    z-index: 60;
+    transition: transform 0.14s ease;
+}
+
+.admin-fab:active { transform: scale(0.9); }
+.admin-fab svg { width: 24px; height: 24px; stroke: #fff; }

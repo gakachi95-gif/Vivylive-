@@ -141,25 +141,56 @@
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
-import { app, db } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
 import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-functions.js";
 import { showToast, goBack, formatNumber, formatUsd } from "./ui-helpers.js";
 
 // ======================================================
 // Paystack public key
 // NOTE: this is the PUBLIC key only — safe to expose client-side.
-// The secret key lives only in the Cloud Functions environment
-// (see functions/index.js) and never reaches the browser.
+// The secret key lives only on the Render server
+// (see server/services/paystack.js) and never reaches the browser.
 // ======================================================
 const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
+
+// ======================================================
+// Payment server base URL.
+// The Vivy payment backend used to be a Firebase Cloud
+// Function; it's now the Express server in /server deployed on
+// Render (see render.yaml). A static GitHub Pages site has no
+// environment variables of its own, so this URL is set here —
+// update it once your Render service is live.
+// ======================================================
+const PAYMENT_SERVER_URL = "https://my-render-url.onrender.com";
 
 // Packages come from the SAME "coinPackages" collection Admin
 // manages in admin-coins.js — nothing hardcoded/duplicated here
 // anymore. Exchange rates come from the SAME "exchangeRates"
 // collection admin-exchange-rates.js manages.
-const functionsClient = getFunctions(app);
-const verifyPaystackTransaction = httpsCallable(functionsClient, "verifyPaystackTransaction");
+async function verifyPaystackTransaction(reference) {
+
+    const idToken = await currentUser.getIdToken();
+
+    const response = await fetch(`${PAYMENT_SERVER_URL}/verify-payment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ reference })
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+
+        throw new Error(json.message || "Payment could not be verified.");
+
+    }
+
+    return json;
+
+}
 
 let currentUser = null;
 let currentProfile = null;
@@ -340,9 +371,9 @@ function startPayment() {
 
             // The popup completing only means Paystack accepted the card —
             // Coins are never credited from here. handlePaymentSuccess()
-            // hands the reference to the verifyPaystackTransaction Cloud
-            // Function, which re-verifies it server-side with the SECRET
-            // key before crediting anything.
+            // hands the reference to the Render payment server's
+            // POST /verify-payment, which re-verifies it server-side with
+            // the SECRET key before crediting anything.
             handlePaymentSuccess(response);
 
         },
@@ -367,8 +398,8 @@ async function handlePaymentSuccess(response) {
 
     try {
 
-        const result = await verifyPaystackTransaction({ reference: response.reference });
-        const totalCoins = result.data?.totalCoins ?? (Number(selectedPackage.coins) + Number(selectedPackage.bonus || 0));
+        const result = await verifyPaystackTransaction(response.reference);
+        const totalCoins = result.totalCoins ?? (Number(selectedPackage.coins) + Number(selectedPackage.bonus || 0));
 
         const balanceEl = document.getElementById("coinBalanceAmt");
         const current = Number(balanceEl.textContent.replace(/,/g, "")) || 0;
@@ -383,9 +414,9 @@ async function handlePaymentSuccess(response) {
     catch (error) {
 
         // A "duplicate" response (the webhook already credited this
-        // reference first) still lands here as a resolved call, not an
-        // error — httpsCallable only throws on a genuine failure, so
-        // reaching this block means verification truly failed.
+        // reference first) still resolves normally above, not as an
+        // error — verifyPaystackTransaction() only throws on a genuine
+        // failure, so reaching this block means verification truly failed.
         console.error("Payment verification failed:", error);
         showToast("Payment received but verification failed — contact support with your reference.");
 
@@ -402,4 +433,4 @@ async function handlePaymentSuccess(response) {
 </script>
 
 </body>
-            </html>
+</html>

@@ -11,8 +11,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const verifyRoute = require("./verify");
-const webhookRoute = require("./webhook");
+const verifyRoute = require("./routes/verify");
+const webhookRoute = require("./routes/webhook");
 const app = express();
 
 // ------------------------------------------------------

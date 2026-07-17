@@ -95,27 +95,52 @@
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
-import { app, db } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
 import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-functions.js";
 import { showToast, goBack, formatNumber, formatUsd } from "./ui-helpers.js";
 
 // ======================================================
 // Paystack public key
 // NOTE: this is the PUBLIC key only — safe to expose client-side.
-// The secret key lives only in the Cloud Functions environment
-// (see functions/index.js) and never reaches the browser.
+// The secret key lives only on the Render server
+// (see server/services/paystack.js) and never reaches the browser.
 //
 // Packages now come from the SAME "coinPackages" collection
 // admin-coins.js manages and recharge.html reads — this page no
 // longer keeps its own separate hardcoded price list. Crediting
-// is server-verified the same way too (see verifyPaystackTransaction
-// in functions/index.js) instead of trusting the client.
+// is server-verified the same way too (see server/routes/verify.js)
+// instead of trusting the client.
 // ======================================================
 const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
 
-const functionsClient = getFunctions(app);
-const verifyPaystackTransaction = httpsCallable(functionsClient, "verifyPaystackTransaction");
+// Same Render service recharge.html calls — update after deploying
+// (see render.yaml / server/README notes).
+const PAYMENT_SERVER_URL = "https://my-render-url.onrender.com";
+
+async function verifyPaystackTransaction(reference) {
+
+    const idToken = await currentUser.getIdToken();
+
+    const response = await fetch(`${PAYMENT_SERVER_URL}/verify-payment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ reference })
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+
+        throw new Error(json.message || "Payment could not be verified.");
+
+    }
+
+    return json;
+
+}
 
 let currentUser = null;
 let currentProfile = null;
@@ -269,8 +294,8 @@ async function handlePaymentSuccess(pkg, response, el) {
 
     try {
 
-        const result = await verifyPaystackTransaction({ reference: response.reference });
-        const totalCoins = result.data?.totalCoins ?? (Number(pkg.coins) + Number(pkg.bonus || 0));
+        const result = await verifyPaystackTransaction(response.reference);
+        const totalCoins = result.totalCoins ?? (Number(pkg.coins) + Number(pkg.bonus || 0));
 
         const balanceEl = document.getElementById("coinBalanceAmt");
         const current = Number(balanceEl.textContent.replace(/,/g, "")) || 0;

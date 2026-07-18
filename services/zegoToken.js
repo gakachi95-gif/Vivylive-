@@ -36,15 +36,34 @@ function issueZegoToken(userId) {
     // straightforward 1:1 call room. If you later want to restrict which
     // room a token can join, pass a payload object with room_id +
     // privilege here (see ZEGOCLOUD's token04 docs) instead of "".
-    const result = generateToken04(ZEGO_APP_ID, userId, secret, TOKEN_EFFECTIVE_SECONDS, "");
+    //
+    // NOTE on the return shape: the official generateToken04 does NOT
+    // return a { token, code, message } result object. On success it
+    // returns the token as a plain string; on any validation failure it
+    // THROWS a plain { errorCode, errorMessage } object (not an Error
+    // instance). Both cases are handled explicitly below.
+    let token;
 
-    if (!result || result.code !== 0 || !result.token) {
+    try {
 
-        throw new Error(`ZEGOCLOUD token generation failed: ${result?.message || "unknown error"}`);
+        token = generateToken04(ZEGO_APP_ID, userId, secret, TOKEN_EFFECTIVE_SECONDS, "");
 
     }
 
-    return { token: result.token, appId: ZEGO_APP_ID, userId };
+    catch (rawError) {
+
+        const message = rawError?.errorMessage || rawError?.message || "unknown error";
+        throw new Error(`ZEGOCLOUD token generation failed: ${message}`);
+
+    }
+
+    if (!token || typeof token !== "string") {
+
+        throw new Error("ZEGOCLOUD token generation failed: no token was returned.");
+
+    }
+
+    return { token, appId: ZEGO_APP_ID, userId };
 
 }
 

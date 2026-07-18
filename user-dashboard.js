@@ -1226,15 +1226,13 @@ function handleHostCardClick(event) {
 
     else if (event.target.closest(".audio-btn")) {
 
-        window.location.href =
-            `call.html?mode=audio&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=audio`;
+        window.location.href = `audio-call.html?hostUid=${hostUid}`;
 
     }
 
     else if (event.target.closest(".video-btn")) {
 
-        window.location.href =
-            `call.html?mode=video&hostUid=${hostUid}&callerUid=${currentUser.uid}&callType=video`;
+        window.location.href = `video-call.html?hostUid=${hostUid}`;
 
     }
 

@@ -2,22 +2,27 @@
 // Vivy 💜 Audio Call
 // audio-call.js
 //
-// Economy rules (do not change):
+// Economy rules (final billing system):
 //   • 100 coins deducted from the caller every 30s of an
 //     active (connected) call.
-//   • Every 100 coins spent credits the host 50 Diamonds
-//     (never raw coins — hosts are paid out via payroll).
+//   • The host is credited 50 Diamonds every 30s, flat —
+//     never raw coins (hosts are paid out via payroll).
 //   • Billing starts only once the call is connected and
 //     stops immediately when the call ends.
-//   • If the caller's balance can't cover the next 30s
-//     interval, billing pauses and a low-balance popup
-//     offers Recharge or End Call — never a silent alert.
+//   • Every 30s cycle is billed through a single atomic
+//     Firestore transaction (see call-billing.js) — the
+//     coin deduction, the diamond credit, and a permanent
+//     per-cycle ledger entry all happen together or not at
+//     all, and the same cycle can never be billed twice
+//     even though both the caller's and host's tabs run
+//     this billing loop independently.
+//   • If the caller can't afford the next 30s cycle, the
+//     call ends AUTOMATICALLY — a brief notice is shown,
+//     then the call ends without waiting for a tap.
 //
-// ZEGOCLOUD: this file simulates the connect handshake with
-// a timeout so the whole call/billing/logging flow works
-// today. Swap `startConnecting()`'s timeout for a real
-// "both peers joined" callback later, and call `endCall()`
-// from ZEGOCLOUD's onLeaveRoom — nothing else here changes.
+// ZEGOCLOUD: real join/leave is wired in via zego-call.js —
+// billing starts on ZEGOCLOUD's "remote joined" event and
+// ends on "remote left" / manual hangup.
 // ======================================================
 
 import { authReady } from "./auth-guard.js";
@@ -28,7 +33,6 @@ import {
     doc,
     getDoc,
     updateDoc,
-    increment,
     addDoc,
     collection,
     onSnapshot,
@@ -36,6 +40,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 import { joinCall, leaveCall, setMicMuted } from "./zego-call.js";
+import { billCycle } from "./call-billing.js";
 
 // ======================================================
 // Config
@@ -79,10 +84,13 @@ let profile = null;
 
 let hostUid = null;
 let host = null;
+let callerUid = null;
 
 let seconds = 0;
 let timer = null;
 let billingTimer = null;
+let currentCycle = 0;
+let lowBalanceAutoEndTimer = null;
 
 let callId = null;
 let callActive = false;
@@ -148,6 +156,8 @@ async function init() {
 
     if (isCaller) {
 
+        callerUid = currentUser.uid;
+
         await createCall();
 
     }
@@ -162,6 +172,29 @@ async function init() {
         }
 
         callId = existingCallId;
+
+        // The host's tab never receives the caller's UID as a URL
+        // param — read it off the call doc that createCall() (on the
+        // caller's side) already wrote.
+        try {
+
+            const callSnap = await getDoc(doc(db, "calls", callId));
+            callerUid = callSnap.exists() ? callSnap.data().callerUid : null;
+
+        }
+
+        catch (error) {
+
+            console.error("Failed to load caller UID from call doc:", error);
+
+        }
+
+        if (!callerUid) {
+
+            location.href = "host-dashboard.html";
+            return;
+
+        }
 
     }
 
@@ -235,7 +268,9 @@ async function createCall() {
 
         coinsSpent: 0,
         hostEarnings: 0,
-        diamondsEarned: 0
+        diamondsEarned: 0,
+        billedCycles: 0,
+        billingClosed: false
 
     });
 
@@ -380,65 +415,58 @@ function startTimer() {
 
 function startBilling() {
 
-    billingTimer = setInterval(() => {
-
-        if (!callActive) {
-
-            return;
-
-        }
-
-        if (currentCoins < COINS_PER_INTERVAL) {
-
-            showLowBalanceModal();
-            return;
-
-        }
-
-        chargeInterval();
-
-    }, INTERVAL_MS);
+    billingTimer = setInterval(runBillingTick, INTERVAL_MS);
 
 }
 
-async function chargeInterval() {
+async function runBillingTick() {
 
-    coinsSpentThisCall += COINS_PER_INTERVAL;
-    diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
+    if (!callActive || callEnded) {
 
-    try {
-
-        await Promise.all([
-
-            updateDoc(doc(db, "accounts", currentUser.uid), {
-                coins: increment(-COINS_PER_INTERVAL)
-            }),
-
-            // Hosts are paid in Diamonds, never raw coins — Diamonds
-            // convert to money through the weekly agency payroll.
-            updateDoc(doc(db, "hosts", hostUid), {
-                diamonds: increment(DIAMONDS_PER_INTERVAL),
-                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL),
-                todayEarnings: increment(DIAMONDS_PER_INTERVAL),
-                totalDiamondsEarned: increment(DIAMONDS_PER_INTERVAL)
-            }),
-
-            updateDoc(doc(db, "calls", callId), {
-                coinsSpent: increment(COINS_PER_INTERVAL),
-                hostEarnings: increment(COINS_PER_INTERVAL),
-                diamondsEarned: increment(DIAMONDS_PER_INTERVAL),
-                lastBilling: serverTimestamp()
-            })
-
-        ]);
+        return;
 
     }
 
-    catch (error) {
+    currentCycle += 1;
 
-        console.error("Billing failed:", error);
+    const result = await billCycle({
+
+        callId,
+        cycleNumber: currentCycle,
+        callerUid,
+        hostUid,
+        callType: "audio",
+        coinsPerInterval: COINS_PER_INTERVAL,
+        diamondsPerInterval: DIAMONDS_PER_INTERVAL,
+        elapsedSeconds: seconds
+
+    });
+
+    if (result.billed) {
+
+        coinsSpentThisCall += COINS_PER_INTERVAL;
+        diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
+        return;
 
     }
+
+    if (result.reason === "insufficient-funds") {
+
+        showLowBalanceModal();
+        return;
+
+    }
+
+    if (result.reason === "call-not-active") {
+
+        // The call already ended (on this side or the other) — stop
+        // trying to bill it.
+        if (billingTimer) { clearInterval(billingTimer); billingTimer = null; }
+
+    }
+
+    // "already-billed" (the other tab won this cycle) and "error"
+    // (safe to retry next tick) both need no action here.
 
 }
 

@@ -11,8 +11,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const verifyRoute = require("./routes/verify");
-const webhookRoute = require("./routes/webhook");
+const debugRoute = require("./routes/debug");
+
 const app = express();
 
 // ------------------------------------------------------
@@ -49,8 +49,76 @@ app.get("/health", (req, res) => {
 
 });
 
-app.use(verifyRoute);
-app.use(webhookRoute);
+// TEMPORARY — see routes/debug.js. Delete this line + the file
+// once your Render env vars are confirmed correct.
+app.use(debugRoute);
+
+// ------------------------------------------------------
+// /verify-payment and /paystack-webhook both need Firebase
+// Admin (via services/firestore.js), which throws immediately
+// if FIREBASE_* env vars are missing/malformed. That require()
+// is wrapped here so a bad credential disables ONLY these two
+// routes with a clear 503 message, instead of crashing the
+// entire process before Express can even start listening —
+// which is what previously made /health and /debug-env
+// unreachable exactly when you needed them to diagnose this.
+// ------------------------------------------------------
+try {
+
+    const verifyRoute = require("./routes/verify");
+    const webhookRoute = require("./routes/webhook");
+
+    app.use(verifyRoute);
+    app.use(webhookRoute);
+
+}
+
+catch (error) {
+
+    console.error("Payment routes disabled — Firebase Admin failed to initialize:", error.message);
+
+    const unavailable = (req, res) => {
+
+        res.status(503).json({
+            error: "server-misconfigured",
+            message: "Payment routes are unavailable: " + error.message
+        });
+
+    };
+
+    app.post("/verify-payment", unavailable);
+    app.post("/paystack-webhook", unavailable);
+
+}
+
+// ------------------------------------------------------
+// /zego-token needs Firebase Admin (for requireFirebaseAuth)
+// same as the payment routes above, so it gets the same
+// try/catch treatment — a missing/bad Firebase credential
+// disables just this route with a clear 503 instead of
+// crashing the whole process.
+// ------------------------------------------------------
+try {
+
+    const zegoRoute = require("./routes/zego");
+    app.use(zegoRoute);
+
+}
+
+catch (error) {
+
+    console.error("Zego route disabled:", error.message);
+
+    app.post("/zego-token", (req, res) => {
+
+        res.status(503).json({
+            error: "server-misconfigured",
+            message: "Call token issuing is unavailable: " + error.message
+        });
+
+    });
+
+}
 
 // ------------------------------------------------------
 // 404 + error handling

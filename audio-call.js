@@ -35,6 +35,8 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+import { joinCall, leaveCall, setMicMuted } from "./zego-call.js";
+
 // ======================================================
 // Config
 // ======================================================
@@ -42,7 +44,6 @@ import {
 const COINS_PER_INTERVAL = 100;
 const DIAMONDS_PER_INTERVAL = 50; // 100 coins spent = 50 diamonds earned
 const INTERVAL_MS = 30000;
-const CONNECT_DELAY_MS = 3000;
 
 // ======================================================
 // Elements
@@ -97,6 +98,9 @@ let speaker = true;
 let wakeLock = null;
 let balanceUnsubscribe = null;
 
+let isCaller = true;
+let statusUnsubscribe = null;
+
 // ======================================================
 // Init
 // ======================================================
@@ -121,6 +125,8 @@ async function init() {
     const params = new URLSearchParams(location.search);
 
     hostUid = params.get("hostUid");
+    const existingCallId = params.get("callId");
+    isCaller = params.get("role") !== "host";
 
     if (!hostUid) {
 
@@ -140,12 +146,40 @@ async function init() {
 
     }
 
-    await createCall();
+    if (isCaller) {
+
+        await createCall();
+
+    }
+
+    else {
+
+        if (!existingCallId) {
+
+            location.href = "host-dashboard.html";
+            return;
+
+        }
+
+        callId = existingCallId;
+
+    }
 
     keepScreenAwake();
     watchBalance();
 
-    startConnecting();
+    if (isCaller) {
+
+        callStatus.textContent = "Ringing…";
+        watchCallStatus();
+
+    }
+
+    else {
+
+        connectRealCall();
+
+    }
 
 }
 
@@ -190,10 +224,11 @@ async function createCall() {
     const ref = await addDoc(collection(db, "calls"), {
 
         callerUid: currentUser.uid,
+        callerName: profile?.username || currentUser.email || "Vivy User",
         hostUid: hostUid,
 
         callType: "audio",
-        status: "connecting",
+        status: "ringing",
 
         startTime: serverTimestamp(),
         duration: 0,
@@ -209,20 +244,88 @@ async function createCall() {
 }
 
 // ======================================================
-// Connecting → Live Call
+// Ringing → real connect (replaces the old simulated timeout)
 // ======================================================
 
-function startConnecting() {
+function watchCallStatus() {
+
+    statusUnsubscribe = onSnapshot(doc(db, "calls", callId), (snap) => {
+
+        if (!snap.exists() || callEnded) return;
+
+        const status = snap.data().status;
+
+        if (status === "accepted") {
+
+            if (statusUnsubscribe) { statusUnsubscribe(); statusUnsubscribe = null; }
+            connectRealCall();
+
+        }
+
+        else if (status === "rejected") {
+
+            showToast("Call declined");
+            endCall("rejected");
+
+        }
+
+    });
+
+}
+
+async function connectRealCall() {
+
+    if (callEnded) return;
 
     callStatus.textContent = "Connecting...";
 
-    setTimeout(beginLiveCall, CONNECT_DELAY_MS);
+    try {
+
+        const idToken = await currentUser.getIdToken();
+
+        await joinCall({
+
+            roomId: callId,
+            firebaseIdToken: idToken,
+            userId: currentUser.uid,
+            userName: profile?.username || currentUser.email || "Vivy User",
+            callType: "audio",
+
+            onLocalStream: () => {
+
+                // Audio-only — no local video element to attach.
+
+            },
+
+            onRemoteJoined: () => {
+
+                beginLiveCall();
+
+            },
+
+            onRemoteLeft: () => {
+
+                endCall("remote_left");
+
+            }
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to join ZEGOCLOUD call:", error);
+        showToast("Couldn't connect the call.");
+        endCall("connect_failed");
+
+    }
 
 }
 
 async function beginLiveCall() {
 
-    if (callEnded) {
+    if (callEnded || callActive) {
 
         return;
 
@@ -451,7 +554,7 @@ function toggleMute() {
     muteBtn.style.opacity = muted ? .5 : 1;
     muteBtn.textContent = muted ? "🔇" : "🎤";
 
-    // ZEGOCLOUD: zg.muteMicrophone(muted);
+    setMicMuted(muted);
 
 }
 
@@ -484,6 +587,9 @@ async function endCall(reason) {
     if (timer) clearInterval(timer);
     if (billingTimer) clearInterval(billingTimer);
     if (balanceUnsubscribe) balanceUnsubscribe();
+    if (statusUnsubscribe) statusUnsubscribe();
+
+    leaveCall();
 
     if (wakeLock) {
 

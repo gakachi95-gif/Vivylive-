@@ -236,7 +236,11 @@ function confirmAction(title, body, action) {
 
 function copyRegistrationLink() {
 
-    const link = `${window.location.origin}/agency-register.html`;
+    // Resolve relative to the current page rather than window.location.origin
+    // alone — on GitHub Pages a project site lives at
+    // https://<user>.github.io/<repo>/..., and origin drops the /<repo>/
+    // part entirely, which produced a 404 straight to the domain root.
+    const link = new URL("agency-register.html", window.location.href).href;
 
     if (navigator.clipboard?.writeText) {
 
@@ -315,4 +319,4 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 
-                                                    }
+}

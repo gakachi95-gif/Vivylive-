@@ -32,6 +32,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 import { getUrlParam, showToast } from "./ui-helpers.js";
+import { joinCall, leaveCall, setMicMuted, setCameraEnabled } from "./zego-call.js";
 
 const COINS_PER_INTERVAL = 100;
 const INTERVAL_SECONDS = 30;
@@ -40,6 +41,11 @@ const MIN_COINS_TO_START = 100;
 const hostUid = getUrlParam("hostUid");
 const callerUid = getUrlParam("callerUid");
 const callType = getUrlParam("callType") === "audio" ? "audio" : "video";
+
+// Both the caller and host land on this page with the same hostUid +
+// callerUid pair, so a deterministic room ID lets each side compute the
+// same ZEGOCLOUD room independently — no separate signaling doc needed.
+const roomId = `vivycall_${[hostUid, callerUid].sort().join("_")}`;
 
 let currentUser = null;
 let isCaller = false;
@@ -151,8 +157,65 @@ async function init() {
 
     }
 
-    // Simulated handshake — swap for a real "both peers joined" signal later.
-    connectingTimeoutId = setTimeout(handleConnected, 1800);
+    connectRealCall();
+
+}
+
+async function connectRealCall() {
+
+    if (callHasEnded) return;
+
+    try {
+
+        const idToken = await currentUser.getIdToken();
+
+        await joinCall({
+
+            roomId,
+            firebaseIdToken: idToken,
+            userId: currentUser.uid,
+            userName: currentUser.email || "Vivy User",
+            callType,
+
+            onLocalStream: (stream) => {
+
+                if (callType !== "video") return;
+
+                const videoEl = document.createElement("video");
+                videoEl.autoplay = true;
+                videoEl.muted = true;
+                videoEl.playsInline = true;
+                videoEl.srcObject = stream;
+                videoEl.style.cssText = "width:100%;height:100%;object-fit:cover;";
+
+                const bg = document.getElementById("callBg");
+                if (bg) { bg.innerHTML = ""; bg.appendChild(videoEl); }
+
+            },
+
+            onRemoteJoined: () => {
+
+                handleConnected();
+
+            },
+
+            onRemoteLeft: () => {
+
+                endCall("remote_left");
+
+            }
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to join ZEGOCLOUD call:", error);
+        showToast("Couldn't connect the call.");
+        endCall("connect_failed");
+
+    }
 
 }
 
@@ -162,13 +225,23 @@ function bindControls() {
         .addEventListener("click", () => endCall("manual"));
 
     document.getElementById("muteBtn")
-        .addEventListener("click", (e) => e.currentTarget.classList.toggle("active-toggle"));
+        .addEventListener("click", (e) => {
+
+            const nowMuted = e.currentTarget.classList.toggle("active-toggle");
+            setMicMuted(nowMuted);
+
+        });
 
     document.getElementById("speakerBtn")
         .addEventListener("click", (e) => e.currentTarget.classList.toggle("active-toggle"));
 
     document.getElementById("videoToggleBtn")
-        .addEventListener("click", (e) => e.currentTarget.classList.toggle("active-toggle"));
+        .addEventListener("click", (e) => {
+
+            const nowOff = e.currentTarget.classList.toggle("active-toggle");
+            setCameraEnabled(!nowOff);
+
+        });
 
     document.getElementById("giftBtn")
         .addEventListener("click", () => {
@@ -184,7 +257,7 @@ function bindControls() {
 
 function handleConnected() {
 
-    if (callHasEnded) {
+    if (callHasEnded || callStartedAt) {
 
         return;
 
@@ -295,6 +368,8 @@ async function endCall(reason) {
 
     if (connectingTimeoutId) clearTimeout(connectingTimeoutId);
     if (timerIntervalId) clearInterval(timerIntervalId);
+
+    leaveCall();
 
     document.getElementById("callControls").style.display = "none";
 

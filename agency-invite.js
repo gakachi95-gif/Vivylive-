@@ -22,7 +22,7 @@ async function init() {
     const { agency } = session;
 
     invitationCode = agency.invitationCode || "";
-    invitationLink = agency.invitationLink || `${window.location.origin}/host-register.html?agency=${invitationCode}`;
+    invitationLink = agency.invitationLink || new URL(`host-register.html?agency=${invitationCode}`, window.location.href).href;
 
     document.getElementById("codeDisplay").textContent = invitationCode || "—";
     document.getElementById("linkDisplay").textContent = invitationLink;
@@ -76,4 +76,4 @@ async function shareInvite() {
 
     }
 
-      }
+}

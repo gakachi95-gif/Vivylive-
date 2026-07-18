@@ -352,8 +352,11 @@ export async function registerAgency(agencyData) {
         generateUniqueInvitationCode()
     ]);
 
+    // Resolve relative to the current page, not window.location.origin alone
+    // — on a GitHub Pages project site the origin drops the /<repo>/ segment,
+    // which produced a 404'ing link straight to the domain root.
     const invitationLink =
-        `${window.location.origin}/host-register.html?agency=${invitationCode}`;
+        new URL(`host-register.html?agency=${invitationCode}`, window.location.href).href;
 
     const agencyDoc = {
 
@@ -413,4 +416,4 @@ export async function getAgencyProfile(uid) {
 
     return snap.data();
 
-}
+            }

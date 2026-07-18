@@ -37,6 +37,8 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+import { joinCall, leaveCall, setMicMuted, setCameraEnabled } from "./zego-call.js";
+
 // ======================================================
 // Config
 // ======================================================
@@ -44,7 +46,6 @@ import {
 const COINS_PER_INTERVAL = 150;
 const DIAMONDS_PER_INTERVAL = 75; // 150 coins spent → 50 diamonds per 100 = 75
 const INTERVAL_MS = 30000;
-const CONNECT_DELAY_MS = 3000;
 
 // ======================================================
 // Elements
@@ -101,6 +102,11 @@ let speakerEnabled = true;
 let wakeLock = null;
 let balanceUnsubscribe = null;
 
+// Whether this browser tab is the one that dialed the call, versus
+// the host tab that opened this page after tapping Accept.
+let isCaller = true;
+let statusUnsubscribe = null;
+
 // ======================================================
 // Init
 // ======================================================
@@ -125,6 +131,8 @@ async function init() {
     const params = new URLSearchParams(location.search);
 
     hostUid = params.get("hostUid");
+    const existingCallId = params.get("callId");
+    isCaller = params.get("role") !== "host";
 
     if (!hostUid) {
 
@@ -145,48 +153,159 @@ async function init() {
     host = snap.data();
     hostNameEl.textContent = host.username || "Host";
 
-    const callRef = await addDoc(collection(db, "calls"), {
+    if (isCaller) {
 
-        callerUid: currentUser.uid,
-        hostUid: hostUid,
+        const callRef = await addDoc(collection(db, "calls"), {
 
-        callType: "video",
-        status: "connecting",
+            callerUid: currentUser.uid,
+            callerName: profile?.username || currentUser.email || "Vivy User",
+            hostUid: hostUid,
 
-        startTime: serverTimestamp(),
-        duration: 0,
+            callType: "video",
+            status: "ringing",
 
-        coinsSpent: 0,
-        hostEarnings: 0,
-        diamondsEarned: 0
+            startTime: serverTimestamp(),
+            duration: 0,
 
-    });
+            coinsSpent: 0,
+            hostEarnings: 0,
+            diamondsEarned: 0
 
-    callId = callRef.id;
+        });
+
+        callId = callRef.id;
+
+    }
+
+    else {
+
+        // This tab is the host, arriving here after tapping Accept in
+        // incoming-call.js — the call doc already exists and is already
+        // marked "accepted", so just read it instead of creating a new one.
+        if (!existingCallId) {
+
+            location.href = "host-dashboard.html";
+            return;
+
+        }
+
+        callId = existingCallId;
+
+    }
 
     bindEvents();
     keepScreenAwake();
     watchBalance();
 
-    connectAnimation();
+    if (isCaller) {
+
+        callStatus.textContent = "Ringing…";
+        watchCallStatus();
+
+    }
+
+    else {
+
+        connectRealCall();
+
+    }
 
 }
 
 // ======================================================
-// Connecting → Live Call
+// Ringing → real connect (replaces the old simulated timeout)
 // ======================================================
 
-function connectAnimation() {
+function watchCallStatus() {
+
+    statusUnsubscribe = onSnapshot(doc(db, "calls", callId), (snap) => {
+
+        if (!snap.exists() || callEnded) return;
+
+        const status = snap.data().status;
+
+        if (status === "accepted") {
+
+            if (statusUnsubscribe) { statusUnsubscribe(); statusUnsubscribe = null; }
+            connectRealCall();
+
+        }
+
+        else if (status === "rejected") {
+
+            showToast("Call declined");
+            endCall("rejected");
+
+        }
+
+    });
+
+}
+
+async function connectRealCall() {
+
+    if (callEnded) return;
 
     callStatus.textContent = "Connecting...";
 
-    setTimeout(beginLiveCall, CONNECT_DELAY_MS);
+    try {
+
+        const idToken = await currentUser.getIdToken();
+
+        await joinCall({
+
+            roomId: callId,
+            firebaseIdToken: idToken,
+            userId: currentUser.uid,
+            userName: profile?.username || currentUser.email || "Vivy User",
+            callType: "video",
+
+            onLocalStream: (stream) => {
+
+                const videoEl = document.createElement("video");
+                videoEl.autoplay = true;
+                videoEl.muted = true;
+                videoEl.playsInline = true;
+                videoEl.srcObject = stream;
+                showLocalPreview(videoEl);
+
+            },
+
+            onRemoteJoined: (stream) => {
+
+                const videoEl = document.createElement("video");
+                videoEl.autoplay = true;
+                videoEl.playsInline = true;
+                videoEl.srcObject = stream;
+                showRemoteVideo(videoEl);
+
+                beginLiveCall();
+
+            },
+
+            onRemoteLeft: () => {
+
+                endCall("remote_left");
+
+            }
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to join ZEGOCLOUD call:", error);
+        showToast("Couldn't connect the call.");
+        endCall("connect_failed");
+
+    }
 
 }
 
 async function beginLiveCall() {
 
-    if (callEnded) {
+    if (callEnded || callActive) {
 
         return;
 
@@ -413,7 +532,7 @@ function toggleMute() {
     muteBtn.classList.toggle("active", muted);
     muteBtn.textContent = muted ? "🔇" : "🎤";
 
-    // ZEGOCLOUD: zg.muteMicrophone(muted);
+    setMicMuted(muted);
 
 }
 
@@ -424,7 +543,7 @@ function toggleCamera() {
     cameraBtn.classList.toggle("active", !cameraEnabled);
     cameraBtn.textContent = cameraEnabled ? "📷" : "🚫";
 
-    // ZEGOCLOUD: zg.enableCamera(cameraEnabled);
+    setCameraEnabled(cameraEnabled);
 
 }
 
@@ -483,6 +602,9 @@ async function endCall(reason) {
     if (timer) clearInterval(timer);
     if (billingTimer) clearInterval(billingTimer);
     if (balanceUnsubscribe) balanceUnsubscribe();
+    if (statusUnsubscribe) statusUnsubscribe();
+
+    leaveCall();
 
     if (wakeLock) {
 

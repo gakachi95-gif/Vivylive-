@@ -29,6 +29,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 let modalEl = null;
+let shownCallId = null;
 
 init();
 
@@ -50,6 +51,15 @@ async function init() {
             if (change.type === "added") {
 
                 showIncomingCall(change.doc.id, change.doc.data());
+
+            }
+
+            else if (change.type === "removed" && change.doc.id === shownCallId) {
+
+                // The caller's own ring timeout fired (or they cancelled)
+                // before this host responded — don't leave a stale
+                // "Incoming Call" modal up for a call that's already gone.
+                hideIncomingCall();
 
             }
 
@@ -99,6 +109,8 @@ function ensureModal() {
 
 function showIncomingCall(callId, call) {
 
+    shownCallId = callId;
+
     const modal = ensureModal();
 
     modal.querySelector("#incomingCallType").textContent = call.callType || "video";
@@ -107,6 +119,7 @@ function showIncomingCall(callId, call) {
 
     modal.querySelector("#incomingAcceptBtn").onclick = async () => {
 
+        shownCallId = null;
         modal.style.display = "none";
 
         try {
@@ -132,6 +145,7 @@ function showIncomingCall(callId, call) {
 
     modal.querySelector("#incomingRejectBtn").onclick = async () => {
 
+        shownCallId = null;
         modal.style.display = "none";
 
         try {
@@ -147,5 +161,13 @@ function showIncomingCall(callId, call) {
         }
 
     };
+
+}
+
+function hideIncomingCall() {
+
+    shownCallId = null;
+
+    if (modalEl) modalEl.style.display = "none";
 
 }

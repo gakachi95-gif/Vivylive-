@@ -30,7 +30,6 @@ import {
     doc,
     getDoc,
     updateDoc,
-    increment,
     addDoc,
     collection,
     onSnapshot,
@@ -38,13 +37,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 import { joinCall, leaveCall, setMicMuted, setCameraEnabled } from "./zego-call.js";
+import { runBillingTick } from "./call-billing.js";
 
 // ======================================================
 // Config
 // ======================================================
 
 const COINS_PER_INTERVAL = 150;
-const DIAMONDS_PER_INTERVAL = 75; // 150 coins spent → 50 diamonds per 100 = 75
+const DIAMONDS_PER_INTERVAL = 50; // final rate: video calls pay 50 Diamonds per 30s, same as audio
 const INTERVAL_MS = 30000;
 
 // ======================================================
@@ -383,34 +383,30 @@ function startBilling() {
 
 async function chargeInterval() {
 
-    coinsSpentThisCall += COINS_PER_INTERVAL;
-    diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
-
     try {
 
-        await Promise.all([
+        const result = await runBillingTick({
+            callId,
+            callerUid: currentUser.uid,
+            hostUid,
+            callType: "video"
+        });
 
-            updateDoc(doc(db, "accounts", currentUser.uid), {
-                coins: increment(-COINS_PER_INTERVAL)
-            }),
+        if (!result.charged) {
 
-            // Hosts are paid in Diamonds, never raw coins — Diamonds
-            // convert to money through the weekly agency payroll.
-            updateDoc(doc(db, "hosts", hostUid), {
-                diamonds: increment(DIAMONDS_PER_INTERVAL),
-                weeklyDiamonds: increment(DIAMONDS_PER_INTERVAL),
-                todayEarnings: increment(DIAMONDS_PER_INTERVAL),
-                totalDiamondsEarned: increment(DIAMONDS_PER_INTERVAL)
-            }),
+            // The transaction itself found the caller short — it wrote
+            // nothing, so nothing needs undoing. This is a safety net
+            // behind the pre-check in startBilling()/watchBalance().
+            showLowBalanceModal();
+            return;
 
-            updateDoc(doc(db, "calls", callId), {
-                coinsSpent: increment(COINS_PER_INTERVAL),
-                hostEarnings: increment(COINS_PER_INTERVAL),
-                diamondsEarned: increment(DIAMONDS_PER_INTERVAL),
-                lastBilling: serverTimestamp()
-            })
+        }
 
-        ]);
+        coinsSpentThisCall += COINS_PER_INTERVAL;
+        diamondsEarnedThisCall += DIAMONDS_PER_INTERVAL;
+
+        currentCoins = result.callerBalanceAfter;
+        coinBalanceEl.textContent = currentCoins.toLocaleString();
 
     }
 

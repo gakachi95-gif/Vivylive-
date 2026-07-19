@@ -100,6 +100,9 @@ let balanceUnsubscribe = null;
 
 let isCaller = true;
 let statusUnsubscribe = null;
+let ringTimeoutId = null;
+
+const RING_TIMEOUT_MS = 40000; // 40s of nobody accepting → auto-end as "no answer"
 
 // ======================================================
 // Init
@@ -249,6 +252,19 @@ async function createCall() {
 
 function watchCallStatus() {
 
+    ringTimeoutId = setTimeout(() => {
+
+        if (callEnded) return;
+
+        if (statusUnsubscribe) { statusUnsubscribe(); statusUnsubscribe = null; }
+
+        updateDoc(doc(db, "calls", callId), { status: "missed" }).catch(() => {});
+
+        showToast("No answer");
+        endCall("no_answer");
+
+    }, RING_TIMEOUT_MS);
+
     statusUnsubscribe = onSnapshot(doc(db, "calls", callId), (snap) => {
 
         if (!snap.exists() || callEnded) return;
@@ -257,6 +273,7 @@ function watchCallStatus() {
 
         if (status === "accepted") {
 
+            if (ringTimeoutId) { clearTimeout(ringTimeoutId); ringTimeoutId = null; }
             if (statusUnsubscribe) { statusUnsubscribe(); statusUnsubscribe = null; }
             connectRealCall();
 
@@ -264,6 +281,7 @@ function watchCallStatus() {
 
         else if (status === "rejected") {
 
+            if (ringTimeoutId) { clearTimeout(ringTimeoutId); ringTimeoutId = null; }
             showToast("Call declined");
             endCall("rejected");
 
@@ -581,6 +599,7 @@ async function endCall(reason) {
     if (billingTimer) clearInterval(billingTimer);
     if (balanceUnsubscribe) balanceUnsubscribe();
     if (statusUnsubscribe) statusUnsubscribe();
+    if (ringTimeoutId) clearTimeout(ringTimeoutId);
 
     leaveCall();
 

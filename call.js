@@ -2,13 +2,20 @@
 // Vivy 💜 Call Screen
 //
 // Business rules (must always hold):
-//   • Caller spends 100 coins every 30s of an ACTIVE (connected) call.
-//   • Host earns 100 coins every 30s of that same active call.
+//   • Caller spends 100 coins (audio) or 150 coins (video) every 30s
+//     of an ACTIVE (connected) call.
+//   • Host earns 50 Diamonds every 30s of that same active call,
+//     regardless of call type — Diamonds convert to money through
+//     the weekly agency payroll (admin-payroll.js), not spendable
+//     directly the way a caller's coins are.
 //   • Deduction starts only once both sides are connected.
 //   • Deduction stops immediately when the call ends.
 //   • If the caller runs out of coins, the call ends automatically
 //     and they're redirected to recharge.html.
-//   • Every completed call is logged to Firestore's "calls" collection.
+//   • Every completed call is logged to Firestore's "calls" collection,
+//     and every individual billing tick is logged to "callBillingLogs"
+//     (see call-billing.js) — both written atomically via a single
+//     Firestore transaction per tick.
 //
 // NOTE ON REAL-TIME SIGNALING: this screen currently *simulates* the
 // connect handshake with a timeout. The economy/logging logic below is
@@ -26,21 +33,22 @@ import {
     doc,
     getDoc,
     updateDoc,
-    increment,
     collection,
     addDoc
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 import { getUrlParam, showToast } from "./ui-helpers.js";
 import { joinCall, leaveCall, setMicMuted, setCameraEnabled } from "./zego-call.js";
+import { runBillingTick, getBillingRate } from "./call-billing.js";
 
-const COINS_PER_INTERVAL = 100;
 const INTERVAL_SECONDS = 30;
-const MIN_COINS_TO_START = 100;
 
 const hostUid = getUrlParam("hostUid");
 const callerUid = getUrlParam("callerUid");
 const callType = getUrlParam("callType") === "audio" ? "audio" : "video";
+
+const BILLING_RATE = getBillingRate(callType); // { coins, diamonds } — 100/50 audio, 150/50 video
+const MIN_COINS_TO_START = BILLING_RATE.coins;
 
 // Both the caller and host land on this page with the same hostUid +
 // callerUid pair, so a deterministic room ID lets each side compute the
@@ -53,6 +61,8 @@ let isCaller = false;
 let callerCoins = 0;
 let hostEarningsThisCall = 0;
 let coinsSpentThisCall = 0;
+let diamondsEarnedThisCall = 0;
+let callId = null;
 
 let elapsedSeconds = 0;
 let timerIntervalId = null;
@@ -265,12 +275,50 @@ function handleConnected() {
 
     callStartedAt = new Date();
 
+    if (isCaller) {
+
+        createCallRecord();
+
+    }
+
     showPanel("connected");
 
     document.getElementById("connectedAvatarWrap").style.display =
         callType === "audio" ? "block" : "none";
 
     timerIntervalId = setInterval(tick, 1000);
+
+}
+
+async function createCallRecord() {
+
+    try {
+
+        const ref = await addDoc(collection(db, "calls"), {
+
+            callerUid,
+            hostUid,
+            callType,
+            status: "active",
+
+            startTime: callStartedAt,
+            duration: 0,
+
+            coinsSpent: 0,
+            hostEarnings: 0,
+            diamondsEarned: 0
+
+        });
+
+        callId = ref.id;
+
+    }
+
+    catch (error) {
+
+        console.error("Failed to create call record:", error);
+
+    }
 
 }
 
@@ -288,7 +336,7 @@ function tick() {
 
     if (elapsedSeconds % INTERVAL_SECONDS === 0) {
 
-        if (callerCoins < COINS_PER_INTERVAL) {
+        if (!callId || callerCoins < BILLING_RATE.coins) {
 
             endCall("insufficient_coins");
             return;
@@ -303,22 +351,28 @@ function tick() {
 
 async function chargeInterval() {
 
-    callerCoins -= COINS_PER_INTERVAL;
-    coinsSpentThisCall += COINS_PER_INTERVAL;
-    hostEarningsThisCall += COINS_PER_INTERVAL;
-
-    updateCoinTicker();
-
     try {
 
-        await Promise.all([
-            updateDoc(doc(db, "accounts", callerUid), {
-                coins: increment(-COINS_PER_INTERVAL)
-            }),
-            updateDoc(doc(db, "hosts", hostUid), {
-                coins: increment(COINS_PER_INTERVAL)
-            })
-        ]);
+        const result = await runBillingTick({
+            callId,
+            callerUid,
+            hostUid,
+            callType
+        });
+
+        if (!result.charged) {
+
+            endCall("insufficient_coins");
+            return;
+
+        }
+
+        callerCoins = result.callerBalanceAfter;
+        coinsSpentThisCall += BILLING_RATE.coins;
+        hostEarningsThisCall += BILLING_RATE.coins;
+        diamondsEarnedThisCall += BILLING_RATE.diamonds;
+
+        updateCoinTicker();
 
     }
 
@@ -388,18 +442,17 @@ async function endCall(reason) {
 
     // Only the caller's client logs the call, so a two-tab scenario
     // (caller + host both on call.html) doesn't write it twice.
-    if (isCaller && callStartedAt) {
+    if (isCaller && callStartedAt && callId) {
 
         try {
 
-            await addDoc(collection(db, "calls"), {
-                callerUid,
-                hostUid,
+            await updateDoc(doc(db, "calls", callId), {
+                status: "ended",
+                endReason: reason,
                 duration: elapsedSeconds,
                 coinsSpent: coinsSpentThisCall,
                 hostEarnings: hostEarningsThisCall,
-                callType,
-                startTime: callStartedAt,
+                diamondsEarned: diamondsEarnedThisCall,
                 endTime: endedAt
             });
 

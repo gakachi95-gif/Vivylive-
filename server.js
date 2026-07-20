@@ -2,7 +2,7 @@
 // Vivy 💜 Server — server.js
 // Express replacement for the Firebase Cloud Functions
 // runtime. Business logic is unchanged (see services/firestore.js
-// and services/paystack.js) — this file only wires HTTP routing,
+// and services/flutterwave.js) — this file only wires HTTP routing,
 // CORS, and body parsing.
 // ======================================================
 
@@ -31,13 +31,13 @@ app.use(cors({
 
 // ------------------------------------------------------
 // Body parsing.
-// /paystack-webhook needs the RAW bytes to verify Paystack's
-// signature, so it gets express.raw() instead of express.json()
-// and is wired up BEFORE the global json parser — Express body
-// parsers only run for routes that haven't already been
-// consumed, so ordering here matters.
+// /flutterwave-webhook needs the RAW bytes to check Flutterwave's
+// verif-hash header, so it gets express.raw() instead of
+// express.json() and is wired up BEFORE the global json parser —
+// Express body parsers only run for routes that haven't already
+// been consumed, so ordering here matters.
 // ------------------------------------------------------
-app.use("/paystack-webhook", express.raw({ type: "application/json" }));
+app.use("/flutterwave-webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 
 // ------------------------------------------------------
@@ -54,7 +54,7 @@ app.get("/health", (req, res) => {
 app.use(debugRoute);
 
 // ------------------------------------------------------
-// /verify-payment and /paystack-webhook both need Firebase
+// /verify-payment and /flutterwave-webhook both need Firebase
 // Admin (via services/firestore.js), which throws immediately
 // if FIREBASE_* env vars are missing/malformed. That require()
 // is wrapped here so a bad credential disables ONLY these two
@@ -87,7 +87,7 @@ catch (error) {
     };
 
     app.post("/verify-payment", unavailable);
-    app.post("/paystack-webhook", unavailable);
+    app.post("/flutterwave-webhook", unavailable);
 
 }
 

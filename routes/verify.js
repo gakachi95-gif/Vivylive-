@@ -1,37 +1,40 @@
 // ======================================================
 // Vivy 💜 Server — POST /verify-payment
 //
-// Direct Express equivalent of the original
-// exports.verifyPaystackTransaction onCall() handler. Same
-// steps, same order, same error semantics — just returned as
-// HTTP status codes instead of thrown HttpsError codes:
-//   unauthenticated      -> 401 (handled by requireFirebaseAuth)
+// Same route, same job as before the Flutterwave migration:
+// take a client-supplied transaction reference, verify it
+// server-side against the gateway's own API, then credit Coins
+// only if that verification succeeds. Only the gateway changed —
+// Flutterwave verifies by numeric transaction_id (not the
+// tx_ref string), so that's what the frontend now sends here.
+//
 //   invalid-argument     -> 400
 //   failed-precondition  -> 422
+//   unauthenticated       -> 401 (handled by requireFirebaseAuth)
 // ======================================================
 
 const express = require("express");
 const { requireFirebaseAuth } = require("../middleware/auth");
 const { asyncHandler } = require("../utils/asyncHandler");
-const { verifyWithPaystack } = require("../services/paystack");
+const { verifyWithFlutterwave } = require("../services/flutterwave");
 const { processVerifiedPayment } = require("../services/firestore");
 
 const router = express.Router();
 
 router.post("/verify-payment", requireFirebaseAuth, asyncHandler(async (req, res) => {
 
-    const reference = req.body?.reference;
+    const transactionId = req.body?.transactionId;
 
-    if (!reference || typeof reference !== "string") {
+    if (!transactionId) {
 
-        return res.status(400).json({ error: "invalid-argument", message: "A payment reference is required." });
+        return res.status(400).json({ error: "invalid-argument", message: "A transactionId is required." });
 
     }
 
     try {
 
-        const paystackData = await verifyWithPaystack(reference);
-        const result = await processVerifiedPayment(paystackData, req.auth.uid);
+        const flutterwaveData = await verifyWithFlutterwave(transactionId);
+        const result = await processVerifiedPayment(flutterwaveData, req.auth.uid);
 
         res.status(200).json(result);
 

@@ -74,8 +74,8 @@ router.get("/debug-env", (req, res) => {
         FIREBASE_PROJECT_ID: inspectPlainVar("FIREBASE_PROJECT_ID"),
         FIREBASE_CLIENT_EMAIL: inspectPlainVar("FIREBASE_CLIENT_EMAIL"),
         FIREBASE_PRIVATE_KEY: inspectPrivateKey(),
-        PAYSTACK_SECRET_KEY_present: !!process.env.PAYSTACK_SECRET_KEY,
-        PAYSTACK_WEBHOOK_SECRET_present: !!process.env.PAYSTACK_WEBHOOK_SECRET
+        FLW_SECRET_KEY_present: !!process.env.FLW_SECRET_KEY,
+        FLW_WEBHOOK_SECRET_HASH_present: !!process.env.FLW_WEBHOOK_SECRET_HASH
     });
 
 });

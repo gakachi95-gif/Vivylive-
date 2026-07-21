@@ -126,90 +126,107 @@ async function init() {
 
     }
 
-    profile = await getCurrentProfile(currentUser.uid);
+    // Bind Back/End Call (and everything else) FIRST, before any
+    // Firestore calls that could throw — a permission error or a
+    // missing doc below must never leave the user stuck on a
+    // screen with dead buttons.
+    bindEvents();
 
-    currentCoins = Number(profile?.coins || 0);
-    coinBalanceEl.textContent = currentCoins.toLocaleString();
+    try {
 
-    const params = new URLSearchParams(location.search);
+        profile = await getCurrentProfile(currentUser.uid);
 
-    hostUid = params.get("hostUid");
-    const existingCallId = params.get("callId");
-    isCaller = params.get("role") !== "host";
+        currentCoins = Number(profile?.coins || 0);
+        coinBalanceEl.textContent = currentCoins.toLocaleString();
 
-    if (!hostUid) {
+        const params = new URLSearchParams(location.search);
 
-        location.href = "user-dashboard.html";
-        return;
+        hostUid = params.get("hostUid");
+        const existingCallId = params.get("callId");
+        isCaller = params.get("role") !== "host";
 
-    }
+        if (!hostUid) {
 
-    const snap = await getDoc(doc(db, "hosts", hostUid));
-
-    if (!snap.exists()) {
-
-        location.href = "user-dashboard.html";
-        return;
-
-    }
-
-    host = snap.data();
-    hostNameEl.textContent = host.username || "Host";
-
-    if (isCaller) {
-
-        const callRef = await addDoc(collection(db, "calls"), {
-
-            callerUid: currentUser.uid,
-            callerName: profile?.username || currentUser.email || "Vivy User",
-            hostUid: hostUid,
-
-            callType: "video",
-            status: "ringing",
-
-            startTime: serverTimestamp(),
-            duration: 0,
-
-            coinsSpent: 0,
-            hostEarnings: 0,
-            diamondsEarned: 0
-
-        });
-
-        callId = callRef.id;
-
-    }
-
-    else {
-
-        // This tab is the host, arriving here after tapping Accept in
-        // incoming-call.js — the call doc already exists and is already
-        // marked "accepted", so just read it instead of creating a new one.
-        if (!existingCallId) {
-
-            location.href = "host-dashboard.html";
+            location.href = "user-dashboard.html";
             return;
 
         }
 
-        callId = existingCallId;
+        const snap = await getDoc(doc(db, "hosts", hostUid));
+
+        if (!snap.exists()) {
+
+            location.href = "user-dashboard.html";
+            return;
+
+        }
+
+        host = snap.data();
+        hostNameEl.textContent = host.username || "Host";
+
+        if (isCaller) {
+
+            const callRef = await addDoc(collection(db, "calls"), {
+
+                callerUid: currentUser.uid,
+                callerName: profile?.username || currentUser.email || "Vivy User",
+                hostUid: hostUid,
+
+                callType: "video",
+                status: "ringing",
+
+                startTime: serverTimestamp(),
+                duration: 0,
+
+                coinsSpent: 0,
+                hostEarnings: 0,
+                diamondsEarned: 0
+
+            });
+
+            callId = callRef.id;
+
+        }
+
+        else {
+
+            // This tab is the host, arriving here after tapping Accept in
+            // incoming-call.js — the call doc already exists and is already
+            // marked "accepted", so just read it instead of creating a new one.
+            if (!existingCallId) {
+
+                location.href = "host-dashboard.html";
+                return;
+
+            }
+
+            callId = existingCallId;
+
+        }
+
+        keepScreenAwake();
+        watchBalance();
+
+        if (isCaller) {
+
+            callStatus.textContent = "Ringing…";
+            watchCallStatus();
+
+        }
+
+        else {
+
+            connectRealCall();
+
+        }
 
     }
 
-    bindEvents();
-    keepScreenAwake();
-    watchBalance();
+    catch (error) {
 
-    if (isCaller) {
-
-        callStatus.textContent = "Ringing…";
-        watchCallStatus();
-
-    }
-
-    else {
-
-        connectRealCall();
+        console.error("Failed to start the call:", error);
+        callStatus.textContent = "Couldn't start the call";
+        showToast("Couldn't start the call — check your connection and try again.");
 
     }
 

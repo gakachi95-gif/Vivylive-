@@ -120,67 +120,83 @@ async function init() {
 
     }
 
-    profile = await getCurrentProfile(currentUser.uid);
-
-    currentCoins = Number(profile?.coins || 0);
-    coinBalanceEl.textContent = currentCoins.toLocaleString();
-
-    const params = new URLSearchParams(location.search);
-
-    hostUid = params.get("hostUid");
-    const existingCallId = params.get("callId");
-    isCaller = params.get("role") !== "host";
-
-    if (!hostUid) {
-
-        alert("No host selected.");
-        location.href = "user-dashboard.html";
-        return;
-
-    }
-
+    // Bind Back/End Call (and everything else) FIRST, before any
+    // Firestore calls that could throw — a permission error or a
+    // missing doc below must never leave the user stuck on a
+    // screen with dead buttons.
     bindEvents();
 
-    const loaded = await loadHost();
+    try {
 
-    if (!loaded) {
+        profile = await getCurrentProfile(currentUser.uid);
 
-        return;
+        currentCoins = Number(profile?.coins || 0);
+        coinBalanceEl.textContent = currentCoins.toLocaleString();
 
-    }
+        const params = new URLSearchParams(location.search);
 
-    if (isCaller) {
+        hostUid = params.get("hostUid");
+        const existingCallId = params.get("callId");
+        isCaller = params.get("role") !== "host";
 
-        await createCall();
+        if (!hostUid) {
 
-    }
-
-    else {
-
-        if (!existingCallId) {
-
-            location.href = "host-dashboard.html";
+            alert("No host selected.");
+            location.href = "user-dashboard.html";
             return;
 
         }
 
-        callId = existingCallId;
+        const loaded = await loadHost();
+
+        if (!loaded) {
+
+            return;
+
+        }
+
+        if (isCaller) {
+
+            await createCall();
+
+        }
+
+        else {
+
+            if (!existingCallId) {
+
+                location.href = "host-dashboard.html";
+                return;
+
+            }
+
+            callId = existingCallId;
+
+        }
+
+        keepScreenAwake();
+        watchBalance();
+
+        if (isCaller) {
+
+            callStatus.textContent = "Ringing…";
+            watchCallStatus();
+
+        }
+
+        else {
+
+            connectRealCall();
+
+        }
 
     }
 
-    keepScreenAwake();
-    watchBalance();
+    catch (error) {
 
-    if (isCaller) {
-
-        callStatus.textContent = "Ringing…";
-        watchCallStatus();
-
-    }
-
-    else {
-
-        connectRealCall();
+        console.error("Failed to start the call:", error);
+        callStatus.textContent = "Couldn't start the call";
+        showToast("Couldn't start the call — check your connection and try again.");
 
     }
 

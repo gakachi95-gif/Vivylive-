@@ -1,7 +1,7 @@
 {
   "name": "vivy-payment-server",
   "version": "1.0.0",
-  "description": "Vivy 💜 payment backend — Express port of the original Firebase Cloud Functions (Paystack verification, webhook, Coin crediting). Deployed on Render; frontend stays on GitHub Pages, auth/data stay on Firebase.",
+  "description": "Vivy 💜 payment backend — Express port of the original Firebase Cloud Functions (Flutterwave verification, webhook, Coin crediting). Deployed on Render; frontend stays on GitHub Pages, auth/data stay on Firebase.",
   "main": "server.js",
   "engines": {
     "node": ">=20.0.0"

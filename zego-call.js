@@ -21,7 +21,14 @@
 // reference) and pin an exact version below if anything drifts.
 // ======================================================
 
-import { ZegoExpressEngine } from "https://cdn.jsdelivr.net/npm/zego-express-engine-webrtc@3/+esm";
+// Loaded via a plain <script> tag in audio-call.html / video-call.html
+// (NOT an ES module import) — the jsDelivr "+esm" auto-conversion of this
+// SDK's UMD bundle was unreliable and, when it failed, silently aborted
+// this entire module before any code ran (no init(), no button listeners,
+// nothing) with zero visible error. Loading the SDK as a classic script
+// sets window.ZegoExpressEngine directly, so this file just reads it off
+// the global instead of importing it.
+const ZegoExpressEngine = window.ZegoExpressEngine;
 
 const ZEGO_APP_ID = 1736781522; // matches server/.env ZEGO_APP_ID
 const ZEGO_TOKEN_ENDPOINT = "https://vivylive-payment.onrender.com/zego-token";
@@ -199,4 +206,4 @@ export async function leaveCall() {
 
     }
 
-}
+                }

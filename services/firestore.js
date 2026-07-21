@@ -1,12 +1,13 @@
 // ======================================================
 // Vivy 💜 Server — Firestore service
 //
-// This is a direct port of processVerifiedPayment() from the
-// original functions/index.js. The business logic — package
-// lookup, idempotent crediting, recharge history shape — is
-// UNCHANGED. Only the runtime around it changed: Firebase Admin
-// now authenticates with a service account loaded from env vars
-// instead of Cloud Functions' automatic credentials.
+// The Coin-crediting logic here — package lookup, idempotent
+// crediting, recharge history shape — is UNCHANGED across the
+// Paystack → Flutterwave migration; only the gateway-specific
+// field names processVerifiedPayment() reads from were updated
+// to Flutterwave's response shape (see the mapping comments
+// inside that function). Firebase Admin still authenticates
+// with a service account loaded from env vars, same as before.
 //
 // Collections touched (same as before, nothing new invented):
 //   - "coinPackages"  (read only  — owned by admin-coins.js)
@@ -18,17 +19,60 @@
 
 const admin = require("firebase-admin");
 
+// ------------------------------------------------------
+// Reads + validates the three service-account env vars before
+// ever handing them to admin.credential.cert(). Cloud Functions
+// used to get these for free; on Render they're plain env vars,
+// and the #1 deploy failure is one of them being missing or a
+// mangled private key — which otherwise surfaces as a useless
+// "Service account object must contain a string 'project_id'
+// property" error deep inside google-auth-library. This throws
+// a message that actually says what to fix instead.
+// ------------------------------------------------------
+function loadServiceAccount() {
+
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+
+    // Render (like most hosts) stores env vars as single-line
+    // strings, so literal "\n" sequences replace real newlines
+    // in the private key — this restores them.
+    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
+
+    const missing = [];
+    if (!projectId) missing.push("FIREBASE_PROJECT_ID");
+    if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
+    if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
+
+    if (missing.length > 0) {
+
+        throw new Error(
+            `Missing Firebase Admin env var(s): ${missing.join(", ")}. ` +
+            "Set these on the Render service under Settings → Environment, using the " +
+            "values from Firebase Console → Project Settings → Service Accounts → " +
+            "Generate new private key."
+        );
+
+    }
+
+    if (!privateKey.includes("BEGIN PRIVATE KEY")) {
+
+        throw new Error(
+            "FIREBASE_PRIVATE_KEY doesn't look like a PEM key (no 'BEGIN PRIVATE KEY' marker). " +
+            "Paste the FULL private_key value from the service account JSON, quotes and all " +
+            "— it should start with -----BEGIN PRIVATE KEY-----."
+        );
+
+    }
+
+    return { projectId, clientEmail, privateKey };
+
+}
+
 if (!admin.apps.length) {
 
     admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            // Render (like most hosts) stores env vars as single-line
-            // strings, so literal "\n" sequences replace real newlines
-            // in the private key — this restores them.
-            privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n")
-        })
+        credential: admin.credential.cert(loadServiceAccount())
     });
 
 }
@@ -36,36 +80,44 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // ======================================================
-// Shared verification + crediting logic — SAME function,
-// SAME behavior as the original Cloud Functions version.
+// Shared verification + crediting logic — SAME idempotent
+// transaction, SAME Firestore fields, SAME collections as
+// before. Only the shape of the incoming gateway data changed
+// (Flutterwave's verify response instead of Paystack's) —
+// mapped to the same normalized fields this function has
+// always expected.
 // Called by both routes/verify.js and routes/webhook.js so a
-// given Paystack reference is only ever credited once, no
-// matter which path reaches it first.
+// given payment is only ever credited once, no matter which
+// path reaches it first.
 // ======================================================
 
-async function processVerifiedPayment(paystackData, expectedUid) {
+async function processVerifiedPayment(flutterwaveData, expectedUid) {
 
-    const reference = paystackData.reference;
+    // Flutterwave's own transaction id (flutterwaveData.id) is only
+    // used to call the verify API — tx_ref is OUR client-generated
+    // reference, and (like Paystack's "reference" before it) doubles
+    // as the idempotency key / "recharges" doc ID.
+    const reference = flutterwaveData.tx_ref;
 
     if (!reference) {
 
-        throw new Error("Paystack response is missing a reference.");
+        throw new Error("Flutterwave response is missing a tx_ref.");
 
     }
 
-    if (paystackData.status !== "success") {
+    if (flutterwaveData.status !== "successful") {
 
         return { credited: false, reason: "not-successful" };
 
     }
 
-    const metadata = paystackData.metadata || {};
+    const metadata = flutterwaveData.meta || {};
     const uid = metadata.uid || expectedUid;
     const packageId = metadata.packageId;
 
     if (!uid || !packageId) {
 
-        throw new Error(`Paystack metadata missing uid/packageId for reference ${reference}.`);
+        throw new Error(`Flutterwave meta missing uid/packageId for tx_ref ${reference}.`);
 
     }
 
@@ -119,11 +171,14 @@ async function processVerifiedPayment(paystackData, expectedUid) {
             bonus: pkg.bonus || 0,
             totalCoins,
             priceUsd: pkg.priceUsd,
-            amountPaid: (paystackData.amount || 0) / 100,
-            currency: paystackData.currency || "USD",
+            // Flutterwave reports amount in whole currency units already
+            // (Paystack reported kobo/cents, hence the old "/ 100") —
+            // this field's meaning ("amount actually paid") is unchanged.
+            amountPaid: flutterwaveData.amount || 0,
+            currency: flutterwaveData.currency || "USD",
             country: metadata.country || null,
             exchangeRateUsed: metadata.exchangeRateUsed || null,
-            gateway: "paystack",
+            gateway: "flutterwave",
             status: "success",
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });

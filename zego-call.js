@@ -21,13 +21,12 @@
 // reference) and pin an exact version below if anything drifts.
 // ======================================================
 
-// Loaded via a plain <script> tag in audio-call.html / video-call.html
-// (NOT an ES module import) — the jsDelivr "+esm" auto-conversion of this
-// SDK's UMD bundle was unreliable and, when it failed, silently aborted
-// this entire module before any code ran (no init(), no button listeners,
-// nothing) with zero visible error. Loading the SDK as a classic script
-// sets window.ZegoExpressEngine directly, so this file just reads it off
-// the global instead of importing it.
+// Loaded via a plain <script> tag in audio-call.html / video-call.html —
+// this is the SDK's own official browser build (dist_js/ZegoExpressWebRTC-3.12.0.js,
+// downloaded from the ZEGOCLOUD console), hosted directly in this repo under
+// /vendor. Unlike the npm package's "index.js" (bundler-only, no browser build)
+// or any third-party CDN's auto-conversion of it, this is ZEGOCLOUD's real UMD
+// build, so it reliably sets window.ZegoExpressEngine when loaded as a script.
 const ZegoExpressEngine = window.ZegoExpressEngine;
 
 const ZEGO_APP_ID = 1736781522; // matches server/.env ZEGO_APP_ID
@@ -206,4 +205,4 @@ export async function leaveCall() {
 
     }
 
-                }
+}

@@ -271,7 +271,7 @@ async function loadRechargeHistory(listEl) {
         listEl.innerHTML = `
             <div class="empty-state">
                 <p>No recharges yet</p>
-                <p style="font-size:0.7rem">Your Paystack recharges will show up here</p>
+                <p style="font-size:0.7rem">Your Flutterwave recharges will show up here</p>
             </div>
         `;
         return;

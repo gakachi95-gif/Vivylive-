@@ -2,8 +2,8 @@
 // Vivy 💜 Admin — Transactions
 // Reads the SAME "recharges" collection every Coin purchase in
 // the app writes to (buy-coins.html / recharge.html / the
-// verifyPaystackPayment Cloud Function) — nothing new, nothing
-// duplicated. Search, filter, and CSV export only.
+// Render backend's /verify-payment and /flutterwave-webhook) —
+// nothing new, nothing duplicated. Search, filter, and CSV export only.
 // ======================================================
 
 import { adminSessionReady } from "./admin-guard.js";
@@ -125,7 +125,7 @@ function buildTxRow(tx) {
     row.innerHTML = `
         <div class="dr-main">
             <div class="dr-title">${escapeHtml(tx.uid || "—")} · ${formatUsd(tx.amountUsd)}${localAmount}</div>
-            <div class="dr-sub">${escapeHtml(tx.gateway || "paystack")} · ${escapeHtml(tx.reference || tx.id)}${date ? ` · ${date.toLocaleDateString()}` : ""}</div>
+            <div class="dr-sub">${escapeHtml(tx.gateway || "flutterwave")} · ${escapeHtml(tx.reference || tx.id)}${date ? ` · ${date.toLocaleDateString()}` : ""}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
             <div class="dr-value">💜 ${formatNumber(tx.totalCoins || tx.coins || 0)}</div>
@@ -158,7 +158,7 @@ function exportCsv() {
             tx.amountLocal ?? "",
             tx.amountUsd ?? "",
             tx.totalCoins || tx.coins || 0,
-            tx.gateway || "paystack",
+            tx.gateway || "flutterwave",
             tx.reference || tx.id,
             tx.status || "pending",
             date

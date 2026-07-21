@@ -84,14 +84,14 @@
         <div class="coin-packages" id="coinPackages"></div>
 
         <p style="font-size:0.7rem;color:var(--text-faint);text-align:center;padding:0 8px">
-            Secure payment powered by Paystack. Coins are added to your balance immediately after payment is confirmed.
+            Secure payment powered by Flutterwave. Coins are added to your balance immediately after payment is confirmed.
         </p>
 
     </div>
 
 </div>
 
-<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://checkout.flutterwave.com/v3.js"></script>
 <script type="module">
 import { authReady } from "./auth-guard.js";
 import { getCurrentProfile } from "./auth-service.js";
@@ -100,24 +100,24 @@ import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.
 import { showToast, goBack, formatNumber, formatUsd } from "./ui-helpers.js";
 
 // ======================================================
-// Paystack public key
+// Flutterwave public key
 // NOTE: this is the PUBLIC key only — safe to expose client-side.
 // The secret key lives only on the Render server
-// (see server/services/paystack.js) and never reaches the browser.
+// (see server/services/flutterwave.js) and never reaches the browser.
 //
-// Packages now come from the SAME "coinPackages" collection
+// Packages come from the SAME "coinPackages" collection
 // admin-coins.js manages and recharge.html reads — this page no
 // longer keeps its own separate hardcoded price list. Crediting
 // is server-verified the same way too (see server/routes/verify.js)
 // instead of trusting the client.
 // ======================================================
-const PAYSTACK_PUBLIC_KEY = "pk_live_fb16be027bb5f97047135db78046d6c9249912b3";
+const FLW_PUBLIC_KEY = "FLWPUBK-b14694405dd2848b497a58383994d28e-X";
 
 // Same Render service recharge.html calls — update after deploying
 // (see render.yaml / server/README notes).
 const PAYMENT_SERVER_URL = "https://vivylive-payment.onrender.com";
 
-async function verifyPaystackTransaction(reference) {
+async function verifyFlutterwaveTransaction(transactionId) {
 
     const idToken = await currentUser.getIdToken();
 
@@ -127,7 +127,7 @@ async function verifyPaystackTransaction(reference) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${idToken}`
         },
-        body: JSON.stringify({ reference })
+        body: JSON.stringify({ transactionId })
     });
 
     const json = await response.json();
@@ -243,10 +243,10 @@ async function renderPackages() {
 }
 
 // ------------------------------------------------------
-// Opens the real Paystack checkout for the tapped package.
-// Coins are ONLY credited once verifyPaystackTransaction (a
-// Cloud Function) has re-verified the reference server-side —
-// tapping a package never credits anything by itself.
+// Opens the real Flutterwave checkout for the tapped package.
+// Coins are ONLY credited once verifyFlutterwaveTransaction (a
+// call to the Render backend) has re-verified the transaction
+// server-side — tapping a package never credits anything by itself.
 // ------------------------------------------------------
 
 function startPayment(pkg, el) {
@@ -256,15 +256,25 @@ function startPayment(pkg, el) {
     el.style.pointerEvents = "none";
     el.style.opacity = "0.6";
 
-    const handler = PaystackPop.setup({
+    FlutterwaveCheckout({
 
-        key: PAYSTACK_PUBLIC_KEY,
-        email: currentUser.email || `${currentUser.uid}@vivy.app`,
-        amount: Math.round(pkg.priceUsd * 100), // smallest currency unit
+        public_key: FLW_PUBLIC_KEY,
+        tx_ref: `vivy_${currentUser.uid}_${Date.now()}`,
+        amount: pkg.priceUsd,
         currency: "USD",
-        ref: `vivy_${currentUser.uid}_${Date.now()}`,
+        payment_options: "card,banktransfer,ussd",
 
-        metadata: {
+        customer: {
+            email: currentUser.email || `${currentUser.uid}@vivy.app`,
+            name: currentProfile?.username || currentUser.email || "Vivy User"
+        },
+
+        customizations: {
+            title: "Vivy Coins",
+            description: `${formatNumber(pkg.coins)} Coins`
+        },
+
+        meta: {
             uid: currentUser.uid,
             packageId: pkg.id,
             country: currentProfile?.country || null,
@@ -277,7 +287,7 @@ function startPayment(pkg, el) {
 
         },
 
-        onClose: () => {
+        onclose: () => {
 
             el.style.pointerEvents = "";
             el.style.opacity = "";
@@ -286,15 +296,13 @@ function startPayment(pkg, el) {
 
     });
 
-    handler.openIframe();
-
 }
 
 async function handlePaymentSuccess(pkg, response, el) {
 
     try {
 
-        const result = await verifyPaystackTransaction(response.reference);
+        const result = await verifyFlutterwaveTransaction(response.transaction_id);
         const totalCoins = result.totalCoins ?? (Number(pkg.coins) + Number(pkg.bonus || 0));
 
         const balanceEl = document.getElementById("coinBalanceAmt");

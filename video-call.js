@@ -666,7 +666,22 @@ async function endCall(reason) {
 
     }
 
-    location.href = reason === "low_balance" ? "recharge.html" : "user-dashboard.html";
+    // Route each side back to its own dashboard. The host tab has no
+    // accounts/{uid} document (hosts live in the separate "hosts"
+    // collection), so sending it to user-dashboard.html was landing the
+    // host on a page that thinks their account is missing — the "logged
+    // out" behavior seen after a failed/ended call.
+    if (!isCaller) {
+
+        location.href = "host-dashboard.html";
+
+    }
+
+    else {
+
+        location.href = reason === "low_balance" ? "recharge.html" : "user-dashboard.html";
+
+    }
 
 }
 

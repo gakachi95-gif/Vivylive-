@@ -297,23 +297,16 @@ async function connectRealCall() {
 
             onLocalStream: (stream) => {
 
-                const videoEl = document.createElement("video");
-                videoEl.autoplay = true;
-                videoEl.muted = true;
-                videoEl.playsInline = true;
-                videoEl.srcObject = stream;
-                showLocalPreview(videoEl);
+                // stream is ZEGOCLOUD's own stream object, not a plain
+                // MediaStream — it renders itself via playVideo(container)
+                // rather than being assigned to a <video>'s .srcObject.
+                stream.playVideo(localVideo, { enableAutoplayDialog: true });
 
             },
 
             onRemoteJoined: (stream) => {
 
-                const videoEl = document.createElement("video");
-                videoEl.autoplay = true;
-                videoEl.playsInline = true;
-                videoEl.srcObject = stream;
-                showRemoteVideo(videoEl);
-
+                stream.playVideo(remoteVideo);
                 beginLiveCall();
 
             },
@@ -331,7 +324,9 @@ async function connectRealCall() {
     catch (error) {
 
         console.error("Failed to join ZEGOCLOUD call:", error);
-        showToast("Couldn't connect the call.");
+
+        const detail = error?.message || error?.errorMessage || String(error);
+        showToast(`Couldn't connect: ${detail}`.slice(0, 120));
         endCall("connect_failed");
 
     }
@@ -593,25 +588,6 @@ function switchCamera() {
 
     // ZEGOCLOUD: zg.useFrontCamera(false);
     console.log("Camera switched");
-
-}
-
-// ======================================================
-// Media stream hooks — call these once ZEGOCLOUD (or any
-// WebRTC layer) is wired in.
-// ======================================================
-
-export function showLocalPreview(streamEl) {
-
-    localVideo.innerHTML = "";
-    localVideo.appendChild(streamEl);
-
-}
-
-export function showRemoteVideo(streamEl) {
-
-    remoteVideo.innerHTML = "";
-    remoteVideo.appendChild(streamEl);
 
 }
 

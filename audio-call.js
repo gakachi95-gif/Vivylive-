@@ -350,7 +350,9 @@ async function connectRealCall() {
     catch (error) {
 
         console.error("Failed to join ZEGOCLOUD call:", error);
-        showToast("Couldn't connect the call.");
+
+        const detail = error?.message || error?.errorMessage || String(error);
+        showToast(`Couldn't connect: ${detail}`.slice(0, 120));
         endCall("connect_failed");
 
     }

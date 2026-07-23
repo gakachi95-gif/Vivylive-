@@ -18,6 +18,7 @@
 
 import { authReady } from "./auth-guard.js";
 import { db } from "./firebase-config.js";
+import { playIncoming, stopRingtone } from "./call-sounds.js";
 import {
     collection,
     query,
@@ -116,11 +117,13 @@ function showIncomingCall(callId, call) {
     modal.querySelector("#incomingCallType").textContent = call.callType || "video";
     modal.querySelector("#incomingCallerName").textContent = call.callerName || "Someone";
     modal.style.display = "flex";
+    playIncoming();
 
     modal.querySelector("#incomingAcceptBtn").onclick = async () => {
 
         shownCallId = null;
         modal.style.display = "none";
+        stopRingtone();
 
         try {
 
@@ -147,6 +150,7 @@ function showIncomingCall(callId, call) {
 
         shownCallId = null;
         modal.style.display = "none";
+        stopRingtone();
 
         try {
 
@@ -169,5 +173,6 @@ function hideIncomingCall() {
     shownCallId = null;
 
     if (modalEl) modalEl.style.display = "none";
+    stopRingtone();
 
 }

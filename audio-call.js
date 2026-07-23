@@ -36,6 +36,7 @@ import {
 
 import { joinCall, leaveCall, setMicMuted } from "./zego-call.js";
 import { runBillingTick } from "./call-billing.js";
+import { playOutgoing, stopRingtone, playConnected, playEnd } from "./call-sounds.js";
 
 // ======================================================
 // Config
@@ -180,6 +181,7 @@ async function init() {
         if (isCaller) {
 
             callStatus.textContent = "Ringing…";
+            playOutgoing();
             watchCallStatus();
 
         }
@@ -276,6 +278,7 @@ function watchCallStatus() {
 
         updateDoc(doc(db, "calls", callId), { status: "missed" }).catch(() => {});
 
+        stopRingtone();
         showToast("No answer");
         endCall("no_answer");
 
@@ -291,6 +294,7 @@ function watchCallStatus() {
 
             if (ringTimeoutId) { clearTimeout(ringTimeoutId); ringTimeoutId = null; }
             if (statusUnsubscribe) { statusUnsubscribe(); statusUnsubscribe = null; }
+            stopRingtone();
             connectRealCall();
 
         }
@@ -298,6 +302,7 @@ function watchCallStatus() {
         else if (status === "rejected") {
 
             if (ringTimeoutId) { clearTimeout(ringTimeoutId); ringTimeoutId = null; }
+            stopRingtone();
             showToast("Call declined");
             endCall("rejected");
 
@@ -370,6 +375,7 @@ async function beginLiveCall() {
     callActive = true;
 
     callStatus.textContent = "Connected 💜";
+    playConnected();
 
     try {
 
@@ -619,6 +625,9 @@ async function endCall(reason) {
     if (statusUnsubscribe) statusUnsubscribe();
     if (ringTimeoutId) clearTimeout(ringTimeoutId);
 
+    stopRingtone();
+    playEnd();
+
     leaveCall();
 
     if (wakeLock) {
@@ -646,6 +655,16 @@ async function endCall(reason) {
     catch (error) {
 
         console.error("Failed to save call record:", error);
+
+    }
+
+    // On a connect failure, give the toast (which carries the actual
+    // error message) a moment to be readable before navigating away —
+    // otherwise the redirect below fires instantly and the reason for
+    // the failure is never actually seen.
+    if (reason === "connect_failed") {
+
+        await new Promise((resolve) => setTimeout(resolve, 3500));
 
     }
 

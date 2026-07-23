@@ -7,7 +7,7 @@
 
 import { hostSessionReady } from "./host-guard.js";
 import { db, storage } from "./firebase-config.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, getDoc, getDocFromServer, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 import { goBack, showToast } from "./ui-helpers.js";
 
@@ -22,6 +22,13 @@ document.getElementById("backBtn").addEventListener("click", () => goBack("host-
 
 document.getElementById("avatarEditBtn").addEventListener("click", () => document.getElementById("avatarInput").click());
 document.getElementById("coverEditBtn").addEventListener("click", () => document.getElementById("coverInput").click());
+
+// The small pencil button is easy to miss/mistap on a phone — make the
+// whole photo tappable too, same target as the edit button.
+avatarPhotoEl.style.cursor = "pointer";
+avatarPhotoEl.addEventListener("click", () => document.getElementById("avatarInput").click());
+coverPhotoEl.style.cursor = "pointer";
+coverPhotoEl.addEventListener("click", () => document.getElementById("coverInput").click());
 
 document.getElementById("avatarInput").addEventListener("change", (e) => {
 
@@ -113,6 +120,24 @@ async function uploadPhoto(file, field, imgEl, maxWidth, maxHeight) {
 
         await updateDoc(doc(db, "hosts", currentUser.uid), { [field]: downloadUrl });
 
+        // Confirm the write actually reached the server — updateDoc()
+        // can resolve successfully from Firestore's local optimistic
+        // cache even when the server rejects the write (e.g. a security
+        // rules denial), which otherwise shows a false "saved" toast
+        // here while the change silently never persists.
+        const serverSnap = await getDocFromServer(doc(db, "hosts", currentUser.uid));
+        const persisted = serverSnap.exists() && serverSnap.data()[field] === downloadUrl;
+
+        if (!persisted) {
+
+            throw new Error(
+                "The upload finished but the server didn't save it — this " +
+                "usually means Firestore's security rules are blocking " +
+                "hosts from writing to their own profile."
+            );
+
+        }
+
         imgEl.src = downloadUrl;
         URL.revokeObjectURL(localPreviewUrl);
 
@@ -155,12 +180,28 @@ async function saveProfile(e) {
 
     try {
 
-        await updateDoc(doc(db, "hosts", currentUser.uid), {
+        const uid = currentUser.uid;
+
+        await updateDoc(doc(db, "hosts", uid), {
             username: displayName,
             bio,
             country,
             languages
         });
+
+        const serverSnap = await getDocFromServer(doc(db, "hosts", uid));
+        const data = serverSnap.exists() ? serverSnap.data() : {};
+        const persisted = data.username === displayName && data.bio === bio && data.country === country;
+
+        if (!persisted) {
+
+            throw new Error(
+                "Saved locally but the server didn't confirm it — this " +
+                "usually means Firestore's security rules are blocking " +
+                "hosts from writing to their own profile."
+            );
+
+        }
 
         showToast("Profile saved 💜");
 

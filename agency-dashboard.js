@@ -67,6 +67,8 @@ function listenForAgencyProfile() {
         const logoEl = document.getElementById("agencyLogo");
         logoEl.src = agency.logoURL || "assets/default-avatar.png";
         logoEl.classList.remove("skeleton");
+        logoEl.style.cursor = "pointer";
+        logoEl.onclick = () => { location.href = "agency-settings.html"; };
 
     }, (error) => {
 

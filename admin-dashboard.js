@@ -43,6 +43,8 @@ async function init() {
     const photoEl = document.getElementById("adminPhoto");
     photoEl.src = session.admin.profilePhoto || "assets/default-avatar.png";
     photoEl.classList.remove("skeleton");
+    photoEl.style.cursor = "pointer";
+    photoEl.onclick = () => { location.href = "admin-settings.html"; };
 
     listenForUserStats();
     listenForHostStats();

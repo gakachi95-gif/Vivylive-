@@ -120,6 +120,8 @@ function render(host) {
     const avatarEl = document.getElementById("hostAvatar");
     avatarEl.src = host.profilePhoto || "assets/default-avatar.png";
     avatarEl.classList.remove("skeleton");
+    avatarEl.style.cursor = "pointer";
+    avatarEl.onclick = () => { location.href = "host-profile.html"; };
 
     const nameEl = document.getElementById("hostUsername");
     nameEl.textContent = host.username || host.fullName || "Host";
